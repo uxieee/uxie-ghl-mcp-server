@@ -1,0 +1,11 @@
+{
+  "name": "ghl-mcp-server",
+  "account_id": "3ce79708257fa1c3646f3c1ca491fe9b",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "migrations": [{ "new_sqlite_classes": ["GHLServer"], "tag": "v1" }],
+  "durable_objects": {
+    "bindings": [{ "class_name": "GHLServer", "name": "MCP_OBJECT" }]
+  }
+}
