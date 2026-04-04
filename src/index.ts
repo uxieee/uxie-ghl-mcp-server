@@ -33,17 +33,18 @@ export class GHLServer extends McpAgent<Env> {
   private apiToken: string = "";
 
   async fetch(request: Request): Promise<Response> {
-    // Extract token from the URL query param (set by the outer fetch handler)
     const url = new URL(request.url);
     const token = url.searchParams.get("_token") || "";
+
+    // [FIX #1] Always overwrite — clear stale tokens when no token in request
+    this.apiToken = token;
+
+    // Strip the token param before passing to MCP handler
     if (token) {
-      this.apiToken = token;
-      // Strip the token from the URL before passing to MCP handler
       url.searchParams.delete("_token");
-      const cleanRequest = new Request(url.toString(), request);
-      return super.fetch(cleanRequest);
     }
-    return super.fetch(request);
+    const cleanRequest = new Request(url.toString(), request);
+    return super.fetch(cleanRequest);
   }
 
   async init() {
@@ -63,7 +64,6 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/mcp") {
-      // Each user must provide their own token via X-GHL-Token header
       const ghlToken = request.headers.get("x-ghl-token") || "";
 
       if (!ghlToken) {
@@ -89,14 +89,11 @@ export default {
         );
       }
 
-      // Pass token to DO via internal URL param (stripped before MCP processing)
+      // Pass token to DO via internal URL param (stripped in DO's fetch override)
+      // Note: this is an internal Worker→DO call, not exposed externally
       const internalUrl = new URL(request.url);
       internalUrl.searchParams.set("_token", ghlToken);
-      const internalRequest = new Request(internalUrl.toString(), {
-        method: request.method,
-        headers: request.headers,
-        body: request.body,
-      });
+      const internalRequest = new Request(internalUrl.toString(), request);
 
       return GHLServer.serve("/mcp").fetch(internalRequest, env, ctx);
     }

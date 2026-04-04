@@ -127,8 +127,8 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     }
   );
 
-  // Destructive methods that require confirmation in safe mode
-  const DESTRUCTIVE_METHODS = new Set(["DELETE", "PUT", "PATCH"]);
+  // Only DELETE requires confirmation — PUT/PATCH are idempotent updates
+  const DESTRUCTIVE_METHODS = new Set(["DELETE"]);
 
   // Tool 3: Execute an action
   server.registerTool(
