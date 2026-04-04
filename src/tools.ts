@@ -130,22 +130,6 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
   // Destructive methods that require confirmation in safe mode
   const DESTRUCTIVE_METHODS = new Set(["DELETE", "PUT", "PATCH"]);
 
-  // Track pending confirmations: action_id -> { params, timestamp }
-  const pendingConfirmations = new Map<
-    string,
-    { params: Record<string, unknown>; timestamp: number }
-  >();
-
-  // Clean up stale confirmations older than 5 minutes
-  function cleanStaleConfirmations() {
-    const now = Date.now();
-    for (const [key, val] of pendingConfirmations) {
-      if (now - val.timestamp > 5 * 60 * 1000) {
-        pendingConfirmations.delete(key);
-      }
-    }
-  }
-
   // Tool 3: Execute an action
   server.registerTool(
     "execute_action",
@@ -216,13 +200,6 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       const isDestructive = DESTRUCTIVE_METHODS.has(action.method.toUpperCase());
 
       if (isDestructive && !confirm) {
-        // Store the pending action for confirmation
-        cleanStaleConfirmations();
-        pendingConfirmations.set(action_id, {
-          params,
-          timestamp: Date.now(),
-        });
-
         const paramSummary = Object.entries(params)
           .map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`)
           .join("\n");
@@ -245,23 +222,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       }
 
-      // If confirming, verify the action was previously previewed
-      if (isDestructive && confirm) {
-        const pending = pendingConfirmations.get(action_id);
-        if (!pending) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text" as const,
-                text: `No pending confirmation for "${action_id.slice(0, 100)}". Call execute_action without confirm=true first to preview the action.`,
-              },
-            ],
-          };
-        }
-        pendingConfirmations.delete(action_id);
-      }
-
+      // confirm=true bypasses safe mode — Claude is responsible for asking the user
       try {
         const result = await executeAction(action, params, apiToken);
 
