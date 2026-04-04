@@ -127,12 +127,31 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     }
   );
 
+  // Destructive methods that require confirmation in safe mode
+  const DESTRUCTIVE_METHODS = new Set(["DELETE", "PUT", "PATCH"]);
+
+  // Track pending confirmations: action_id -> { params, timestamp }
+  const pendingConfirmations = new Map<
+    string,
+    { params: Record<string, unknown>; timestamp: number }
+  >();
+
+  // Clean up stale confirmations older than 5 minutes
+  function cleanStaleConfirmations() {
+    const now = Date.now();
+    for (const [key, val] of pendingConfirmations) {
+      if (now - val.timestamp > 5 * 60 * 1000) {
+        pendingConfirmations.delete(key);
+      }
+    }
+  }
+
   // Tool 3: Execute an action
   server.registerTool(
     "execute_action",
     {
       description:
-        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are passed as a flat object — path params, query params, and body fields are all merged together and routed automatically.",
+        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are passed as a flat object — path params, query params, and body fields are all merged together and routed automatically. For destructive actions (DELETE, PUT, PATCH), you must first call without confirm=true to see what will happen, then call again with confirm=true to execute.",
       inputSchema: {
         action_id: z
           .string()
@@ -145,10 +164,16 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .describe(
             "Parameters object. Include path params (e.g. contactId), query params, and body fields as a flat object."
           ),
+        confirm: z
+          .boolean()
+          .default(false)
+          .describe(
+            "Set to true to confirm a destructive action (DELETE/PUT/PATCH). First call without confirm to preview, then call with confirm=true to execute."
+          ),
       },
       annotations: { openWorldHint: true },
     },
-    async ({ action_id, params }) => {
+    async ({ action_id, params, confirm }) => {
       const apiToken = getToken();
       if (!apiToken) {
         return {
@@ -185,6 +210,56 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
             },
           ],
         };
+      }
+
+      // Safe mode: require confirmation for destructive actions
+      const isDestructive = DESTRUCTIVE_METHODS.has(action.method.toUpperCase());
+
+      if (isDestructive && !confirm) {
+        // Store the pending action for confirmation
+        cleanStaleConfirmations();
+        pendingConfirmations.set(action_id, {
+          params,
+          timestamp: Date.now(),
+        });
+
+        const paramSummary = Object.entries(params)
+          .map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`)
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: [
+                `⚠️ DESTRUCTIVE ACTION — Confirmation required`,
+                ``,
+                `Action: ${action.summary} (${action.method} ${action.path})`,
+                `Category: ${action.category}`,
+                paramSummary ? `Parameters:\n${paramSummary}` : `Parameters: none`,
+                ``,
+                `To execute this action, call execute_action again with the same action_id and params, plus confirm: true.`,
+              ].join("\n"),
+            },
+          ],
+        };
+      }
+
+      // If confirming, verify the action was previously previewed
+      if (isDestructive && confirm) {
+        const pending = pendingConfirmations.get(action_id);
+        if (!pending) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text: `No pending confirmation for "${action_id.slice(0, 100)}". Call execute_action without confirm=true first to preview the action.`,
+              },
+            ],
+          };
+        }
+        pendingConfirmations.delete(action_id);
       }
 
       try {
