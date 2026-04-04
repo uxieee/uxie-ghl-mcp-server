@@ -14,9 +14,6 @@ export interface Env {
   MCP_OBJECT: DurableObjectNamespace;
 }
 
-// Module-level token store — set per-request from header, read by DO
-let pendingToken = "";
-
 export class GHLServer extends McpAgent<Env> {
   server = new McpServer(
     {
@@ -32,13 +29,24 @@ export class GHLServer extends McpAgent<Env> {
     }
   );
 
-  private apiToken: string = "";
   private rateLimiter = new RateLimiter(60_000, 60);
+  private apiToken: string = "";
+
+  async fetch(request: Request): Promise<Response> {
+    // Extract token from the URL query param (set by the outer fetch handler)
+    const url = new URL(request.url);
+    const token = url.searchParams.get("_token") || "";
+    if (token) {
+      this.apiToken = token;
+      // Strip the token from the URL before passing to MCP handler
+      url.searchParams.delete("_token");
+      const cleanRequest = new Request(url.toString(), request);
+      return super.fetch(cleanRequest);
+    }
+    return super.fetch(request);
+  }
 
   async init() {
-    // Token comes from the X-GHL-Token header, passed via pendingToken
-    this.apiToken = pendingToken;
-
     registerTools(this.server, {
       catalog: typedCatalog,
       searchIndex,
@@ -55,7 +63,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/mcp") {
-      // Each user must provide their own token — no shared secrets
+      // Each user must provide their own token via X-GHL-Token header
       const ghlToken = request.headers.get("x-ghl-token") || "";
 
       if (!ghlToken) {
@@ -81,10 +89,16 @@ export default {
         );
       }
 
-      // Store token for DO to pick up in init()
-      pendingToken = ghlToken;
+      // Pass token to DO via internal URL param (stripped before MCP processing)
+      const internalUrl = new URL(request.url);
+      internalUrl.searchParams.set("_token", ghlToken);
+      const internalRequest = new Request(internalUrl.toString(), {
+        method: request.method,
+        headers: request.headers,
+        body: request.body,
+      });
 
-      return GHLServer.serve("/mcp").fetch(request, env, ctx);
+      return GHLServer.serve("/mcp").fetch(internalRequest, env, ctx);
     }
 
     if (url.pathname === "/health") {
