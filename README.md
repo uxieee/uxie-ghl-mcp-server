@@ -27,9 +27,7 @@ associations, blogs, businesses, calendars, campaigns, companies, contacts, conv
 No installation needed. Just add the URL to Claude Code:
 
 ```bash
-claude mcp add ghl-api --transport http \
-  https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp \
-  --header "X-GHL-Token: pit-YOUR-TOKEN-HERE"
+claude mcp add ghl-api --transport http https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp --header "X-GHL-Token: pit-YOUR-TOKEN-HERE"
 ```
 
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
@@ -49,9 +47,7 @@ npm install
 Then add to Claude Code:
 
 ```bash
-claude mcp add ghl-local \
-  -e GHL_API_TOKEN=pit-YOUR-TOKEN-HERE \
-  -- npx tsx src/stdio.ts
+claude mcp add ghl-local -e GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx src/stdio.ts
 ```
 
 ## Getting your GHL token
