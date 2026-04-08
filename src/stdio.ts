@@ -18,6 +18,7 @@ import { dirname, join } from "path";
 import { buildSearchIndex } from "./search.js";
 import { registerTools, buildCatalogData } from "./tools.js";
 import { RateLimiter } from "./rate-limiter.js";
+import { ACTION_TIPS, getSearchBoosts } from "./action-tips.js";
 import type { Catalog } from "./types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -34,7 +35,7 @@ if (!apiToken) {
   process.exit(1);
 }
 
-const searchIndex = buildSearchIndex(typedCatalog.actions);
+const searchIndex = buildSearchIndex(typedCatalog.actions, getSearchBoosts(ACTION_TIPS));
 const { actionById, categorySummary } = buildCatalogData(typedCatalog);
 const rateLimiter = new RateLimiter(60_000, 60);
 
@@ -42,10 +43,16 @@ const server = new McpServer(
   { name: "ghl-mcp-server", version: "0.1.0" },
   {
     instructions: [
-      "GoHighLevel API MCP server with access to all 413 API endpoints.",
-      "Always call search_actions first to discover available actions before executing.",
-      `Available categories: ${typedCatalog.categories.join(", ")}.`,
-    ].join(" "),
+      "GoHighLevel API MCP server — 413 endpoints across 35 categories.",
+      "Flow: search_actions (find the action ID + params) → execute_action (call the API).",
+      "execute_action has built-in response shaping — these are top-level params, NOT inside params:",
+      "  result_filter: search array items by keyword (e.g. find a custom field by name).",
+      "  result_fields: project specific fields (e.g. 'id,name,fieldKey' to reduce response size).",
+      "  result_offset / result_limit: paginate large array responses (e.g. result_limit=10, result_offset=10 for page 2).",
+      "  result_limit=0 returns only the item count without data.",
+      "Rate limit: 60 execute calls per minute.",
+      "Param routing: path params → URL, query params → query string, remainder → request body (based on action schema).",
+    ].join("\n"),
   }
 );
 
@@ -56,6 +63,7 @@ registerTools(server, {
   categorySummary,
   getToken: () => apiToken,
   rateLimiter,
+  actionTips: ACTION_TIPS,
 });
 
 const transport = new StdioServerTransport();

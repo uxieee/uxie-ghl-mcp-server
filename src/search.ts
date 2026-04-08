@@ -18,10 +18,15 @@ export interface SearchIndex {
 
 /**
  * Build the search index once at startup.
+ * @param searchBoosts Extra terms keyed by action ID (from action-tips).
  */
-export function buildSearchIndex(actions: CatalogAction[]): SearchIndex {
+export function buildSearchIndex(
+  actions: CatalogAction[],
+  searchBoosts?: Record<string, string[]>
+): SearchIndex {
   const entries = new Map<string, ActionSearchEntry>();
   for (const action of actions) {
+    const boost = searchBoosts?.[action.id] ?? [];
     entries.set(action.id, {
       actionId: action.id,
       searchable: [
@@ -32,6 +37,7 @@ export function buildSearchIndex(actions: CatalogAction[]): SearchIndex {
         ...action.tags,
         action.method,
         action.path,
+        ...boost,
       ]
         .join(" ")
         .toLowerCase(),

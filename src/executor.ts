@@ -30,13 +30,39 @@ export async function executeAction(
     throw new Error("Invalid action path in catalog");
   }
 
+  // Validate required params are present
+  const missing = action.parameters
+    .filter((p) => p.required && params[p.name] === undefined)
+    .map((p) => `${p.name} (${p.in})`);
+  if (missing.length > 0) {
+    throw new Error(`Missing required parameter(s): ${missing.join(", ")}`);
+  }
+
+  // Detect likely param name typos
+  const knownParamNames = new Set(action.parameters.map((p) => p.name));
+  const bodyProps = getBodySchemaProperties(action);
+  const allKnownNames = new Set([
+    ...knownParamNames,
+    ...(bodyProps ?? []),
+  ]);
+  for (const key of Object.keys(params)) {
+    if (!allKnownNames.has(key)) {
+      // Check for case-insensitive match (common typo: locationid vs locationId)
+      const match = [...allKnownNames].find(
+        (known) => known.toLowerCase() === key.toLowerCase()
+      );
+      if (match) {
+        throw new Error(
+          `Unknown parameter "${key}" — did you mean "${match}"?`
+        );
+      }
+    }
+  }
+
   // Classify params into path, query, and body buckets
   let url = `${GHL_BASE_URL}${action.path}`;
   const queryParams: Record<string, string> = {};
   const usedParams = new Set<string>();
-
-  // Known parameter names from the action definition
-  const knownParamNames = new Set(action.parameters.map((p) => p.name));
 
   // Substitute path parameters
   for (const param of action.parameters) {

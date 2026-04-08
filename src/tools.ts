@@ -3,6 +3,7 @@ import { z } from "zod";
 import { searchActions, SearchIndex } from "./search.js";
 import { executeAction } from "./executor.js";
 import { RateLimiter } from "./rate-limiter.js";
+import type { ActionTip } from "./action-tips.js";
 import type { Catalog, CatalogAction } from "./types.js";
 
 export interface ToolDeps {
@@ -12,10 +13,11 @@ export interface ToolDeps {
   categorySummary: string;
   getToken: () => string;
   rateLimiter: RateLimiter;
+  actionTips: Record<string, ActionTip>;
 }
 
 export function registerTools(server: McpServer, deps: ToolDeps) {
-  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter } = deps;
+  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter, actionTips } = deps;
 
   // Tool 1: List all categories
   server.registerTool(
@@ -55,17 +57,27 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .describe(
             "Filter to a specific category. Use list_categories to see options."
           ),
+        offset: z
+          .number()
+          .int()
+          .min(0)
+          .default(0)
+          .describe("Skip this many results for pagination. Use with limit."),
         limit: z
           .number()
           .int()
           .min(1)
-          .max(25)
+          .max(50)
           .default(10)
           .describe("Max results to return"),
+        compact: z
+          .boolean()
+          .default(false)
+          .describe("When true, return only id/method/path/summary/category per result. Omits parameters, requestBody, and scopes to reduce response size."),
       },
       annotations: { readOnlyHint: true },
     },
-    async ({ intent, category, limit }) => {
+    async ({ intent, category, offset, limit, compact }) => {
       // Validate category if provided
       if (category && !catalog.categories.includes(category)) {
         return {
@@ -83,44 +95,59 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         actions = actions.filter((a) => a.category === category);
       }
 
-      const results = searchActions(searchIndex, actions, intent, limit);
+      const results = searchActions(searchIndex, actions, intent, offset + limit).slice(offset);
+
+      // Cross-category hint: if a category filter is active, check if better results exist elsewhere
+      let crossCategoryHint = "";
+      if (category) {
+        const allResults = searchActions(searchIndex, catalog.actions, intent, 3);
+        const outsideResults = allResults.filter((a) => a.category !== category);
+        if (outsideResults.length > 0) {
+          const hints = outsideResults.map((a) => `${a.id} (${a.category})`);
+          crossCategoryHint = `\n\nAlso found in other categories: ${hints.join(", ")}. Remove the category filter to see them.`;
+        }
+      }
 
       if (results.length === 0) {
+        const msg = category
+          ? `No actions found for "${intent.slice(0, 100)}" in category "${category}".${crossCategoryHint || " Try removing the category filter or using broader keywords."}`
+          : `No actions found for "${intent.slice(0, 100)}". Try broader keywords or use list_categories to browse.`;
         return {
-          content: [
-            {
-              type: "text" as const,
-              text: `No actions found for "${intent.slice(0, 100)}". Try broader keywords or use list_categories to browse.`,
-            },
-          ],
+          content: [{ type: "text" as const, text: msg }],
         };
       }
 
-      const formatted = results.map((a) => ({
-        id: a.id,
-        method: a.method,
-        path: a.path,
-        summary: a.summary,
-        category: a.category,
-        parameters: a.parameters.map((p) => ({
-          name: p.name,
-          in: p.in,
-          required: p.required,
-          type: p.type,
-          description: p.description,
-          ...(p.enum && { enum: p.enum }),
-        })),
-        requestBody: a.requestBody
-          ? { required: a.requestBody.required, schema: a.requestBody.schema }
-          : null,
-        scopes: a.scopes,
-      }));
+      const formatted = results.map((a) => {
+        const tip = actionTips[a.id];
+        return {
+          id: a.id,
+          method: a.method,
+          path: a.path,
+          summary: a.summary,
+          category: a.category,
+          ...(tip?.note && { note: tip.note }),
+          ...(compact ? {} : {
+            parameters: a.parameters.map((p) => ({
+              name: p.name,
+              in: p.in,
+              required: p.required,
+              type: p.type,
+              description: p.description,
+              ...(p.enum && { enum: p.enum }),
+            })),
+            requestBody: a.requestBody
+              ? { required: a.requestBody.required, schema: a.requestBody.schema }
+              : null,
+            scopes: a.scopes,
+          }),
+        };
+      });
 
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(formatted),
+            text: JSON.stringify(formatted) + crossCategoryHint,
           },
         ],
       };
@@ -135,7 +162,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     "execute_action",
     {
       description:
-        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are passed as a flat object — path params, query params, and body fields are all merged together and routed automatically. For destructive actions (DELETE, PUT, PATCH), you must first call without confirm=true to see what will happen, then call again with confirm=true to execute.",
+        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are passed as a flat object — path params, query params, and body fields are all merged together and routed automatically. For destructive actions (DELETE), you must first call without confirm=true to see what will happen, then call again with confirm=true to execute. For large responses: use result_filter to search by keyword, or result_offset/result_limit to paginate.",
       inputSchema: {
         action_id: z
           .string()
@@ -146,18 +173,49 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .record(z.unknown())
           .default({})
           .describe(
-            "Parameters object. Include path params (e.g. contactId), query params, and body fields as a flat object."
+            "GHL API parameters only (path, query, and body fields as a flat object). Do NOT put result_filter, result_fields, result_offset, or result_limit here — those are separate top-level params."
           ),
         confirm: z
           .boolean()
           .default(false)
           .describe(
-            "Set to true to confirm a destructive action (DELETE/PUT/PATCH). First call without confirm to preview, then call with confirm=true to execute."
+            "Set to true to confirm a destructive action (DELETE). First call without confirm to preview, then call with confirm=true to execute."
+          ),
+        result_filter: z
+          .string()
+          .max(100)
+          .optional()
+          .describe(
+            "Filter array results by keyword. Matches against string fields in each item (case-insensitive). Useful for finding specific items in large lists, e.g. searching custom fields by name."
+          ),
+        result_fields: z
+          .string()
+          .max(500)
+          .optional()
+          .describe(
+            "Comma-separated list of fields to keep in each array item. Strips all other properties to reduce response size. E.g. 'id,name,fieldKey' returns only those 3 fields per item."
+          ),
+        result_offset: z
+          .number()
+          .int()
+          .min(0)
+          .default(0)
+          .describe(
+            "Starting index for paginating array responses. Use with result_limit to page through large result sets."
+          ),
+        result_limit: z
+          .number()
+          .int()
+          .min(0)
+          .max(100)
+          .optional()
+          .describe(
+            "Max items to return from array responses. Use 0 for count-only (returns total + field names without data). E.g. result_limit=10 for first page, result_offset=10 result_limit=10 for second page."
           ),
       },
       annotations: { openWorldHint: true },
     },
-    async ({ action_id, params, confirm }) => {
+    async ({ action_id, params, confirm, result_filter, result_fields, result_offset, result_limit }) => {
       const apiToken = getToken();
       if (!apiToken) {
         return {
@@ -222,27 +280,105 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       }
 
+      // LLMs sometimes nest result_* params inside params — rescue them
+      if ("result_filter" in params) {
+        if (!result_filter) result_filter = String(params.result_filter);
+        delete params.result_filter;
+      }
+      if ("result_fields" in params) {
+        if (!result_fields) result_fields = String(params.result_fields);
+        delete params.result_fields;
+      }
+      if ("result_offset" in params) {
+        if (!result_offset) result_offset = Number(params.result_offset) || 0;
+        delete params.result_offset;
+      }
+      if ("result_limit" in params) {
+        if (result_limit == null) {
+          const n = Number(params.result_limit);
+          if (n >= 0) result_limit = n;
+        }
+        delete params.result_limit;
+      }
+
       // confirm=true bypasses safe mode — Claude is responsible for asking the user
       try {
         const result = await executeAction(action, params, apiToken);
 
-        const output =
-          typeof result.data === "string"
-            ? result.data
-            : JSON.stringify(result.data);
+        let data = result.data;
+        let filterLine = "";
+        let pageLine = "";
 
-        const maxLen = 8000;
-        const truncated =
-          output.length > maxLen
-            ? output.slice(0, maxLen) +
-              `\n\n... (truncated, ${output.length} chars total)`
-            : output;
+        // Apply result_filter to narrow array responses
+        if (result_filter && typeof data === "object" && data !== null) {
+          const filtered = filterResponseData(data, result_filter);
+          if (filtered.total > 0) {
+            data = filtered.data;
+            filterLine = `\nFiltered: ${filtered.matched} of ${filtered.total} items matching "${result_filter}"`;
+          }
+        }
+
+        // Apply pagination to slice array responses
+        const needsPagination = result_offset > 0 || result_limit != null;
+        if (needsPagination && typeof data === "object" && data !== null) {
+          // Count-only mode: result_limit=0 returns just the count
+          if (result_limit === 0) {
+            const countInfo = countArrayItems(data);
+            const countResponse = countInfo.total > 0
+              ? `Total items: ${countInfo.total}` + (countInfo.sampleKeys.length > 0 ? `\nFields per item: ${countInfo.sampleKeys.join(", ")}` : "")
+              : JSON.stringify(data);
+            return {
+              content: [{
+                type: "text" as const,
+                text: `${action.method} ${action.path} → ${result.status}${filterLine}\n\n${countResponse}`,
+              }],
+            };
+          }
+
+          const paged = paginateResponseData(data, result_offset, result_limit);
+          if (paged.total > 0) {
+            data = paged.data;
+            const start = paged.offset + 1;
+            const end = paged.offset + paged.showing;
+            pageLine = `\nShowing items ${start}–${end} of ${paged.total}`;
+          }
+        }
+
+        // Apply field projection to reduce item size
+        if (result_fields && typeof data === "object" && data !== null) {
+          data = projectResponseFields(data, result_fields);
+        }
+
+        const header = `${action.method} ${action.path} → ${result.status}${filterLine}${pageLine}\n\n`;
+        const maxOutputLen = 8000 - header.length;
+
+        let output: string;
+        if (typeof data === "string") {
+          output = truncateString(data, maxOutputLen);
+        } else if (needsPagination && pageLine) {
+          // Pagination is active — avoid silent item drops from smart truncation.
+          // Use compact JSON if pretty doesn't fit; only hard-truncate as last resort.
+          const pretty = JSON.stringify(data, null, 2);
+          if (pretty.length <= maxOutputLen) {
+            output = pretty;
+          } else {
+            const compact = JSON.stringify(data);
+            if (compact.length <= maxOutputLen) {
+              output = compact;
+            } else {
+              output = truncateString(compact, maxOutputLen)
+                + `\nTip: use result_fields to reduce item size, or a smaller result_limit.`;
+            }
+          }
+        } else {
+          output = smartStringify(data, maxOutputLen);
+        }
 
         return {
           content: [
             {
               type: "text" as const,
-              text: `${action.method} ${action.path} → ${result.status}\n\n${truncated}`,
+              text: header + output,
             },
           ],
         };
@@ -262,6 +398,235 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     }
   );
 }
+
+// ── Response filtering ─────────────────────────────────────────────
+
+/**
+ * Filter array items in a JSON response by keyword.
+ * Searches all string-valued fields in each item (case-insensitive).
+ */
+function filterResponseData(
+  data: unknown,
+  filter: string
+): { data: unknown; total: number; matched: number } {
+  const term = filter.toLowerCase();
+
+  if (Array.isArray(data)) {
+    const matched = data.filter((item) => itemMatches(item, term));
+    return { data: matched, total: data.length, matched: matched.length };
+  }
+
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    let total = 0;
+    let matched = 0;
+    let foundArray = false;
+
+    for (const [key, val] of Object.entries(obj)) {
+      if (Array.isArray(val)) {
+        foundArray = true;
+        total += val.length;
+        const filtered = val.filter((item) => itemMatches(item, term));
+        matched += filtered.length;
+        result[key] = filtered;
+      } else {
+        result[key] = val;
+      }
+    }
+
+    if (foundArray) return { data: result, total, matched };
+  }
+
+  return { data, total: 0, matched: 0 };
+}
+
+function itemMatches(item: unknown, term: string): boolean {
+  if (typeof item === "string") return item.toLowerCase().includes(term);
+  if (typeof item !== "object" || item === null) return false;
+  return Object.values(item as Record<string, unknown>).some(
+    (val) => typeof val === "string" && val.toLowerCase().includes(term)
+  );
+}
+
+// ── Field projection ──────────────────────────────────────────────
+
+/**
+ * Keep only the specified fields in each array item.
+ * Handles both top-level arrays and objects with array properties.
+ */
+function projectResponseFields(data: unknown, fields: string): unknown {
+  const keys = new Set(fields.split(",").map((f) => f.trim()).filter(Boolean));
+  if (keys.size === 0) return data;
+
+  const project = (item: unknown): unknown => {
+    if (typeof item !== "object" || item === null) return item;
+    const obj = item as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const key of keys) {
+      if (key in obj) result[key] = obj[key];
+    }
+    return result;
+  };
+
+  if (Array.isArray(data)) return data.map(project);
+
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(obj)) {
+      result[key] = Array.isArray(val) ? val.map(project) : val;
+    }
+    return result;
+  }
+
+  return data;
+}
+
+// ── Count-only mode ───────────────────────────────────────────────
+
+/**
+ * Count array items and extract sample field names without returning data.
+ */
+function countArrayItems(data: unknown): { total: number; sampleKeys: string[] } {
+  if (Array.isArray(data)) {
+    const sample = data[0];
+    const keys = typeof sample === "object" && sample !== null ? Object.keys(sample as Record<string, unknown>) : [];
+    return { total: data.length, sampleKeys: keys };
+  }
+
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    for (const val of Object.values(obj)) {
+      if (Array.isArray(val)) {
+        const sample = val[0];
+        const keys = typeof sample === "object" && sample !== null ? Object.keys(sample as Record<string, unknown>) : [];
+        return { total: val.length, sampleKeys: keys };
+      }
+    }
+  }
+
+  return { total: 0, sampleKeys: [] };
+}
+
+// ── Pagination ────────────────────────────────────────────────────
+
+/**
+ * Slice arrays in a response for server-side pagination.
+ * Handles both top-level arrays and objects containing arrays (first array only).
+ */
+function paginateResponseData(
+  data: unknown,
+  offset: number,
+  limit?: number
+): { data: unknown; total: number; showing: number; offset: number } {
+  const slice = (arr: unknown[]) => {
+    const sliced = limit != null
+      ? arr.slice(offset, offset + limit)
+      : arr.slice(offset);
+    return { sliced, total: arr.length };
+  };
+
+  if (Array.isArray(data)) {
+    const { sliced, total } = slice(data);
+    return { data: sliced, total, showing: sliced.length, offset };
+  }
+
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    let paged = false;
+    let total = 0;
+    let showing = 0;
+
+    for (const [key, val] of Object.entries(obj)) {
+      if (Array.isArray(val) && !paged) {
+        paged = true;
+        const { sliced, total: arrTotal } = slice(val);
+        total = arrTotal;
+        showing = sliced.length;
+        result[key] = sliced;
+      } else {
+        result[key] = val;
+      }
+    }
+
+    if (paged) return { data: result, total, showing, offset };
+  }
+
+  return { data, total: 0, showing: 0, offset };
+}
+
+// ── Smart truncation ──────────────────────────────────────────────
+
+function truncateString(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen) + `\n\n... (truncated, ${text.length} chars total)`;
+}
+
+/**
+ * JSON-stringify with array-aware truncation.
+ * Instead of cutting mid-JSON, reduces arrays to fit and reports the count.
+ */
+function smartStringify(data: unknown, maxLen: number): string {
+  const pretty = JSON.stringify(data, null, 2);
+  if (pretty.length <= maxLen) return pretty;
+
+  // Find the first array property and truncate it to fit
+  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+    const obj = data as Record<string, unknown>;
+    for (const [key, val] of Object.entries(obj)) {
+      if (Array.isArray(val) && val.length > 1) {
+        return truncateArrayProp(obj, key, val, maxLen);
+      }
+    }
+  }
+
+  // Top-level array
+  if (Array.isArray(data) && data.length > 1) {
+    const firstSize = JSON.stringify(data[0]).length + 20;
+    const budget = maxLen - 200;
+    let n = Math.min(data.length, Math.max(1, Math.floor(budget / firstSize)));
+    for (; n >= 1; n--) {
+      const text = JSON.stringify(data.slice(0, n), null, 2);
+      const suffix = `\n\n... showing ${n} of ${data.length} items. Use result_filter to search or result_offset/result_limit to paginate.`;
+      if (text.length + suffix.length <= maxLen) return text + suffix;
+    }
+    return truncateString(JSON.stringify(data.slice(0, 1), null, 2), maxLen);
+  }
+
+  // Fallback: hard truncation (pretty already computed above)
+  return truncateString(pretty, maxLen);
+}
+
+function truncateArrayProp(
+  obj: Record<string, unknown>,
+  key: string,
+  arr: unknown[],
+  maxLen: number
+): string {
+  // Estimate how many items fit based on first item size
+  const firstSize = JSON.stringify(arr[0]).length + 20;
+  const budget = maxLen - 200; // reserve for wrapper + message
+  let n = Math.min(arr.length, Math.max(1, Math.floor(budget / firstSize)));
+
+  // Adjust down until it fits
+  for (; n >= 1; n--) {
+    const trial = { ...obj, [key]: arr.slice(0, n) };
+    const text = JSON.stringify(trial, null, 2);
+    const suffix = `\n\n... showing ${n} of ${arr.length} items in "${key}". Use result_filter to search or result_offset/result_limit to paginate.`;
+    if (text.length + suffix.length <= maxLen) {
+      return text + suffix;
+    }
+  }
+
+  // Even 1 item doesn't fit — hard truncate
+  const single = { ...obj, [key]: arr.slice(0, 1) };
+  const text = JSON.stringify(single, null, 2);
+  return truncateString(text, maxLen);
+}
+
+// ── Catalog helpers ───────────────────────────────────────────────
 
 /**
  * Pre-compute shared catalog data structures.
