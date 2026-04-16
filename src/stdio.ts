@@ -8,6 +8,9 @@
  *
  * Or in Claude Code:
  *   claude mcp add ghl-local -e GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts
+ *
+ * Or in Codex CLI:
+ *   codex mcp add ghl-local --env GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,9 +31,12 @@ const typedCatalog: Catalog = JSON.parse(readFileSync(catalogPath, "utf-8"));
 const apiToken = process.env.GHL_API_TOKEN || "";
 if (!apiToken) {
   console.error("Error: GHL_API_TOKEN environment variable is required.");
-  console.error("Set it when adding to Claude Code:");
+  console.error("Set it when adding to Claude Code or Codex CLI:");
   console.error(
     "  claude mcp add ghl -e GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts"
+  );
+  console.error(
+    "  codex mcp add ghl --env GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts"
   );
   process.exit(1);
 }

@@ -72,13 +72,16 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/mcp") {
-      const ghlToken = request.headers.get("x-ghl-token") || "";
+      const authHeader = request.headers.get("authorization") || "";
+      const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+      const bearerToken = bearerMatch?.[1]?.trim() || "";
+      const ghlToken = request.headers.get("x-ghl-token") || bearerToken;
 
       if (!ghlToken) {
         return new Response(
           JSON.stringify({
             error:
-              "Missing authentication. Provide your GHL Private Integration Token via the X-GHL-Token header.",
+              "Missing authentication. Provide your GHL Private Integration Token via the X-GHL-Token header or Authorization: Bearer <token>.",
           }),
           {
             status: 401,

@@ -223,7 +223,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           content: [
             {
               type: "text" as const,
-              text: "No GHL API token found. Pass your token via the X-GHL-Token header (remote) or GHL_API_TOKEN env var (local).",
+              text: "No GHL API token found. Pass your token via the X-GHL-Token header, Authorization: Bearer <token> (remote), or GHL_API_TOKEN env var (local).",
             },
           ],
         };

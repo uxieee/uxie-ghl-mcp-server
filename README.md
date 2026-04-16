@@ -14,7 +14,7 @@ Instead of registering 413 individual tools (which would flood the LLM's context
 | `search_actions` | Find actions by natural language (e.g., "create a contact") |
 | `execute_action` | Run any action by ID with params |
 
-Claude searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 413 endpoints with just 3 tools.
+Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 413 endpoints with just 3 tools.
 
 ## Categories covered
 
@@ -24,15 +24,39 @@ associations, blogs, businesses, calendars, campaigns, companies, contacts, conv
 
 ### Option A: Remote (Cloudflare Workers)
 
-No installation needed. Just add the URL to Claude Code:
+No installation needed.
+
+Add it to Claude Code:
 
 ```bash
 claude mcp add uxie-ghl-mcp --transport http https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp --header "X-GHL-Token: pit-YOUR-TOKEN-HERE"
 ```
 
+Add it to Codex CLI:
+
+```bash
+codex mcp add uxie-ghl-mcp --url https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp --bearer-token-env-var GHL_API_TOKEN
+```
+
+For a repo-local Codex setup, create `.codex/config.toml` in this repo instead of using the global `codex mcp add` command:
+
+```toml
+[mcp_servers.uxie_ghl]
+url = "https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp"
+bearer_token_env_var = "GHL_API_TOKEN"
+```
+
+Then set your token in the shell before starting Codex:
+
+```bash
+export GHL_API_TOKEN=pit-YOUR-TOKEN-HERE
+```
+
+This config is repo-local: Codex will load this MCP server only when it is opened in the same local repository that contains this `.codex/config.toml` file. If you add that file to a different repo, it applies there instead.
+
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
 
-Each user passes their own GHL Private Integration Token via the `X-GHL-Token` header. No tokens are stored on the server.
+Each user passes their own GHL Private Integration Token via the `X-GHL-Token` header or `Authorization: Bearer <token>`. No tokens are stored on the server.
 
 ### Option B: Local (stdio)
 
@@ -50,6 +74,12 @@ Then add to Claude Code:
 claude mcp add uxie-ghl-mcp -e GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx src/stdio.ts
 ```
 
+Or add to Codex CLI:
+
+```bash
+codex mcp add uxie-ghl-mcp --env GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx src/stdio.ts
+```
+
 ## Getting your GHL token
 
 1. Log into GoHighLevel
@@ -60,7 +90,7 @@ claude mcp add uxie-ghl-mcp -e GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx src/
 
 ## Usage examples
 
-Once connected, just ask Claude naturally:
+Once connected, just ask Claude or Codex naturally:
 
 - "List all my GHL contacts"
 - "Create a new contact named John Doe with email john@example.com"
@@ -69,7 +99,7 @@ Once connected, just ask Claude naturally:
 - "List all invoices from this month"
 - "Get my calendar events for today"
 
-Claude will automatically search for the right action, get the parameters, and execute it.
+Your MCP client will automatically search for the right action, get the parameters, and execute it.
 
 ## Self-hosting
 
@@ -96,7 +126,7 @@ npx wrangler deploy     # Redeploy with updated catalog
 ## Architecture
 
 ```
-Claude ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
+Claude / Codex ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
                     │
                     ├── search_actions (keyword search over 413-action catalog)
                     ├── execute_action (builds HTTP request, calls GHL, returns response)
@@ -105,7 +135,7 @@ Claude ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
 
 - **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs)
 - **Search**: Pre-computed keyword index built at startup
-- **Auth**: Per-user tokens via `X-GHL-Token` header (remote) or `GHL_API_TOKEN` env var (local)
+- **Auth**: Per-user tokens via `X-GHL-Token` or `Authorization: Bearer <token>` (remote), or `GHL_API_TOKEN` env var (local)
 - **Rate limiting**: 60 execute calls per minute per session
 - **Error handling**: GHL errors sanitized before returning to LLM
 - **Security**: SSRF protection, body size limits, input validation, method allowlisting
