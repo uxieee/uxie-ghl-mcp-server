@@ -7,7 +7,9 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "start:local": "tsx src/stdio.ts",
-    "build-catalog": "tsx scripts/build-catalog.ts"
+    "build-catalog": "tsx scripts/build-catalog.ts",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

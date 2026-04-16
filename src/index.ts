@@ -4,10 +4,11 @@ import { buildSearchIndex } from "./search.js";
 import { registerTools, buildCatalogData } from "./tools.js";
 import { RateLimiter } from "./rate-limiter.js";
 import { ACTION_TIPS, getSearchBoosts } from "./action-tips.js";
+import { applyCatalogOverrides } from "./catalog-overrides.js";
 import catalog from "../data/catalog.json";
 import type { Catalog } from "./types.js";
 
-const typedCatalog = catalog as unknown as Catalog;
+const typedCatalog = applyCatalogOverrides(catalog as unknown as Catalog);
 const searchIndex = buildSearchIndex(typedCatalog.actions, getSearchBoosts(ACTION_TIPS));
 const { actionById, categorySummary } = buildCatalogData(typedCatalog);
 
@@ -30,8 +31,11 @@ export class GHLServer extends McpAgent<Env> {
         "  result_fields: project specific fields (e.g. 'id,name,fieldKey' to reduce response size).",
         "  result_offset / result_limit: paginate large array responses (e.g. result_limit=10, result_offset=10 for page 2).",
         "  result_limit=0 returns only the item count without data.",
+        "  search_actions also accepts include_all=true with a category to enumerate every action in that category.",
         "Rate limit: 60 execute calls per minute.",
-        "Param routing: path params → URL, query params → query string, remainder → request body (based on action schema).",
+        "Param routing: path params → URL, query params → query string, remainder → request body. Undocumented but valid body keys are passed through to GHL so OpenAPI spec gaps do not block valid requests.",
+        "Known public-API gaps such as Conversation AI bot configs, workflow builder internals, and pipeline creation are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints.",
+        "For commerce setup, GHL's products__* and payments__* endpoints are the source of truth. Stripe is the underlying rail, but direct Stripe API access is usually not needed.",
       ].join("\n"),
     }
   );

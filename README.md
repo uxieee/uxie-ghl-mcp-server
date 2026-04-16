@@ -11,10 +11,16 @@ Instead of registering 413 individual tools (which would flood the LLM's context
 | Tool | What it does |
 |------|-------------|
 | `list_categories` | Browse all 35 API categories with action counts |
-| `search_actions` | Find actions by natural language (e.g., "create a contact") |
-| `execute_action` | Run any action by ID with params |
+| `search_actions` | Find actions by natural language, or enumerate every action in one category with `include_all=true` |
+| `execute_action` | Run any action by ID with params, plus response shaping via `result_filter`, `result_fields`, `result_offset`, and `result_limit` |
 
 Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 413 endpoints with just 3 tools.
+
+This server is tuned for LLM usage:
+
+- `search_actions` surfaces known GHL public-API gaps directly so the model does not keep searching for UI-only features.
+- `execute_action` passes through undocumented but valid body keys to GHL so spec mismatches do not block working requests.
+- `result_filter` searches nested strings inside arrays and objects, which makes tags and similar fields much easier to work with.
 
 ## Categories covered
 
@@ -38,7 +44,7 @@ Add it to Codex CLI:
 codex mcp add uxie-ghl-mcp --url https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp --bearer-token-env-var GHL_API_TOKEN
 ```
 
-For a repo-local Codex setup, create `.codex/config.toml` in this repo instead of using the global `codex mcp add` command:
+If you want Codex to load this MCP only inside one local project, add a `.codex/config.toml` file in that project instead of using the global `codex mcp add` command:
 
 ```toml
 [mcp_servers.uxie_ghl]
@@ -52,7 +58,7 @@ Then set your token in the shell before starting Codex:
 export GHL_API_TOKEN=pit-YOUR-TOKEN-HERE
 ```
 
-This config is repo-local: Codex will load this MCP server only when it is opened in the same local repository that contains this `.codex/config.toml` file. If you add that file to a different repo, it applies there instead.
+This is project-local. Codex will load this MCP only in the local repo that contains that `.codex/config.toml` file.
 
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
 
@@ -63,7 +69,7 @@ Each user passes their own GHL Private Integration Token via the `X-GHL-Token` h
 Run on your machine — your token never leaves your device.
 
 ```bash
-git clone https://github.com/uxie/uxie-ghl-mcp-server.git
+git clone https://github.com/uxieee/uxie-ghl-mcp-server.git
 cd uxie-ghl-mcp-server
 npm install
 ```
@@ -101,6 +107,26 @@ Once connected, just ask Claude or Codex naturally:
 
 Your MCP client will automatically search for the right action, get the parameters, and execute it.
 
+If you need every action inside a category instead of ranked matches, use `search_actions` with `category` plus `include_all=true`.
+
+## Known Public-API Gaps
+
+These are GHL platform limitations, not bugs in this MCP server. The server now tries to surface them explicitly in search results and action notes so an LLM can stop early instead of repeatedly hunting for endpoints that do not exist.
+
+- **Conversation AI bots**: the public GHL API does not expose listing, reading, or updating Conversation AI bot configs, prompts, knowledge bases, or transfer rules. `voice-ai__*` endpoints are for Voice AI, not Conversation AI.
+- **Workflow internals**: `workflows__get-workflow` is a minimal read-only list. Workflow triggers, steps, conditions, and AI-agent usage remain UI-only.
+- **Pipelines and stages**: `opportunities__get-pipelines` is read-only. Creating or editing pipeline containers and stages still has to be done in the GHL UI.
+- **SMS/email template creation**: the public API can list or delete templates, but template creation is still UI-only.
+- **Contact/opportunity custom-field folders**: folder containers must be created in the GHL UI. Once a folder exists, fields can be assigned or moved with `parentId` on `locations__create-custom-field` and `locations__update-custom-field`.
+- **Sub-account security settings**: sender domains, A2P registration, and webhook signing keys are UI-only.
+
+## Helpful Usage Notes
+
+- **Conversation history for a contact**: use `conversations__search-conversation` to find the thread, then `conversations__get-messages` with the returned `conversationId`.
+- **Custom-field option lists**: for location custom-field create/update, use `options: ["A", "B"]` for SINGLE_OPTIONS, MULTIPLE_OPTIONS, RADIO, and CHECKBOX fields. The upstream OpenAPI spec may still mention `textBoxListOptions`, but GHL validates `options`.
+- **Commerce setup**: use GHL's `products__*` and `payments__*` endpoints as the source of truth. Stripe IDs may appear in payloads, but direct Stripe API access is usually not needed for normal GHL sub-account setup.
+- **Full category enumeration**: if ranked search is too narrow, call `search_actions` with `category` plus `include_all=true` to page through every action in that category.
+
 ## Self-hosting
 
 Want to deploy your own instance? Fork this repo and:
@@ -134,6 +160,7 @@ Claude / Codex ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
 ```
 
 - **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs)
+- **Catalog overrides**: Runtime patches correct a few high-value spec mismatches such as `parentId` / `options` on location custom fields
 - **Search**: Pre-computed keyword index built at startup
 - **Auth**: Per-user tokens via `X-GHL-Token` or `Authorization: Bearer <token>` (remote), or `GHL_API_TOKEN` env var (local)
 - **Rate limiting**: 60 execute calls per minute per session
@@ -157,6 +184,7 @@ src/
   index.ts          Cloudflare Worker entry point (remote HTTP)
   stdio.ts          Local stdio entry point
   tools.ts          Shared tool registration (search, execute, list)
+  catalog-overrides.ts  Runtime fixes for known OpenAPI/catalog mismatches
   executor.ts       HTTP request builder + GHL API caller
   search.ts         Pre-computed keyword search index
   rate-limiter.ts   Fixed-window rate limiter
@@ -166,6 +194,8 @@ scripts/
   test-all-endpoints.ts  Full endpoint test suite
 data/
   catalog.json      Auto-generated action catalog (413 actions)
+tests/
+  ghl-mcp-server.test.ts  Regression tests for MCP behavior and LLM-facing guidance
 ```
 
 ## License

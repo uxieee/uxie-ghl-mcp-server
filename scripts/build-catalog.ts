@@ -5,6 +5,8 @@
  * Usage: npx tsx scripts/build-catalog.ts
  */
 
+import { applyCatalogOverrides } from "../src/catalog-overrides.js";
+
 const REPO = "GoHighLevel/highlevel-api-docs";
 const BRANCH = "main";
 const APPS_DIR = "apps";
@@ -201,13 +203,14 @@ async function main() {
   }
 
   // Build the catalog
-  const catalog = {
+  const rawCatalog = {
     generatedAt: new Date().toISOString(),
     baseUrl: "https://services.leadconnectorhq.com",
     totalActions: allActions.length,
     categories: [...new Set(allActions.map((a) => a.category))].sort(),
     actions: allActions,
   };
+  const catalog = applyCatalogOverrides(rawCatalog);
 
   const outPath = new URL("../data/catalog.json", import.meta.url);
   const { writeFileSync } = await import("fs");

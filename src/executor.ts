@@ -100,19 +100,16 @@ export async function executeAction(
     headers["Version"] = action.versionHeader;
   }
 
-  // Build request body — only include keys declared in the action's schema
+  // Build request body.
+  // Pass through all remaining keys so bad upstream OpenAPI schemas do not block
+  // valid GHL requests such as `parentId` or `options`.
   let body: string | undefined;
   if (["POST", "PUT", "PATCH"].includes(method)) {
     const bodyParams: Record<string, unknown> = {};
-    const bodySchemaProps = getBodySchemaProperties(action);
 
     for (const [key, val] of Object.entries(params)) {
       if (usedParams.has(key)) continue;
-      // Only include params that are either in the body schema or are known params
-      if (bodySchemaProps === null || bodySchemaProps.has(key) || knownParamNames.has(key)) {
-        bodyParams[key] = val;
-      }
-      // Unknown params are silently dropped for safety
+      bodyParams[key] = val;
     }
     if (Object.keys(bodyParams).length > 0) {
       headers["Content-Type"] =
@@ -177,7 +174,7 @@ export async function executeAction(
 
 /**
  * Extract known property names from an action's request body schema.
- * Returns null if no schema is defined (allows all params through).
+ * Used only for typo hints — valid extra keys still pass through at runtime.
  */
 function getBodySchemaProperties(action: CatalogAction): Set<string> | null {
   const schema = action.requestBody?.schema;

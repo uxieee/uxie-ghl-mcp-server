@@ -70,6 +70,10 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .max(50)
           .default(10)
           .describe("Max results to return"),
+        include_all: z
+          .boolean()
+          .default(false)
+          .describe("When true and category is provided, return every action in that category (paginated by offset/limit) instead of relevance-ranked matches."),
         compact: z
           .boolean()
           .default(false)
@@ -77,7 +81,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       },
       annotations: { readOnlyHint: true },
     },
-    async ({ intent, category, offset, limit, compact }) => {
+    async ({ intent, category, offset, limit, include_all, compact }) => {
       // Validate category if provided
       if (category && !catalog.categories.includes(category)) {
         return {
@@ -90,16 +94,34 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       }
 
+      if (include_all && !category) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: "include_all=true requires a category so the result set stays bounded. Use list_categories first, then pass category plus include_all=true.",
+            },
+          ],
+        };
+      }
+
       let actions = catalog.actions;
       if (category) {
         actions = actions.filter((a) => a.category === category);
       }
 
-      const results = searchActions(searchIndex, actions, intent, offset + limit).slice(offset);
+      const allCategoryActions = include_all
+        ? actions
+            .slice()
+            .sort((a, b) => a.id.localeCompare(b.id))
+        : [];
+      const results = include_all
+        ? allCategoryActions.slice(offset, offset + limit)
+        : searchActions(searchIndex, actions, intent, offset + limit).slice(offset);
 
       // Cross-category hint: if a category filter is active, check if better results exist elsewhere
       let crossCategoryHint = "";
-      if (category) {
+      if (category && !include_all) {
         const allResults = searchActions(searchIndex, catalog.actions, intent, 3);
         const outsideResults = allResults.filter((a) => a.category !== category);
         if (outsideResults.length > 0) {
@@ -108,12 +130,23 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         }
       }
 
+      const guidance = formatGuidanceNotes(
+        buildIntentGuidance(intent, category, results)
+      );
+
+      const includeAllHint =
+        include_all && category
+          ? formatGuidanceNotes([
+              `Showing ${results.length} action(s) from category "${category}"${allCategoryActions.length > results.length ? ` (use offset=${offset + results.length} to continue through ${allCategoryActions.length} total actions)` : ""}.`,
+            ])
+          : "";
+
       if (results.length === 0) {
         const msg = category
           ? `No actions found for "${intent.slice(0, 100)}" in category "${category}".${crossCategoryHint || " Try removing the category filter or using broader keywords."}`
           : `No actions found for "${intent.slice(0, 100)}". Try broader keywords or use list_categories to browse.`;
         return {
-          content: [{ type: "text" as const, text: msg }],
+          content: [{ type: "text" as const, text: msg + guidance }],
         };
       }
 
@@ -147,7 +180,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(formatted) + crossCategoryHint,
+            text: JSON.stringify(formatted) + includeAllHint + guidance + crossCategoryHint,
           },
         ],
       };
@@ -308,6 +341,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         let data = result.data;
         let filterLine = "";
         let pageLine = "";
+        const actionNote = actionTips[action.id]?.note;
 
         // Apply result_filter to narrow array responses
         if (result_filter && typeof data === "object" && data !== null) {
@@ -330,7 +364,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
             return {
               content: [{
                 type: "text" as const,
-                text: `${action.method} ${action.path} → ${result.status}${filterLine}\n\n${countResponse}`,
+                text: buildResponseHeader(action.method, action.path, result.status, actionNote, filterLine, "") + countResponse,
               }],
             };
           }
@@ -349,7 +383,14 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           data = projectResponseFields(data, result_fields);
         }
 
-        const header = `${action.method} ${action.path} → ${result.status}${filterLine}${pageLine}\n\n`;
+        const header = buildResponseHeader(
+          action.method,
+          action.path,
+          result.status,
+          actionNote,
+          filterLine,
+          pageLine
+        );
         const maxOutputLen = 8000 - header.length;
 
         let output: string;
@@ -442,10 +483,18 @@ function filterResponseData(
 }
 
 function itemMatches(item: unknown, term: string): boolean {
-  if (typeof item === "string") return item.toLowerCase().includes(term);
-  if (typeof item !== "object" || item === null) return false;
-  return Object.values(item as Record<string, unknown>).some(
-    (val) => typeof val === "string" && val.toLowerCase().includes(term)
+  return valueMatches(item, term, 0);
+}
+
+function valueMatches(value: unknown, term: string, depth: number): boolean {
+  if (depth > 6) return false;
+  if (typeof value === "string") return value.toLowerCase().includes(term);
+  if (Array.isArray(value)) {
+    return value.some((entry) => valueMatches(entry, term, depth + 1));
+  }
+  if (typeof value !== "object" || value === null) return false;
+  return Object.values(value as Record<string, unknown>).some((entry) =>
+    valueMatches(entry, term, depth + 1)
   );
 }
 
@@ -589,7 +638,7 @@ function smartStringify(data: unknown, maxLen: number): string {
     let n = Math.min(data.length, Math.max(1, Math.floor(budget / firstSize)));
     for (; n >= 1; n--) {
       const text = JSON.stringify(data.slice(0, n), null, 2);
-      const suffix = `\n\n... showing ${n} of ${data.length} items. Use result_filter to search or result_offset/result_limit to paginate.`;
+      const suffix = `\n\n... showing ${n} of ${data.length} items. Use result_offset=${n} to continue, or result_filter/result_limit to refine the page.`;
       if (text.length + suffix.length <= maxLen) return text + suffix;
     }
     return truncateString(JSON.stringify(data.slice(0, 1), null, 2), maxLen);
@@ -614,7 +663,7 @@ function truncateArrayProp(
   for (; n >= 1; n--) {
     const trial = { ...obj, [key]: arr.slice(0, n) };
     const text = JSON.stringify(trial, null, 2);
-    const suffix = `\n\n... showing ${n} of ${arr.length} items in "${key}". Use result_filter to search or result_offset/result_limit to paginate.`;
+    const suffix = `\n\n... showing ${n} of ${arr.length} items in "${key}". Use result_offset=${n} to continue, or result_filter/result_limit to refine the page.`;
     if (text.length + suffix.length <= maxLen) {
       return text + suffix;
     }
@@ -650,4 +699,119 @@ export function buildCatalogData(catalog: Catalog) {
       .join("\n");
 
   return { actionById, categorySummary };
+}
+
+function buildResponseHeader(
+  method: string,
+  path: string,
+  status: number,
+  note: string | undefined,
+  filterLine: string,
+  pageLine: string
+): string {
+  let header = `${method} ${path} → ${status}`;
+  if (note) header += `\nNote: ${note}`;
+  header += `${filterLine}${pageLine}\n\n`;
+  return header;
+}
+
+function formatGuidanceNotes(notes: string[]): string {
+  if (notes.length === 0) return "";
+  return `\n\nNotes:\n- ${notes.join("\n- ")}`;
+}
+
+function buildIntentGuidance(
+  intent: string,
+  category: string | undefined,
+  results: CatalogAction[]
+): string[] {
+  const normalized = intent.toLowerCase();
+  const notes: string[] = [];
+  const pushNote = (note: string) => {
+    if (!notes.includes(note)) notes.push(note);
+  };
+
+  const mentionsConversationAi =
+    normalized.includes("conversation ai") ||
+    normalized.includes("conversation bot") ||
+    normalized.includes("conversation bots") ||
+    normalized.includes("conversation agent") ||
+    normalized.includes("conversation agents");
+  if (mentionsConversationAi) {
+    pushNote(
+      "Conversation AI bot configuration is not exposed in the public GHL API. Prompts, settings, transfer rules, and bot lists still have to be inspected in the GHL UI. The voice-ai endpoints are a different product surface."
+    );
+  }
+
+  const asksForWorkflowInternals =
+    normalized.includes("workflow") &&
+    /(step|steps|trigger|triggers|condition|conditions|detail|details|ai agent|ai agents)/.test(normalized);
+  if (asksForWorkflowInternals || category === "workflows") {
+    pushNote(
+      "The public GHL API only exposes a minimal workflow list via workflows__get-workflow. Workflow triggers, steps, conditions, and AI-agent usage details are UI-only today."
+    );
+  }
+
+  const asksForPipelineWrites =
+    (normalized.includes("pipeline") || normalized.includes("stage")) &&
+    /(create|add|update|edit|delete)/.test(normalized);
+  if (asksForPipelineWrites) {
+    pushNote(
+      "Pipeline containers and stages are read-only via the public GHL API. Use opportunities__get-pipelines to inspect them, but create or edit them in the GHL UI."
+    );
+  }
+
+  if (
+    normalized.includes("template") &&
+    /(create|add|new)/.test(normalized) &&
+    (normalized.includes("sms") || normalized.includes("email"))
+  ) {
+    pushNote(
+      "The public GHL API can list or delete email/SMS templates, but creating them is still UI-only."
+    );
+  }
+
+  if (
+    normalized.includes("sender domain") ||
+    normalized.includes("a2p") ||
+    normalized.includes("signing key") ||
+    normalized.includes("signing keys") ||
+    normalized.includes("webhook key")
+  ) {
+    pushNote(
+      "Sub-account security settings such as sender domain, A2P registration, and webhook signing keys are UI-only in GHL."
+    );
+  }
+
+  if (
+    (normalized.includes("conversation history") || normalized.includes("get messages for contact") || normalized.includes("read messages for contact")) &&
+    !mentionsConversationAi
+  ) {
+    pushNote(
+      "To read conversation history, first use conversations__search-conversation to locate the thread for the contact, then use conversations__get-messages with that conversationId."
+    );
+  }
+
+  if (
+    normalized.includes("stripe") &&
+    (normalized.includes("product") ||
+      normalized.includes("coupon") ||
+      normalized.includes("payment") ||
+      normalized.includes("subscription"))
+  ) {
+    pushNote(
+      "For commerce setup, use GHL's products__* and payments__* endpoints. Stripe is the underlying rail, but direct Stripe API access is usually not needed for normal GHL configuration."
+    );
+  }
+
+  if (
+    mentionsConversationAi &&
+    results.some((result) => result.category === "voice-ai")
+  ) {
+    pushNote(
+      "If you only need Voice AI, use the voice-ai__* actions shown here. They do not expose Conversation AI bots."
+    );
+  }
+
+  return notes;
 }
