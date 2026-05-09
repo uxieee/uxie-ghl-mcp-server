@@ -1,12 +1,12 @@
 # uxie-ghl-mcp-server
 
-MCP server for the **entire** GoHighLevel API — all 413 endpoints across 35 categories.
+MCP server for the **entire** GoHighLevel API — all 576 endpoints across 41 categories.
 
 The [official GHL MCP server](https://marketplace.gohighlevel.com/docs/other/mcp/index.html) only covers 36 tools across 9 categories. This one covers everything.
 
 ## How it works
 
-Instead of registering 413 individual tools (which would flood the LLM's context window), this server uses a **search + execute** pattern:
+Instead of registering 576 individual tools (which would flood the LLM's context window), this server uses a **search + execute** pattern:
 
 | Tool | What it does |
 |------|-------------|
@@ -14,7 +14,7 @@ Instead of registering 413 individual tools (which would flood the LLM's context
 | `search_actions` | Find actions by natural language, or enumerate every action in one category with `include_all=true` |
 | `execute_action` | Run any action by ID with params, plus response shaping via `result_filter`, `result_fields`, `result_offset`, and `result_limit` |
 
-Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 413 endpoints with just 3 tools.
+Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 576 endpoints with just 3 tools.
 
 This server is tuned for LLM usage:
 
@@ -24,7 +24,7 @@ This server is tuned for LLM usage:
 
 ## Categories covered
 
-associations, blogs, businesses, calendars, campaigns, companies, contacts, conversations, courses, custom-fields, custom-menus, email-isv, emails, forms, funnels, invoices, links, locations, marketplace, medias, oauth, objects, opportunities, payments, phone-system, products, proposals, saas-api, snapshots, social-media-posting, store, surveys, users, voice-ai, workflows
+ad-manager, affiliate-manager, agent-studio, associations, blogs, brand-boards, businesses, calendars, campaigns, companies, contacts, conversation-ai, conversations, courses, custom-fields, custom-menus, email-isv, emails, forms, funnels, invoices, knowledge-base, links, locations, marketplace, medias, oauth, objects, opportunities, payments, phone-system, products, proposals, saas-api, snapshots, social-media-posting, store, surveys, users, voice-ai, workflows
 
 ## Setup
 
@@ -59,6 +59,50 @@ export GHL_API_TOKEN=pit-YOUR-TOKEN-HERE
 ```
 
 This is project-local. Codex will load this MCP only in the local repo that contains that `.codex/config.toml` file.
+
+If you want that project-local setup to feel automatic, pair it with `direnv`:
+
+```bash
+brew install direnv
+```
+
+Add a repo-local `.envrc`:
+
+```bash
+export GHL_API_TOKEN='pit-YOUR-TOKEN-HERE'
+```
+
+Then allow it once:
+
+```bash
+direnv allow .
+```
+
+Recommended pattern:
+
+- Keep `.codex/config.toml` in the project root so Codex loads the MCP only for that repo.
+- Keep the token in a repo-local `.envrc` so entering the repo loads `GHL_API_TOKEN`.
+- Add `.envrc` to `.gitignore` if you are storing a real token there.
+
+Important parent/child folder behavior:
+
+- Parent folders do **not** inherit a child's `.envrc`.
+- Child folders **do** inherit env vars from parent `.envrc` files.
+- If a child folder has its **own** `.envrc`, do **not** rely on implicit merging with the parent.
+- If the child defines `GHL_API_TOKEN`, that child value wins for that child context.
+- A child `.envrc` does **not** change the parent folder's environment.
+
+If you want a child `.envrc` to extend the parent instead of replacing it, source the parent explicitly:
+
+```bash
+source_up
+export SOME_OTHER_VAR='value'
+```
+
+Two practical gotchas:
+
+- After editing `.envrc`, run `direnv allow .` again.
+- `AGENTS.md` can tell Codex to prefer this MCP, but it does **not** load the MCP by itself. The MCP still needs `.codex/config.toml` plus `GHL_API_TOKEN` present when the Codex session starts.
 
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
 
@@ -113,7 +157,6 @@ If you need every action inside a category instead of ranked matches, use `searc
 
 These are GHL platform limitations, not bugs in this MCP server. The server now tries to surface them explicitly in search results and action notes so an LLM can stop early instead of repeatedly hunting for endpoints that do not exist.
 
-- **Conversation AI bots**: the public GHL API does not expose listing, reading, or updating Conversation AI bot configs, prompts, knowledge bases, or transfer rules. `voice-ai__*` endpoints are for Voice AI, not Conversation AI.
 - **Workflow internals**: `workflows__get-workflow` is a minimal read-only list. Workflow triggers, steps, conditions, and AI-agent usage remain UI-only.
 - **Pipelines and stages**: `opportunities__get-pipelines` is read-only. Creating or editing pipeline containers and stages still has to be done in the GHL UI.
 - **SMS/email template creation**: the public API can list or delete templates, but template creation is still UI-only.
@@ -159,7 +202,7 @@ Claude / Codex ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
                     └── list_categories (browse available categories)
 ```
 
-- **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs)
+- **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs) (576 actions across 41 categories)
 - **Catalog overrides**: Runtime patches correct a few high-value spec mismatches such as `parentId` / `options` on location custom fields
 - **Search**: Pre-computed keyword index built at startup
 - **Auth**: Per-user tokens via `X-GHL-Token` or `Authorization: Bearer <token>` (remote), or `GHL_API_TOKEN` env var (local)
@@ -193,7 +236,7 @@ scripts/
   build-catalog.ts  Downloads GHL OpenAPI specs → catalog.json
   test-all-endpoints.ts  Full endpoint test suite
 data/
-  catalog.json      Auto-generated action catalog (413 actions)
+  catalog.json      Auto-generated action catalog (576 actions)
 tests/
   ghl-mcp-server.test.ts  Regression tests for MCP behavior and LLM-facing guidance
 ```

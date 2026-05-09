@@ -24,7 +24,7 @@ export class GHLServer extends McpAgent<Env> {
     },
     {
       instructions: [
-        "GoHighLevel API MCP server — 413 endpoints across 35 categories.",
+        "GoHighLevel API MCP server — 576 endpoints across 41 categories.",
         "Flow: search_actions (find the action ID + params) → execute_action (call the API).",
         "execute_action has built-in response shaping — these are top-level params, NOT inside params:",
         "  result_filter: search array items by keyword (e.g. find a custom field by name).",
@@ -34,7 +34,7 @@ export class GHLServer extends McpAgent<Env> {
         "  search_actions also accepts include_all=true with a category to enumerate every action in that category.",
         "Rate limit: 60 execute calls per minute.",
         "Param routing: path params → URL, query params → query string, remainder → request body. Undocumented but valid body keys are passed through to GHL so OpenAPI spec gaps do not block valid requests.",
-        "Known public-API gaps such as Conversation AI bot configs, workflow builder internals, and pipeline creation are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints.",
+        "Known public-API gaps such as workflow builder internals and pipeline creation are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints. Conversation AI agents are now exposed under the conversation-ai category.",
         "For commerce setup, GHL's products__* and payments__* endpoints are the source of truth. Stripe is the underlying rail, but direct Stripe API access is usually not needed.",
       ].join("\n"),
     }
