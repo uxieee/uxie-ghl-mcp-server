@@ -10,6 +10,8 @@ import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 const REPO = "GoHighLevel/highlevel-api-docs";
 const BRANCH = "main";
 const APPS_DIR = "apps";
+const MIN_ACTIONS = 500;
+const MIN_CATEGORIES = 35;
 
 interface CatalogAction {
   id: string;
@@ -179,11 +181,13 @@ async function listSpecFiles(): Promise<string[]> {
 }
 
 async function main() {
+  const allowPartial = process.argv.includes("--allow-partial");
   console.log("Fetching spec file list...");
   const specFiles = await listSpecFiles();
   console.log(`Found ${specFiles.length} OpenAPI specs\n`);
 
   const allActions: CatalogAction[] = [];
+  const failedSpecs: Array<{ path: string; error: string }> = [];
 
   for (const specPath of specFiles) {
     const category = specPath.replace("apps/", "").replace(".json", "");
@@ -195,11 +199,22 @@ async function main() {
       allActions.push(...actions);
       console.log(`${actions.length} actions`);
     } catch (err: any) {
-      console.log(`FAILED: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      failedSpecs.push({ path: specPath, error: message });
+      console.log(`FAILED: ${message}`);
     }
 
     // Rate limit courtesy
     await new Promise((r) => setTimeout(r, 100));
+  }
+
+  if (failedSpecs.length > 0 && !allowPartial) {
+    console.error("\nCatalog build failed. Refusing to write a partial catalog.");
+    for (const failure of failedSpecs) {
+      console.error(`- ${failure.path}: ${failure.error}`);
+    }
+    console.error("\nPass --allow-partial only when you intentionally want to write a partial catalog.");
+    process.exit(1);
   }
 
   // Build the catalog
@@ -212,16 +227,40 @@ async function main() {
   };
   const catalog = applyCatalogOverrides(rawCatalog);
 
+  assertCatalogCompleteness(catalog.totalActions, catalog.categories.length);
+
   const outPath = new URL("../data/catalog.json", import.meta.url);
   const { writeFileSync } = await import("fs");
   const { fileURLToPath } = await import("url");
   writeFileSync(fileURLToPath(outPath), JSON.stringify(catalog, null, 2));
 
   console.log(`\nCatalog written: ${catalog.totalActions} actions across ${catalog.categories.length} categories`);
+  if (failedSpecs.length > 0) {
+    console.log(`WARNING: wrote a partial catalog with ${failedSpecs.length} failed spec file(s) because --allow-partial was set.`);
+  }
   console.log(`Categories: ${catalog.categories.join(", ")}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+export function assertCatalogCompleteness(totalActions: number, totalCategories: number) {
+  const failures: string[] = [];
+  if (totalActions < MIN_ACTIONS) {
+    failures.push(`expected at least ${MIN_ACTIONS} actions, got ${totalActions}`);
+  }
+  if (totalCategories < MIN_CATEGORIES) {
+    failures.push(`expected at least ${MIN_CATEGORIES} categories, got ${totalCategories}`);
+  }
+  if (failures.length > 0) {
+    throw new Error(`Catalog build produced an unexpectedly small catalog: ${failures.join("; ")}`);
+  }
+}
+
+const isMain = process.argv[1]
+  ? import.meta.url === new URL(process.argv[1], "file:").href
+  : false;
+
+if (isMain) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

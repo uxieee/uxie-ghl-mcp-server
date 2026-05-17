@@ -1,6 +1,7 @@
 /**
- * Comprehensive endpoint test — exercises the MCP server across all 35 categories.
+ * Comprehensive endpoint test — exercises the MCP server across all 41 categories.
  * Calls search_actions for every category, then execute_action for representative endpoints.
+ * Read-only by default. Set ALLOW_GHL_WRITES=1 to include mutating endpoints.
  *
  * Usage: GHL_TOKEN=pit-xxx GHL_LOCATION=xxx npx tsx scripts/test-all-endpoints.ts
  */
@@ -8,6 +9,7 @@
 const MCP_URL = "http://localhost:8787/mcp";
 const TOKEN = process.env.GHL_TOKEN || "";
 const LOCATION_ID = process.env.GHL_LOCATION || "";
+const ALLOW_GHL_WRITES = process.env.ALLOW_GHL_WRITES === "1";
 
 if (!TOKEN || !LOCATION_ID) {
   console.error("Usage: GHL_TOKEN=pit-xxx GHL_LOCATION=xxx npx tsx scripts/test-all-endpoints.ts");
@@ -86,10 +88,11 @@ const FAIL = "✗";
 const SKIP = "⊘";
 
 async function testSearch(category: string) {
-  const { text } = await callTool("search_actions", { intent: category, category, limit: 25 });
+  const { text } = await callTool("search_actions", { intent: category, category, include_all: true, limit: 50 });
   try {
-    const actions = JSON.parse(text);
-    return actions as Array<{
+    const payload = JSON.parse(text);
+    const actions = Array.isArray(payload) ? payload : payload.results;
+    return (actions ?? []) as Array<{
       id: string;
       method: string;
       path: string;
@@ -187,6 +190,11 @@ async function main() {
   console.log("═══════════════════════════════════════════════");
   console.log("  GHL MCP Server — Full Endpoint Test Suite");
   console.log("═══════════════════════════════════════════════\n");
+  console.log(
+    ALLOW_GHL_WRITES
+      ? "Mutating endpoint tests are enabled because ALLOW_GHL_WRITES=1.\n"
+      : "Read-only mode: POST/PUT/PATCH/DELETE endpoint tests will be skipped. Set ALLOW_GHL_WRITES=1 to include them.\n"
+  );
 
   // Initialize MCP session
   console.log("Initializing MCP session...");
@@ -222,6 +230,12 @@ async function main() {
 
     // Test each action
     for (const action of actions) {
+      if (action.method !== "GET" && !ALLOW_GHL_WRITES) {
+        console.log(`  ${SKIP} ${action.id} — skipped (${action.method} requires ALLOW_GHL_WRITES=1)`);
+        totalSkipped++;
+        continue;
+      }
+
       const params = buildParams(action);
       if (!params) {
         console.log(`  ${SKIP} ${action.id} — skipped (complex params)`);

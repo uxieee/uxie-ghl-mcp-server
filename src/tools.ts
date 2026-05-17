@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { searchActions, SearchIndex } from "./search.js";
-import { executeAction } from "./executor.js";
+import { executeAction, previewActionRequest } from "./executor.js";
 import { RateLimiter } from "./rate-limiter.js";
 import type { ActionTip } from "./action-tips.js";
 import type { Catalog, CatalogAction } from "./types.js";
@@ -43,13 +43,14 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     "search_actions",
     {
       description:
-        "Search for GHL API actions by describing what you want to do in plain English. Returns matching actions with their IDs, parameters, and request body schemas. Call this before execute_action to find the right action ID and understand required params.",
+        "Search for GHL API actions by describing what you want to do in plain English. Returns structured results with action IDs, params, request body schemas, notes, pagination, cross-category hints, and risk metadata. Call this before execute_action.",
       inputSchema: {
         intent: z
           .string()
           .max(200)
+          .default("")
           .describe(
-            "What you want to do, in plain English. E.g. 'create a contact', 'list invoices', 'send SMS'"
+            "What you want to do, in plain English. E.g. 'create a contact', 'list invoices', 'send SMS'. Can be empty when category plus include_all=true is used."
           ),
         category: z
           .string()
@@ -69,37 +70,51 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .min(1)
           .max(50)
           .default(10)
-          .describe("Max results to return"),
+          .describe("Max results to return per page. Use offset to continue."),
         include_all: z
           .boolean()
           .default(false)
-          .describe("When true and category is provided, return every action in that category (paginated by offset/limit) instead of relevance-ranked matches."),
+          .describe("When true and category is provided, enumerate every action in that category (paginated by offset/limit). intent can be empty in this mode."),
         compact: z
           .boolean()
           .default(false)
-          .describe("When true, return only id/method/path/summary/category per result. Omits parameters, requestBody, and scopes to reduce response size."),
+          .describe("When true, return only id/method/path/summary/category/risk/note per result. Omits parameters, requestBody, and scopes to reduce response size."),
       },
       annotations: { readOnlyHint: true },
     },
     async ({ intent, category, offset, limit, include_all, compact }) => {
       // Validate category if provided
       if (category && !catalog.categories.includes(category)) {
+        const structuredContent = {
+          results: [],
+          notes: [`Unknown category "${category.slice(0, 50)}". Use list_categories to see available categories.`],
+          pagination: { offset, limit, returned: 0, total: 0 },
+          crossCategoryHints: [],
+        };
         return {
+          structuredContent,
           content: [
             {
               type: "text" as const,
-              text: `Unknown category "${category.slice(0, 50)}". Use list_categories to see available categories.`,
+              text: JSON.stringify(structuredContent, null, 2),
             },
           ],
         };
       }
 
       if (include_all && !category) {
+        const structuredContent = {
+          results: [],
+          notes: ["include_all=true requires a category so the result set stays bounded. Use list_categories first, then pass category plus include_all=true."],
+          pagination: { offset, limit, returned: 0, total: 0 },
+          crossCategoryHints: [],
+        };
         return {
+          structuredContent,
           content: [
             {
               type: "text" as const,
-              text: "include_all=true requires a category so the result set stays bounded. Use list_categories first, then pass category plus include_all=true.",
+              text: JSON.stringify(structuredContent, null, 2),
             },
           ],
         };
@@ -120,44 +135,49 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         : searchActions(searchIndex, actions, intent, offset + limit).slice(offset);
 
       // Cross-category hint: if a category filter is active, check if better results exist elsewhere
-      let crossCategoryHint = "";
+      let crossCategoryHints: string[] = [];
       if (category && !include_all) {
         const allResults = searchActions(searchIndex, catalog.actions, intent, 3);
         const outsideResults = allResults.filter((a) => a.category !== category);
         if (outsideResults.length > 0) {
           const hints = outsideResults.map((a) => `${a.id} (${a.category})`);
-          crossCategoryHint = `\n\nAlso found in other categories: ${hints.join(", ")}. Remove the category filter to see them.`;
+          crossCategoryHints = hints;
         }
       }
 
-      const guidance = formatGuidanceNotes(
-        buildIntentGuidance(intent, category, results)
-      );
-
-      const includeAllHint =
-        include_all && category
-          ? formatGuidanceNotes([
-              `Showing ${results.length} action(s) from category "${category}"${allCategoryActions.length > results.length ? ` (use offset=${offset + results.length} to continue through ${allCategoryActions.length} total actions)` : ""}.`,
-            ])
-          : "";
+      const notes = buildIntentGuidance(intent, category, results);
+      if (include_all && category) {
+        notes.push(
+          `Showing ${results.length} action(s) from category "${category}"${allCategoryActions.length > results.length ? ` (use offset=${offset + results.length} to continue through ${allCategoryActions.length} total actions)` : ""}.`
+        );
+      }
 
       if (results.length === 0) {
-        const msg = category
-          ? `No actions found for "${intent.slice(0, 100)}" in category "${category}".${crossCategoryHint || " Try removing the category filter or using broader keywords."}`
-          : `No actions found for "${intent.slice(0, 100)}". Try broader keywords or use list_categories to browse.`;
+        notes.unshift(category
+          ? `No actions found for "${intent.slice(0, 100)}" in category "${category}".${crossCategoryHints.length > 0 ? " Remove the category filter to see cross-category hints." : " Try removing the category filter or using broader keywords."}`
+          : `No actions found for "${intent.slice(0, 100)}". Try broader keywords or use list_categories to browse.`);
+        const structuredContent = {
+          results: [],
+          notes,
+          pagination: { offset, limit, returned: 0, total: include_all ? allCategoryActions.length : 0 },
+          crossCategoryHints,
+        };
         return {
-          content: [{ type: "text" as const, text: msg + guidance }],
+          structuredContent,
+          content: [{ type: "text" as const, text: JSON.stringify(structuredContent, null, 2) }],
         };
       }
 
       const formatted = results.map((a) => {
         const tip = actionTips[a.id];
+        const risk = inferActionRisk(a);
         return {
           id: a.id,
           method: a.method,
           path: a.path,
           summary: a.summary,
           category: a.category,
+          risk,
           ...(tip?.note && { note: tip.note }),
           ...(compact ? {} : {
             parameters: a.parameters.map((p) => ({
@@ -176,26 +196,39 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       });
 
+      const structuredContent = {
+        results: formatted,
+        notes,
+        pagination: {
+          offset,
+          limit,
+          returned: results.length,
+          total: include_all ? allCategoryActions.length : undefined,
+          nextOffset: include_all && offset + results.length < allCategoryActions.length
+            ? offset + results.length
+            : undefined,
+        },
+        crossCategoryHints,
+      };
+
       return {
+        structuredContent,
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(formatted) + includeAllHint + guidance + crossCategoryHint,
+            text: JSON.stringify(structuredContent, null, 2),
           },
         ],
       };
     }
   );
 
-  // Only DELETE requires confirmation — PUT/PATCH are idempotent updates
-  const DESTRUCTIVE_METHODS = new Set(["DELETE"]);
-
   // Tool 3: Execute an action
   server.registerTool(
     "execute_action",
     {
       description:
-        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are passed as a flat object — path params, query params, and body fields are all merged together and routed automatically. For destructive actions (DELETE), you must first call without confirm=true to see what will happen, then call again with confirm=true to execute. For large responses: use result_filter to search by keyword, or result_offset/result_limit to paginate.",
+        "Execute a GHL API action by its ID. Get the action ID and required params from search_actions first. Params are a flat object and are routed automatically. Use dry_run=true to preview any non-GET action. High-risk actions such as send, publish, delete, remove, cancel, and billing/payment actions require confirm=true after reviewing the preview.",
       inputSchema: {
         action_id: z
           .string()
@@ -203,7 +236,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
             "The action ID from search_actions, e.g. 'contacts__create-contact'"
           ),
         params: z
-          .record(z.unknown())
+          .record(z.string(), z.unknown())
           .default({})
           .describe(
             "GHL API parameters only (path, query, and body fields as a flat object). Do NOT put result_filter, result_fields, result_offset, or result_limit here — those are separate top-level params."
@@ -212,7 +245,13 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .boolean()
           .default(false)
           .describe(
-            "Set to true to confirm a destructive action (DELETE). First call without confirm to preview, then call with confirm=true to execute."
+            "Set to true only after reviewing a preview for high-risk actions such as send, publish, delete, remove, cancel, payment, or billing actions."
+          ),
+        dry_run: z
+          .boolean()
+          .default(false)
+          .describe(
+            "Preview the routed method, URL path, query params, body, and risk notes without calling GHL. Recommended before any POST, PUT, PATCH, or DELETE."
           ),
         result_filter: z
           .string()
@@ -248,66 +287,22 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       },
       annotations: { openWorldHint: true },
     },
-    async ({ action_id, params, confirm, result_filter, result_fields, result_offset, result_limit }) => {
-      const apiToken = getToken();
-      if (!apiToken) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text" as const,
-              text: "No GHL API token found. Pass your token via the X-GHL-Token header, Authorization: Bearer <token> (remote), or GHL_API_TOKEN env var (local).",
-            },
-          ],
-        };
-      }
-
-      if (!rateLimiter.check()) {
-        return {
-          isError: true,
-          content: [
-            {
-              type: "text" as const,
-              text: "Rate limit exceeded (max 60 execute calls per minute). Please wait before retrying.",
-            },
-          ],
-        };
-      }
-
+    async ({ action_id, params, confirm, dry_run, result_filter, result_fields, result_offset, result_limit }) => {
       const action = actionById.get(action_id);
       if (!action) {
+        const structuredContent = buildExecuteStructured({
+          action: null,
+          status: "error",
+          ok: false,
+          error: `Unknown action: "${action_id.slice(0, 100)}". Use search_actions to find valid action IDs.`,
+        });
         return {
           isError: true,
+          structuredContent,
           content: [
             {
               type: "text" as const,
-              text: `Unknown action: "${action_id.slice(0, 100)}". Use search_actions to find valid action IDs.`,
-            },
-          ],
-        };
-      }
-
-      // Safe mode: require confirmation for destructive actions
-      const isDestructive = DESTRUCTIVE_METHODS.has(action.method.toUpperCase());
-
-      if (isDestructive && !confirm) {
-        const paramSummary = Object.entries(params)
-          .map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`)
-          .join("\n");
-
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: [
-                `⚠️ DESTRUCTIVE ACTION — Confirmation required`,
-                ``,
-                `Action: ${action.summary} (${action.method} ${action.path})`,
-                `Category: ${action.category}`,
-                paramSummary ? `Parameters:\n${paramSummary}` : `Parameters: none`,
-                ``,
-                `To execute this action, call execute_action again with the same action_id and params, plus confirm: true.`,
-              ].join("\n"),
+              text: JSON.stringify(structuredContent, null, 2),
             },
           ],
         };
@@ -334,13 +329,77 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         delete params.result_limit;
       }
 
-      // confirm=true bypasses safe mode — Claude is responsible for asking the user
+      const risk = inferActionRisk(action);
+      const requiresConfirmation = requiresActionConfirmation(risk);
+      if (dry_run || (requiresConfirmation && !confirm)) {
+        try {
+          const preview = previewActionRequest(action, params);
+          const status = dry_run ? "dry_run" : "confirmation_required";
+          const note = requiresConfirmation && !confirm
+            ? "Confirmation required before execution. Review the preview, then call execute_action again with the same action_id and params plus confirm=true."
+            : "Dry run only. No request was sent to GHL.";
+          const structuredContent = buildExecuteStructured({
+            action: summarizeAction(action, risk),
+            status,
+            ok: false,
+            data: preview,
+            note,
+          });
+          return {
+            structuredContent,
+            content: [{ type: "text" as const, text: JSON.stringify(structuredContent, null, 2) }],
+          };
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message.slice(0, 200) : "Unknown error";
+          const structuredContent = buildExecuteStructured({
+            action: summarizeAction(action, risk),
+            status: "error",
+            ok: false,
+            error: msg,
+          });
+          return {
+            isError: true,
+            structuredContent,
+            content: [{ type: "text" as const, text: JSON.stringify(structuredContent, null, 2) }],
+          };
+        }
+      }
+
+      const apiToken = getToken();
+      if (!apiToken) {
+        const structuredContent = buildExecuteStructured({
+          action: summarizeAction(action, risk),
+          status: "error",
+          ok: false,
+          error: "No GHL API token found. Pass your token via the X-GHL-Token header, Authorization: Bearer <token> (remote), or GHL_API_TOKEN env var (local).",
+        });
+        return {
+          isError: true,
+          structuredContent,
+          content: [{ type: "text" as const, text: JSON.stringify(structuredContent, null, 2) }],
+        };
+      }
+
+      if (!rateLimiter.check()) {
+        const structuredContent = buildExecuteStructured({
+          action: summarizeAction(action, risk),
+          status: "rate_limited",
+          ok: false,
+          error: "Rate limit exceeded (max 60 execute calls per minute). Please wait before retrying.",
+        });
+        return {
+          isError: true,
+          structuredContent,
+          content: [{ type: "text" as const, text: JSON.stringify(structuredContent, null, 2) }],
+        };
+      }
+
       try {
         const result = await executeAction(action, params, apiToken);
 
         let data = result.data;
-        let filterLine = "";
-        let pageLine = "";
+        let filter: { term: string; matched: number; total: number } | null = null;
+        let pagination: { offset: number; showing: number; total: number } | null = null;
         const actionNote = actionTips[action.id]?.note;
 
         // Apply result_filter to narrow array responses
@@ -348,7 +407,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           const filtered = filterResponseData(data, result_filter);
           if (filtered.total > 0) {
             data = filtered.data;
-            filterLine = `\nFiltered: ${filtered.matched} of ${filtered.total} items matching "${result_filter}"`;
+            filter = { term: result_filter, matched: filtered.matched, total: filtered.total };
           }
         }
 
@@ -359,12 +418,22 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           if (result_limit === 0) {
             const countInfo = countArrayItems(data);
             const countResponse = countInfo.total > 0
-              ? `Total items: ${countInfo.total}` + (countInfo.sampleKeys.length > 0 ? `\nFields per item: ${countInfo.sampleKeys.join(", ")}` : "")
-              : JSON.stringify(data);
+              ? { totalItems: countInfo.total, fieldsPerItem: countInfo.sampleKeys }
+              : data;
+            const structuredContent = buildExecuteStructured({
+              action: summarizeAction(action, risk),
+              status: result.status,
+              ok: result.status >= 200 && result.status < 300,
+              data: countResponse,
+              note: actionNote,
+              filter,
+              pagination: { offset: result_offset, showing: 0, total: countInfo.total },
+            });
             return {
+              structuredContent,
               content: [{
                 type: "text" as const,
-                text: buildResponseHeader(action.method, action.path, result.status, actionNote, filterLine, "") + countResponse,
+                text: JSON.stringify(structuredContent, null, 2),
               }],
             };
           }
@@ -372,9 +441,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           const paged = paginateResponseData(data, result_offset, result_limit);
           if (paged.total > 0) {
             data = paged.data;
-            const start = paged.offset + 1;
-            const end = paged.offset + paged.showing;
-            pageLine = `\nShowing items ${start}–${end} of ${paged.total}`;
+            pagination = { offset: paged.offset, showing: paged.showing, total: paged.total };
           }
         }
 
@@ -383,20 +450,13 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           data = projectResponseFields(data, result_fields);
         }
 
-        const header = buildResponseHeader(
-          action.method,
-          action.path,
-          result.status,
-          actionNote,
-          filterLine,
-          pageLine
-        );
+        const header = buildResponseHeader(action.method, action.path, result.status, actionNote, filter, pagination);
         const maxOutputLen = 8000 - header.length;
 
         let output: string;
         if (typeof data === "string") {
           output = truncateString(data, maxOutputLen);
-        } else if (needsPagination && pageLine) {
+        } else if (needsPagination && pagination) {
           // Pagination is active — avoid silent item drops from smart truncation.
           // Use compact JSON if pretty doesn't fit; only hard-truncate as last resort.
           const pretty = JSON.stringify(data, null, 2);
@@ -415,23 +475,43 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           output = smartStringify(data, maxOutputLen);
         }
 
+        const structuredContent = buildExecuteStructured({
+          action: summarizeAction(action, risk),
+          status: result.status,
+          ok: result.status >= 200 && result.status < 300,
+          data,
+          note: actionNote,
+          filter,
+          pagination,
+        });
         return {
+          structuredContent,
           content: [
             {
               type: "text" as const,
-              text: header + output,
+              text: JSON.stringify({
+                ...structuredContent,
+                data: toTextFallbackData(data, output),
+              }, null, 2),
             },
           ],
         };
       } catch (err: unknown) {
         const msg =
           err instanceof Error ? err.message.slice(0, 200) : "Unknown error";
+        const structuredContent = buildExecuteStructured({
+          action: summarizeAction(action, risk),
+          status: "error",
+          ok: false,
+          error: msg,
+        });
         return {
           isError: true,
+          structuredContent,
           content: [
             {
               type: "text" as const,
-              text: `Request failed: ${msg}`,
+              text: JSON.stringify(structuredContent, null, 2),
             },
           ],
         };
@@ -706,18 +786,21 @@ function buildResponseHeader(
   path: string,
   status: number,
   note: string | undefined,
-  filterLine: string,
-  pageLine: string
+  filter: { term: string; matched: number; total: number } | null,
+  pagination: { offset: number; showing: number; total: number } | null
 ): string {
   let header = `${method} ${path} → ${status}`;
   if (note) header += `\nNote: ${note}`;
-  header += `${filterLine}${pageLine}\n\n`;
+  if (filter) {
+    header += `\nFiltered: ${filter.matched} of ${filter.total} items matching "${filter.term}"`;
+  }
+  if (pagination) {
+    const start = pagination.offset + 1;
+    const end = pagination.offset + pagination.showing;
+    header += `\nShowing items ${start}-${end} of ${pagination.total}`;
+  }
+  header += "\n\n";
   return header;
-}
-
-function formatGuidanceNotes(notes: string[]): string {
-  if (notes.length === 0) return "";
-  return `\n\nNotes:\n- ${notes.join("\n- ")}`;
 }
 
 function buildIntentGuidance(
@@ -814,4 +897,117 @@ function buildIntentGuidance(
   }
 
   return notes;
+}
+
+type ActionRiskKind = "read" | "write" | "external_send" | "billing" | "delete";
+
+interface ActionRisk {
+  level: "low" | "medium" | "high";
+  kinds: ActionRiskKind[];
+  notes: string[];
+  requiresConfirmation: boolean;
+}
+
+function inferActionRisk(action: CatalogAction): ActionRisk {
+  const method = action.method.toUpperCase();
+  const text = `${action.id} ${action.summary} ${action.description}`.toLowerCase();
+  const kinds = new Set<ActionRiskKind>();
+  const notes: string[] = [];
+
+  if (method === "GET") {
+    kinds.add("read");
+  } else {
+    kinds.add("write");
+    notes.push(`${method} can change GHL account data.`);
+  }
+
+  if (method === "DELETE" || /\b(delete|remove|archive)\b/.test(text)) {
+    kinds.add("delete");
+    notes.push("Can delete, remove, archive, or otherwise destroy records.");
+  }
+
+  if (method !== "GET" && /\b(send|message|sms|email|call|publish|post|webhook|notification)\b/.test(text)) {
+    kinds.add("external_send");
+    notes.push("Can create externally visible communication or published content.");
+  }
+
+  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas)\b/.test(text)) {
+    kinds.add("billing");
+    notes.push(
+      method === "GET"
+        ? "Reads payment, billing, subscription, invoice, coupon, order, or SaaS commerce data."
+        : "Touches payment, billing, subscription, invoice, coupon, order, or SaaS commerce data."
+    );
+  }
+
+  if (/\b(cancel|void|disable|disconnect|revoke)\b/.test(text)) {
+    notes.push("Can cancel, disable, disconnect, revoke, or otherwise interrupt an active setup.");
+  }
+
+  const requiresConfirmation =
+    method !== "GET" && (
+      kinds.has("delete") ||
+      kinds.has("external_send") ||
+      kinds.has("billing") ||
+      /\b(cancel|publish|remove|delete|send|payment|billing|charge|refund)\b/.test(text)
+    );
+
+  const level = requiresConfirmation
+    ? "high"
+    : kinds.has("write")
+      ? "medium"
+      : "low";
+
+  return {
+    level,
+    kinds: [...kinds],
+    notes,
+    requiresConfirmation,
+  };
+}
+
+function requiresActionConfirmation(risk: ActionRisk): boolean {
+  return risk.requiresConfirmation;
+}
+
+function summarizeAction(action: CatalogAction, risk: ActionRisk) {
+  return {
+    id: action.id,
+    method: action.method,
+    path: action.path,
+    summary: action.summary,
+    category: action.category,
+    risk,
+  };
+}
+
+function buildExecuteStructured(input: {
+  action: ReturnType<typeof summarizeAction> | null;
+  status: number | string;
+  ok: boolean;
+  data?: unknown;
+  note?: string;
+  filter?: { term: string; matched: number; total: number } | null;
+  pagination?: { offset: number; showing: number; total: number } | null;
+  error?: string;
+}) {
+  return {
+    action: input.action,
+    status: input.status,
+    ok: input.ok,
+    data: input.data ?? null,
+    note: input.note ?? null,
+    filter: input.filter ?? null,
+    pagination: input.pagination ?? null,
+    error: input.error ?? null,
+  };
+}
+
+function toTextFallbackData(data: unknown, output: string): unknown {
+  if (typeof data === "string") return output;
+  try {
+    return JSON.parse(output);
+  } catch {
+    return output;
+  }
 }

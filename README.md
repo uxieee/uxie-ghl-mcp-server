@@ -10,9 +10,9 @@ Instead of registering 576 individual tools (which would flood the LLM's context
 
 | Tool | What it does |
 |------|-------------|
-| `list_categories` | Browse all 35 API categories with action counts |
+| `list_categories` | Browse all 41 API categories with action counts |
 | `search_actions` | Find actions by natural language, or enumerate every action in one category with `include_all=true` |
-| `execute_action` | Run any action by ID with params, plus response shaping via `result_filter`, `result_fields`, `result_offset`, and `result_limit` |
+| `execute_action` | Run any action by ID with params, preview writes with `dry_run`, confirm high-risk actions, and shape responses via `result_filter`, `result_fields`, `result_offset`, and `result_limit` |
 
 Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 576 endpoints with just 3 tools.
 
@@ -20,6 +20,7 @@ This server is tuned for LLM usage:
 
 - `search_actions` surfaces known GHL public-API gaps directly so the model does not keep searching for UI-only features.
 - `execute_action` passes through undocumented but valid body keys to GHL so spec mismatches do not block working requests.
+- `execute_action` returns structured MCP output and requires confirmation for high-risk sends, deletes, publishes, cancels, and billing/payment actions.
 - `result_filter` searches nested strings inside arrays and objects, which makes tags and similar fields much easier to work with.
 
 ## Categories covered
@@ -44,7 +45,7 @@ Add it to Codex CLI:
 codex mcp add uxie-ghl-mcp --url https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp --bearer-token-env-var GHL_API_TOKEN
 ```
 
-If you want Codex to load this MCP only inside one local project, add a `.codex/config.toml` file in that project instead of using the global `codex mcp add` command:
+`codex mcp add` writes to Codex's global config. If you want Codex to load this MCP only inside one local project, add a `.codex/config.toml` file in that project instead:
 
 ```toml
 [mcp_servers.uxie_ghl]
@@ -58,7 +59,7 @@ Then set your token in the shell before starting Codex:
 export GHL_API_TOKEN=pit-YOUR-TOKEN-HERE
 ```
 
-This is project-local. Codex will load this MCP only in the local repo that contains that `.codex/config.toml` file.
+This is project-local. Codex will load this MCP only in the local repo that contains that `.codex/config.toml` file. `GHL_API_TOKEN` must already exist in the environment when the Codex session starts; if you add or change it later, start a fresh Codex session.
 
 If you want that project-local setup to feel automatic, pair it with `direnv`:
 
@@ -106,7 +107,11 @@ Two practical gotchas:
 
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
 
-Each user passes their own GHL Private Integration Token via the `X-GHL-Token` header or `Authorization: Bearer <token>`. No tokens are stored on the server.
+Each user passes their own GHL Private Integration Token via the `X-GHL-Token` header or `Authorization: Bearer <token>`. The Worker forwards that token to GHL for the current MCP request/session and does not persist it in Durable Object storage.
+
+### Production/security note
+
+The remote Worker is currently a BYO GHL token MCP proxy. It validates that callers provide a GHL Private Integration Token, forwards requests to the public GHL API, and does not implement first-party MCP OAuth/resource-server authorization yet. For higher-trust production use, put this behind real MCP OAuth/resource-server auth and issue scoped user/session credentials instead of accepting raw PITs directly from clients.
 
 ### Option B: Local (stdio)
 
@@ -197,7 +202,7 @@ npx wrangler deploy     # Redeploy with updated catalog
 ```
 Claude / Codex ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
                     │
-                    ├── search_actions (keyword search over 413-action catalog)
+                    ├── search_actions (keyword search over 576-action catalog)
                     ├── execute_action (builds HTTP request, calls GHL, returns response)
                     └── list_categories (browse available categories)
 ```
