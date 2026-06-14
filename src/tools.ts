@@ -333,7 +333,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       const requiresConfirmation = requiresActionConfirmation(risk);
       if (dry_run || (requiresConfirmation && !confirm)) {
         try {
-          const preview = previewActionRequest(action, params);
+          const preview = previewActionRequest(action, params, catalog.baseUrl);
           const status = dry_run ? "dry_run" : "confirmation_required";
           const note = requiresConfirmation && !confirm
             ? "Confirmation required before execution. Review the preview, then call execute_action again with the same action_id and params plus confirm=true."
@@ -395,7 +395,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       }
 
       try {
-        const result = await executeAction(action, params, apiToken);
+        const result = await executeAction(action, params, apiToken, catalog.baseUrl);
 
         let data = result.data;
         let filter: { term: string; matched: number; total: number } | null = null;

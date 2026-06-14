@@ -7,8 +7,10 @@
 
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 
-const REPO = "GoHighLevel/highlevel-api-docs";
-const BRANCH = "main";
+// Repo + ref are configurable so the catalog can be rebuilt from a fork or from
+// a preview branch (e.g. to adopt API v3 specs before they merge to main).
+const REPO = process.env.GHL_DOCS_REPO || "GoHighLevel/highlevel-api-docs";
+const BRANCH = process.env.GHL_DOCS_REF || "main";
 const APPS_DIR = "apps";
 const MIN_ACTIONS = 500;
 const MIN_CATEGORIES = 35;
@@ -54,10 +56,15 @@ async function fetchJSON(url: string): Promise<any> {
 }
 
 async function fetchFileContent(path: string): Promise<any> {
-  const url = `https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`;
-  const meta = await fetchJSON(url);
-  const content = Buffer.from(meta.content, "base64").toString("utf-8");
-  return JSON.parse(content);
+  // Fetch via the raw CDN, which has no API rate limit. The GitHub contents API
+  // is capped at 60 requests/hour unauthenticated, and a full build pulls 40+
+  // specs — enough to risk a mid-build rate-limit failure.
+  const url = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${path}`;
+  const res = await fetch(url, {
+    headers: { "User-Agent": "ghl-mcp-catalog-builder" },
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`);
+  return res.json();
 }
 
 function resolveRef(spec: any, ref: string): any {
@@ -102,7 +109,7 @@ function flattenSchema(spec: any, schema: any, depth = 0): Record<string, unknow
   return schema || {};
 }
 
-function extractActions(spec: any, category: string): CatalogAction[] {
+export function extractActions(spec: any, category: string): CatalogAction[] {
   const actions: CatalogAction[] = [];
   const paths = spec.paths || {};
 
@@ -133,11 +140,14 @@ function extractActions(spec: any, category: string): CatalogAction[] {
         ...(p.schema?.enum && { enum: p.schema.enum }),
       }));
 
-      // Check for Version header
-      const versionParam = parameters.find(
-        (p) => p.name === "Version" && p.in === "header"
+      // Check for a GHL API "Version" date header. Match case-insensitively:
+      // GHL's v3 specs declare a lowercase `version` header on some endpoints,
+      // and some specs pin the value via `schema.default` rather than an enum.
+      const versionParam = (details.parameters || []).find(
+        (p: any) => p.in === "header" && String(p.name).toLowerCase() === "version"
       );
-      const versionHeader = versionParam?.enum?.[0] || null;
+      const versionHeader: string | null =
+        versionParam?.schema?.enum?.[0] ?? versionParam?.schema?.default ?? null;
 
       // Extract request body schema (flattened)
       let requestBody: RequestBodyInfo | null = null;
@@ -162,7 +172,7 @@ function extractActions(spec: any, category: string): CatalogAction[] {
         description: details.description || "",
         tags: details.tags || [],
         scopes,
-        parameters: parameters.filter((p) => p.name !== "Version"),
+        parameters: parameters.filter((p) => p.name.toLowerCase() !== "version"),
         requestBody,
         versionHeader,
       });
@@ -220,7 +230,7 @@ async function main() {
   // Build the catalog
   const rawCatalog = {
     generatedAt: new Date().toISOString(),
-    baseUrl: "https://services.leadconnectorhq.com",
+    baseUrl: process.env.GHL_BASE_URL || "https://services.leadconnectorhq.com",
     totalActions: allActions.length,
     categories: [...new Set(allActions.map((a) => a.category))].sort(),
     actions: allActions,

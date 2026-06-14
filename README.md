@@ -193,9 +193,23 @@ Update `account_id` in `wrangler.jsonc` to your own Cloudflare account ID.
 When GHL adds new API endpoints:
 
 ```bash
-npm run build-catalog   # Downloads latest OpenAPI specs from GHL's GitHub
+npm run build-catalog   # Downloads latest OpenAPI specs from GHL's GitHub (raw CDN, no API rate limit)
 npx wrangler deploy     # Redeploy with updated catalog
 ```
+
+The build is configurable via environment variables:
+
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `GHL_DOCS_REF` | `main` | Branch/ref of `highlevel-api-docs` to build from. Point it at a preview branch to adopt new specs early, e.g. `GHL_DOCS_REF=latest_specs_sync npm run build-catalog`. |
+| `GHL_DOCS_REPO` | `GoHighLevel/highlevel-api-docs` | Source repo (use a fork if needed). |
+| `GHL_BASE_URL` | `https://services.leadconnectorhq.com` | API host baked into the catalog and used by the executor. |
+
+### API versioning & v3 readiness
+
+The GHL API is currently **v2** (host `services.leadconnectorhq.com`, date version headers `2021-07-28` / `2021-04-15`). HighLevel is rolling out a breaking **v3** revision (camelCase params, kebab-case paths, required `Version` headers, new `*V3` schemas, location-scoped paths), but as of 2026-06-14 **v3 is not yet in the public OpenAPI specs** this catalog builds from. The server is built to adopt v3 with a single `npm run build-catalog` once GHL publishes it.
+
+See [`docs/api-v3/`](docs/api-v3/) for the full audit, the per-domain v3 change breakdown, and the migration playbook.
 
 ## Architecture
 

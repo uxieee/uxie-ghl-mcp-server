@@ -21,9 +21,10 @@ export interface RequestPreview {
 export async function executeAction(
   action: CatalogAction,
   params: Record<string, unknown>,
-  apiToken: string
+  apiToken: string,
+  baseUrl: string = GHL_BASE_URL
 ): Promise<{ status: number; data: unknown }> {
-  const request = buildGhlRequest(action, params, apiToken);
+  const request = buildGhlRequest(action, params, apiToken, baseUrl);
 
   // Execute with timeout
   const controller = new AbortController();
@@ -78,9 +79,10 @@ export async function executeAction(
 
 export function previewActionRequest(
   action: CatalogAction,
-  params: Record<string, unknown>
+  params: Record<string, unknown>,
+  baseUrl: string = GHL_BASE_URL
 ): RequestPreview {
-  const request = buildGhlRequest(action, params, "pit-preview-token");
+  const request = buildGhlRequest(action, params, "pit-preview-token", baseUrl);
   const url = new URL(request.url);
   return {
     method: request.method,
@@ -95,7 +97,8 @@ export function previewActionRequest(
 function buildGhlRequest(
   action: CatalogAction,
   params: Record<string, unknown>,
-  apiToken: string
+  apiToken: string,
+  baseUrl: string = GHL_BASE_URL
 ): {
   method: string;
   url: string;
@@ -160,7 +163,7 @@ function buildGhlRequest(
   }
 
   // Classify params into path, query, and body buckets
-  let url = `${GHL_BASE_URL}${action.path}`;
+  let url = `${baseUrl}${action.path}`;
   const queryParams: Record<string, string> = {};
   const usedParams = new Set<string>();
 

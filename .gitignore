@@ -2,3 +2,5 @@
 node_modules/
 dist/
 .wrangler/
+.DS_Store
+.playwright-mcp/

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { buildSearchIndex } from "../src/search.js";
 import { registerTools } from "../src/tools.js";
 import { executeAction } from "../src/executor.js";
-import { assertCatalogCompleteness } from "../scripts/build-catalog.js";
+import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
 import type { Catalog, CatalogAction } from "../src/types.js";
 
 interface RegisteredTool {
@@ -570,4 +570,57 @@ test("catalog completeness assertion fails closed for tiny catalogs", () => {
     /unexpectedly small catalog/
   );
   assert.doesNotThrow(() => assertCatalogCompleteness(576, 41));
+});
+
+test("build-catalog detects a case-insensitive Version header and keeps it out of params", () => {
+  // GHL's v3 specs declare a lowercase `version` header on some endpoints, and
+  // sometimes pin the value via schema.default instead of an enum.
+  const spec = {
+    paths: {
+      "/phone-system/numbers/location/{locationId}": {
+        get: {
+          operationId: "list-numbers",
+          parameters: [
+            { name: "version", in: "header", required: true, schema: { default: "2021-07-28" } },
+            { name: "locationId", in: "path", required: true, schema: { type: "string" } },
+          ],
+        },
+      },
+    },
+  };
+
+  const actions = extractActions(spec, "phone-system");
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].versionHeader, "2021-07-28");
+  assert.ok(!actions[0].parameters.some((p) => p.name.toLowerCase() === "version"));
+});
+
+test("executeAction targets the catalog baseUrl override", async () => {
+  let capturedUrl = "";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (url) => {
+    capturedUrl = String(url);
+    return new Response("{}", {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  }) as typeof fetch;
+
+  try {
+    await executeAction(
+      createAction({
+        id: "contacts__get-contacts",
+        category: "contacts",
+        method: "GET",
+        path: "/contacts/",
+      }),
+      {},
+      "pit-test-token",
+      "https://staging.example.com"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.ok(capturedUrl.startsWith("https://staging.example.com/contacts/"));
 });
