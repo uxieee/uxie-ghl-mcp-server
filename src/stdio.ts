@@ -11,6 +11,11 @@
  *
  * Or in Codex CLI:
  *   codex mcp add ghl-local --env GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts
+ *
+ * Or in opencode (opencode.json):
+ *   { "mcp": { "uxie-ghl": { "type": "local",
+ *       "command": ["npx", "tsx", "src/stdio.ts"],
+ *       "environment": { "GHL_API_TOKEN": "pit-xxx" } } } }
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -34,12 +39,15 @@ const typedCatalog: Catalog = applyCatalogOverrides(
 const apiToken = process.env.GHL_API_TOKEN || "";
 if (!apiToken) {
   console.error("Error: GHL_API_TOKEN environment variable is required.");
-  console.error("Set it when adding to Claude Code or Codex CLI:");
+  console.error("Set it when adding to Claude Code, Codex CLI, or opencode:");
   console.error(
     "  claude mcp add ghl -e GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts"
   );
   console.error(
     "  codex mcp add ghl --env GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts"
+  );
+  console.error(
+    '  opencode: add to opencode.json under mcp -> { "type": "local", "command": ["npx", "tsx", "src/stdio.ts"], "environment": { "GHL_API_TOKEN": "pit-xxx" } }'
   );
   process.exit(1);
 }

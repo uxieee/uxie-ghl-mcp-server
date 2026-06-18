@@ -105,6 +105,35 @@ Two practical gotchas:
 - After editing `.envrc`, run `direnv allow .` again.
 - `AGENTS.md` can tell Codex to prefer this MCP, but it does **not** load the MCP by itself. The MCP still needs `.codex/config.toml` plus `GHL_API_TOKEN` present when the Codex session starts.
 
+Add it to opencode:
+
+opencode is config-file based (there is no `opencode mcp add` command). Add the server under the `mcp` key in your `opencode.json` — either global at `~/.config/opencode/opencode.json` or project-local in the repo root:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "uxie-ghl": {
+      "type": "remote",
+      "url": "https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp",
+      "enabled": true,
+      "oauth": false,
+      "headers": {
+        "X-GHL-Token": "{env:GHL_API_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+`oauth: false` is required: opencode tries OAuth on remote servers by default, but this Worker is a BYO-token proxy, not an OAuth resource server. The `{env:GHL_API_TOKEN}` placeholder pulls the token from your environment, so set it before launching opencode (or hardcode the `pit-...` value directly in the header):
+
+```bash
+export GHL_API_TOKEN=pit-YOUR-TOKEN-HERE
+```
+
+`Authorization: Bearer {env:GHL_API_TOKEN}` works too — the Worker accepts either header.
+
 For Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → paste the URL.
 
 Each user passes their own GHL Private Integration Token via the `X-GHL-Token` header or `Authorization: Bearer <token>`. The Worker forwards that token to GHL for the current MCP request/session and does not persist it in Durable Object storage.
@@ -135,6 +164,24 @@ Or add to Codex CLI:
 codex mcp add uxie-ghl-mcp --env GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx src/stdio.ts
 ```
 
+Or add to opencode (`opencode.json`, run from the cloned repo so the relative path resolves):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "uxie-ghl": {
+      "type": "local",
+      "command": ["npx", "tsx", "src/stdio.ts"],
+      "enabled": true,
+      "environment": {
+        "GHL_API_TOKEN": "pit-YOUR-TOKEN-HERE"
+      }
+    }
+  }
+}
+```
+
 ## Getting your GHL token
 
 1. Log into GoHighLevel
@@ -145,7 +192,7 @@ codex mcp add uxie-ghl-mcp --env GHL_API_TOKEN=pit-YOUR-TOKEN-HERE -- npx tsx sr
 
 ## Usage examples
 
-Once connected, just ask Claude or Codex naturally:
+Once connected, just ask Claude, Codex, or opencode naturally:
 
 - "List all my GHL contacts"
 - "Create a new contact named John Doe with email john@example.com"
@@ -214,7 +261,7 @@ See [`docs/api-v3/`](docs/api-v3/) for the full audit, the per-domain v3 change 
 ## Architecture
 
 ```
-Claude / Codex ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
+Claude / Codex / opencode ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
                     │
                     ├── search_actions (keyword search over 576-action catalog)
                     ├── execute_action (builds HTTP request, calls GHL, returns response)
