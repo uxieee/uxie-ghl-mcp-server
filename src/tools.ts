@@ -840,7 +840,19 @@ function buildIntentGuidance(
     /(create|add|update|edit|delete)/.test(normalized);
   if (asksForPipelineWrites) {
     pushNote(
-      "Pipeline containers and stages are read-only via the public GHL API. Use opportunities__get-pipelines to inspect them, but create or edit them in the GHL UI."
+      "Pipelines and stages are now writable via the API (added 2026-06-26): opportunities-v3__create-pipeline, opportunities-v3__update-pipeline, and opportunities-v3__delete-pipeline. Deleting a pipeline permanently removes every opportunity in it."
+    );
+  }
+
+  const v3Bases = new Set(
+    results
+      .filter((result) => result.category.endsWith("-v3"))
+      .map((result) => result.category.slice(0, -3))
+  );
+  const mixesV2AndV3 = results.some((result) => v3Bases.has(result.category));
+  if (mixesV2AndV3) {
+    pushNote(
+      "Results include both legacy (v2) and v3 variants of the same API. Categories ending in -v3 are GHL API v3 (Version header v3, camelCase params) — prefer them; the unsuffixed twin is the older spec kept for compatibility."
     );
   }
 

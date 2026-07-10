@@ -569,7 +569,7 @@ test("catalog completeness assertion fails closed for tiny catalogs", () => {
     () => assertCatalogCompleteness(2, 1),
     /unexpectedly small catalog/
   );
-  assert.doesNotThrow(() => assertCatalogCompleteness(576, 41));
+  assert.doesNotThrow(() => assertCatalogCompleteness(1207, 83));
 });
 
 test("build-catalog detects a case-insensitive Version header and keeps it out of params", () => {

@@ -1,5 +1,5 @@
 /**
- * Comprehensive endpoint test — exercises the MCP server across all 41 categories.
+ * Comprehensive endpoint test — exercises the MCP server across all catalog categories.
  * Calls search_actions for every category, then execute_action for representative endpoints.
  * Read-only by default. Set ALLOW_GHL_WRITES=1 to include mutating endpoints.
  *

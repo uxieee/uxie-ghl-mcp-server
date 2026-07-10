@@ -133,14 +133,40 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
   },
   "opportunities__get-pipelines": {
     note: [
-      "Read-only pipeline list.",
-      "Pipeline containers and stages must be created and edited in the GHL UI.",
+      "Lists pipelines with their stages.",
+      "Pipelines can now also be created, updated, and deleted via the API: use opportunities-v3__create-pipeline, opportunities-v3__update-pipeline, and opportunities-v3__delete-pipeline (added 2026-06-26).",
     ].join(" "),
     searchBoost: [
       "list pipelines",
       "pipeline stages",
+    ],
+  },
+  "opportunities-v3__create-pipeline": {
+    note: "Creates a pipeline with stages in one call. Pipeline and stage names must be unique (case-insensitive) within the location. Set useOpportunityProbability true only if every stage carries stageWinProbability.",
+    searchBoost: [
       "create pipeline",
-      "pipeline read only",
+      "new pipeline",
+      "add pipeline",
+      "create pipeline stages",
+      "make pipeline",
+    ],
+  },
+  "opportunities-v3__update-pipeline": {
+    note: "The stages array is a FULL replacement: include existing stage ids to keep those stages. A stage left out is deleted and its opportunities move to the lowest-position remaining stage.",
+    searchBoost: [
+      "update pipeline",
+      "edit pipeline",
+      "rename pipeline",
+      "add pipeline stage",
+      "edit pipeline stages",
+      "reorder stages",
+    ],
+  },
+  "opportunities-v3__delete-pipeline": {
+    note: "Irreversibly deletes the pipeline AND every opportunity in it, across all stages. Confirm with the user and consider exporting opportunities first.",
+    searchBoost: [
+      "delete pipeline",
+      "remove pipeline",
     ],
   },
   "locations__GET-all-or-email-sms-templates": {

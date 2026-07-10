@@ -1,20 +1,22 @@
 # uxie-ghl-mcp-server
 
-MCP server for the **entire** GoHighLevel API — all 576 endpoints across 41 categories.
+MCP server for the **entire** GoHighLevel API — all 1207 endpoints across 83 categories (GHL API v2 + v3).
 
 The [official GHL MCP server](https://marketplace.gohighlevel.com/docs/other/mcp/index.html) only covers 36 tools across 9 categories. This one covers everything.
 
+**API v3 support** (since 2026-07-11): GHL published its API v3 spec set on 2026-06-19 as a parallel surface — same host, selected per request via the `Version: v3` header. The catalog carries both: categories ending in `-v3` (e.g. `opportunities-v3`) are the current v3 API, and the unsuffixed twins are the legacy v2 specs kept for compatibility. This includes the long-requested **pipeline create/update/delete** endpoints (added by GHL on 2026-06-26), plus the new `chat-widget` category, calendar service bookings, location-scoped email campaigns/templates, social-planner category queues, and brand voices. See [`docs/api-v3/`](./docs/api-v3/) for the full story.
+
 ## How it works
 
-Instead of registering 576 individual tools (which would flood the LLM's context window), this server uses a **search + execute** pattern:
+Instead of registering 1207 individual tools (which would flood the LLM's context window), this server uses a **search + execute** pattern:
 
 | Tool | What it does |
 |------|-------------|
-| `list_categories` | Browse all 41 API categories with action counts |
+| `list_categories` | Browse all 83 API categories with action counts |
 | `search_actions` | Find actions by natural language, or enumerate every action in one category with `include_all=true` |
 | `execute_action` | Run any action by ID with params, preview writes with `dry_run`, confirm high-risk actions, and shape responses via `result_filter`, `result_fields`, `result_offset`, and `result_limit` |
 
-Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 576 endpoints with just 3 tools.
+Your MCP client searches for what it needs, gets the action ID and parameter schema, then executes it. Works for all 1207 endpoints with just 3 tools.
 
 This server is tuned for LLM usage:
 
@@ -25,7 +27,9 @@ This server is tuned for LLM usage:
 
 ## Categories covered
 
-ad-manager, affiliate-manager, agent-studio, associations, blogs, brand-boards, businesses, calendars, campaigns, companies, contacts, conversation-ai, conversations, courses, custom-fields, custom-menus, email-isv, emails, forms, funnels, invoices, knowledge-base, links, locations, marketplace, medias, oauth, objects, opportunities, payments, phone-system, products, proposals, saas-api, snapshots, social-media-posting, store, surveys, users, voice-ai, workflows
+**v2 (legacy):** ad-manager, affiliate-manager, agent-studio, associations, blogs, brand-boards, businesses, calendars, campaigns, companies, contacts, conversation-ai, conversations, courses, custom-fields, custom-menus, email-isv, emails, forms, funnels, invoices, knowledge-base, links, locations, marketplace, medias, oauth, objects, opportunities, payments, phone-system, products, proposals, saas-api, snapshots, social-media-posting, store, surveys, users, voice-ai, workflows
+
+**v3 (current):** the same domains as `-v3` categories (e.g. `contacts-v3`, `opportunities-v3`), with `ad-publishing-v3`, `social-planner-v3`, and `saas-v3` replacing `ad-manager`, `social-media-posting`, and `saas-api`, plus the new `chat-widget-v3`.
 
 ## Setup
 
@@ -263,12 +267,12 @@ See [`docs/api-v3/`](docs/api-v3/) for the full audit, the per-domain v3 change 
 ```
 Claude / Codex / opencode ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
                     │
-                    ├── search_actions (keyword search over 576-action catalog)
+                    ├── search_actions (keyword search over 1207-action catalog)
                     ├── execute_action (builds HTTP request, calls GHL, returns response)
                     └── list_categories (browse available categories)
 ```
 
-- **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs) (576 actions across 41 categories)
+- **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs) (1207 actions across 83 categories: v2 specs in apps/ plus the v3 specs GHL published to apps/v3/ on 2026-06-19)
 - **Catalog overrides**: Runtime patches correct a few high-value spec mismatches such as `parentId` / `options` on location custom fields
 - **Search**: Pre-computed keyword index built at startup
 - **Auth**: Per-user tokens via `X-GHL-Token` or `Authorization: Bearer <token>` (remote), or `GHL_API_TOKEN` env var (local)
@@ -302,7 +306,7 @@ scripts/
   build-catalog.ts  Downloads GHL OpenAPI specs → catalog.json
   test-all-endpoints.ts  Full endpoint test suite
 data/
-  catalog.json      Auto-generated action catalog (576 actions)
+  catalog.json      Auto-generated action catalog (1207 actions)
 tests/
   ghl-mcp-server.test.ts  Regression tests for MCP behavior and LLM-facing guidance
 ```

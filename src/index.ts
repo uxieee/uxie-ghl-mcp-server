@@ -28,7 +28,8 @@ export class GHLServer extends McpAgent<Env, unknown, GHLSessionProps> {
     },
     {
       instructions: [
-        "GoHighLevel API MCP server — 576 endpoints across 41 categories.",
+        "GoHighLevel API MCP server — 1207 endpoints across 83 categories, covering both GHL API v2 and the API v3 surface published 2026-06-19.",
+        "Categories ending in -v3 are API v3 (Version header v3, camelCase params) — prefer them; the same-named category without the suffix is the legacy v2 spec kept for compatibility.",
         "Flow: search_actions (find the action ID + params) → execute_action (call the API).",
         "execute_action has built-in response shaping — these are top-level params, NOT inside params:",
         "  result_filter: search array items by keyword (e.g. find a custom field by name).",
@@ -41,7 +42,7 @@ export class GHLServer extends McpAgent<Env, unknown, GHLSessionProps> {
         "Tools return structuredContent plus JSON text fallback for older MCP clients.",
         "Rate limit: 60 execute calls per minute.",
         "Param routing: path params → URL, query params → query string, remainder → request body. Undocumented but valid body keys are passed through to GHL so OpenAPI spec gaps do not block valid requests.",
-        "Known public-API gaps such as workflow builder internals and pipeline creation are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints. Conversation AI agents are now exposed under the conversation-ai category.",
+        "Pipelines are now fully writable: opportunities-v3__create-pipeline / update-pipeline / delete-pipeline (API addition of 2026-06-26). Remaining public-API gaps such as workflow builder internals are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints. Conversation AI agents are exposed under the conversation-ai category.",
         "For commerce setup, GHL's products__* and payments__* endpoints are the source of truth. Stripe is the underlying rail, but direct Stripe API access is usually not needed.",
       ].join("\n"),
     }

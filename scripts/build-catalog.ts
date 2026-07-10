@@ -11,9 +11,12 @@ import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 // a preview branch (e.g. to adopt API v3 specs before they merge to main).
 const REPO = process.env.GHL_DOCS_REPO || "GoHighLevel/highlevel-api-docs";
 const BRANCH = process.env.GHL_DOCS_REF || "main";
-const APPS_DIR = "apps";
-const MIN_ACTIONS = 500;
-const MIN_CATEGORIES = 35;
+// GHL published API v3 as a parallel spec set (apps/v3/*-v3.json) on 2026-06-19,
+// keeping the v2 specs in apps/*.json. Both surfaces are live on the same host,
+// selected per-request via the Version header, so the catalog carries both.
+const APPS_DIRS = ["apps", "apps/v3"];
+const MIN_ACTIONS = 1100;
+const MIN_CATEGORIES = 75;
 
 interface CatalogAction {
   id: string;
@@ -183,11 +186,17 @@ export function extractActions(spec: any, category: string): CatalogAction[] {
 }
 
 async function listSpecFiles(): Promise<string[]> {
-  const url = `https://api.github.com/repos/${REPO}/contents/${APPS_DIR}?ref=${BRANCH}`;
-  const entries = await fetchJSON(url);
-  return entries
-    .filter((e: any) => e.name.endsWith(".json"))
-    .map((e: any) => e.path);
+  const paths: string[] = [];
+  for (const dir of APPS_DIRS) {
+    const url = `https://api.github.com/repos/${REPO}/contents/${dir}?ref=${BRANCH}`;
+    const entries = await fetchJSON(url);
+    paths.push(
+      ...entries
+        .filter((e: any) => e.type === "file" && e.name.endsWith(".json"))
+        .map((e: any) => e.path)
+    );
+  }
+  return paths;
 }
 
 async function main() {
@@ -200,7 +209,9 @@ async function main() {
   const failedSpecs: Array<{ path: string; error: string }> = [];
 
   for (const specPath of specFiles) {
-    const category = specPath.replace("apps/", "").replace(".json", "");
+    // Category = spec basename: apps/opportunities.json -> "opportunities",
+    // apps/v3/opportunities-v3.json -> "opportunities-v3".
+    const category = specPath.split("/").pop()!.replace(".json", "");
     process.stdout.write(`  ${category}... `);
 
     try {
