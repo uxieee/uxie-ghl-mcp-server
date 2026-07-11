@@ -862,7 +862,7 @@ function buildIntentGuidance(
     (normalized.includes("sms") || normalized.includes("email"))
   ) {
     pushNote(
-      "The public GHL API can list or delete email/SMS templates, but creating them is still UI-only."
+      "Email templates CAN be created via the API: emails-v3__create-email-template / emails-v3__import-email-template (or the older emails__create-template builder endpoint). Only SMS template creation is still UI-only — /locations/{locationId}/templates supports list and delete only."
     );
   }
 
