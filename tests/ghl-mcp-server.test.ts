@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { buildSearchIndex } from "../src/search.js";
 import { registerTools } from "../src/tools.js";
 import { executeAction } from "../src/executor.js";
+import { applyCatalogOverrides } from "../src/catalog-overrides.js";
+import { ACTION_TIPS } from "../src/action-tips.js";
 import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
 import type { Catalog, CatalogAction } from "../src/types.js";
 
@@ -623,4 +625,93 @@ test("executeAction targets the catalog baseUrl override", async () => {
   }
 
   assert.ok(capturedUrl.startsWith("https://staging.example.com/contacts/"));
+});
+
+// Both of these were discovered the expensive way — one 422 round trip each — while driving
+// a live account on 2026-07-31. The executor sends every UNDECLARED key in the request body
+// (deliberately, so bad upstream schemas cannot block valid requests), which is exactly why
+// an endpoint that rejects a key in the body has to have that key declared somewhere else.
+test("update-pipeline routes locationId to the query string, where GHL wants it", async () => {
+  const catalog = applyCatalogOverrides(
+    createCatalog([
+      createAction({
+        id: "opportunities-v3__get-pipelines",
+        category: "opportunities-v3",
+        method: "GET",
+        path: "/opportunities/pipelines",
+      }),
+    ])
+  );
+  const action = catalog.actions.find(
+    (candidate) => candidate.id === "opportunities-v3__update-pipeline"
+  );
+  assert.ok(action, "update-pipeline should be appended by the overrides");
+  assert.equal(
+    action.parameters.find((p) => p.name === "locationId")?.in,
+    "query",
+    "an undeclared locationId falls through to the body, which this endpoint 422s"
+  );
+
+  let capturedUrl = "";
+  let capturedBody: unknown;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (url, init) => {
+    capturedUrl = String(url);
+    capturedBody = JSON.parse(String((init as RequestInit).body));
+    return new Response("{}", { status: 200, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    await executeAction(
+      action,
+      { pipelineId: "pipe_1", locationId: "loc_1", name: "Sales", stages: [{ id: "st_1", name: "New" }] },
+      "pit-test-token"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.match(capturedUrl, /\/opportunities\/pipelines\/pipe_1\?locationId=loc_1/);
+  assert.deepEqual(Object.keys(capturedBody as object).sort(), ["name", "stages"]);
+});
+
+test("update-agent's sleep fields say they are conditional on sleepEnabled", () => {
+  const catalog = applyCatalogOverrides(
+    createCatalog([
+      createAction({
+        id: "conversation-ai__update-agent",
+        category: "conversation-ai",
+        method: "PUT",
+        path: "/conversation-ai/agents/{agentId}",
+        parameters: [{ name: "agentId", in: "path", required: true, description: "", type: "string" }],
+        requestBody: {
+          required: true,
+          contentType: "application/json",
+          schema: {
+            type: "object",
+            properties: {
+              sleepEnabled: { type: "boolean", description: "Enable sleep." },
+              sleepTime: { type: "number", description: "How long to sleep." },
+              sleepTimeUnit: { type: "string", description: "Sleep unit." },
+            },
+          },
+        },
+      }),
+    ])
+  );
+  const props = catalog.actions[0].requestBody?.schema?.properties as Record<string, { description: string }>;
+  for (const field of ["sleepTime", "sleepTimeUnit"]) {
+    assert.match(props[field].description, /422/, `${field} must warn that it is conditional`);
+    assert.match(props[field].description, /sleepEnabled is true/);
+  }
+  // the unconditional field is left alone
+  assert.equal(props.sleepEnabled.description, "Enable sleep.");
+});
+
+test("the update-agent note warns off locationId, which the endpoint 422s in the body", () => {
+  for (const id of ["conversation-ai__update-agent", "conversation-ai-v3__update-agent"]) {
+    const note = ACTION_TIPS[id]?.note ?? "";
+    assert.match(note, /locationId/, `${id} should warn about locationId`);
+    assert.match(note, /422/, `${id} should say what happens`);
+  }
+  assert.match(ACTION_TIPS["opportunities-v3__update-pipeline"]?.note ?? "", /QUERY STRING/);
 });

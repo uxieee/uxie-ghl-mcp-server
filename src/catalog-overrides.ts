@@ -57,6 +57,26 @@ function overrideAction(action: CatalogAction): CatalogAction {
     };
   }
 
+  // conversation-ai update-agent (v2 and v3 share the path) rejects sleepTime and
+  // sleepTimeUnit whenever sleepEnabled is false — 422, not a silent ignore. The published
+  // schema advertises all three as independent, so the pairing has to be stated on the
+  // fields themselves. Matched by method+path so both variants pick it up.
+  if (action.method === "PUT" && action.path === "/conversation-ai/agents/{agentId}") {
+    const sleepNote =
+      " Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).";
+    const props = (action.requestBody?.schema?.properties ?? {}) as Record<string, { description?: string }>;
+    const patched: Record<string, unknown> = {};
+    for (const field of ["sleepTime", "sleepTimeUnit"]) {
+      const existing = props[field];
+      if (existing && !existing.description?.includes("422")) {
+        patched[field] = { ...existing, description: `${existing.description ?? ""}${sleepNote}`.trim() };
+      }
+    }
+    if (Object.keys(patched).length > 0) {
+      return { ...action, requestBody: mergeRequestBodySchema(action.requestBody, patched) };
+    }
+  }
+
   switch (action.id) {
     // The upstream specs (both v2 and v3) omit `options` and `parentId` from the
     // custom-field payloads even though the live API accepts them.
@@ -207,6 +227,17 @@ const HAND_AUTHORED_ACTIONS: CatalogAction[] = [
         in: "path",
         required: true,
         description: "ID of the pipeline to update.",
+        type: "string",
+      },
+      {
+        // Declared as a QUERY param on purpose. Undeclared keys fall through to the
+        // request body (see executor.ts), and this endpoint answers 422 when locationId
+        // is in the body — costing a round trip to discover. Verified live 2026-07-31.
+        name: "locationId",
+        in: "query",
+        required: false,
+        description:
+          "Sub-account (location) ID. Goes in the QUERY STRING — unlike create-pipeline, this endpoint rejects locationId in the request body with 422.",
         type: "string",
       },
     ],

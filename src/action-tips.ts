@@ -152,7 +152,11 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
     ],
   },
   "opportunities-v3__update-pipeline": {
-    note: "The stages array is a FULL replacement: include existing stage ids to keep those stages. A stage left out is deleted and its opportunities move to the lowest-position remaining stage.",
+    note: [
+      "The stages array is a FULL replacement: include existing stage ids to keep those stages. A stage left out is deleted and its opportunities move to the lowest-position remaining stage.",
+      "Sending the full stages array with every existing id preserved is safe and does not disturb opportunities (verified live against 148 records, 2026-07-31).",
+      "locationId goes in the QUERY STRING here, not the body — unlike create-pipeline, this endpoint answers 422 if it is in the body.",
+    ].join(" "),
     searchBoost: [
       "update pipeline",
       "edit pipeline",
@@ -160,6 +164,30 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
       "add pipeline stage",
       "edit pipeline stages",
       "reorder stages",
+    ],
+  },
+  "conversation-ai__update-agent": {
+    note: [
+      "Do NOT send locationId — this endpoint answers 422 when it is in the body. The agent is identified by agentId in the path.",
+      "Send sleepTime / sleepTimeUnit only when sleepEnabled is true; either one present while sleep is disabled is a 422.",
+      "Both verified live 2026-07-31, and both cost a round trip to discover.",
+    ].join(" "),
+    searchBoost: [
+      "update conversation ai agent",
+      "edit ai employee",
+      "change ai agent instructions",
+    ],
+  },
+  "conversation-ai-v3__update-agent": {
+    note: [
+      "Do NOT send locationId — this endpoint answers 422 when it is in the body. The agent is identified by agentId in the path.",
+      "Send sleepTime / sleepTimeUnit only when sleepEnabled is true; either one present while sleep is disabled is a 422.",
+      "Both verified live 2026-07-31, and both cost a round trip to discover.",
+    ].join(" "),
+    searchBoost: [
+      "update conversation ai agent",
+      "edit ai employee",
+      "change ai agent instructions",
     ],
   },
   "opportunities-v3__delete-pipeline": {
