@@ -1,5 +1,4 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { McpAgent } from "agents/mcp";
 import { createMcpHandler } from "agents/mcp";
 import { buildSearchIndex } from "./search.js";
 import { registerTools, buildCatalogData } from "./tools.js";
@@ -32,13 +31,11 @@ const SERVER_INSTRUCTIONS = [
   "For commerce setup, GHL's products__* and payments__* endpoints are the source of truth. Stripe is the underlying rail, but direct Stripe API access is usually not needed.",
 ].join("\n");
 
-export interface Env {
-  MCP_OBJECT: DurableObjectNamespace;
-}
-
-interface GHLSessionProps extends Record<string, unknown> {
-  apiToken?: string;
-}
+/**
+ * No bindings. `/mcp` is served statelessly, so the Worker holds no Durable
+ * Object namespace and no persistent storage of any kind.
+ */
+export interface Env {}
 
 /**
  * Rate limiters, keyed by token, held at module (isolate) scope.
@@ -91,47 +88,6 @@ function buildServer(apiToken: string): McpServer {
   });
 
   return server;
-}
-
-/**
- * Retained only so the `MCP_OBJECT` binding and the v1 migration stay valid
- * while the stateless handler is verified in production.
- *
- * Nothing routes to this class any more — Durable Objects are created solely by
- * `McpAgent.serve()`'s `getAgentByName()` call, which is gone. It mints no new
- * objects while it sits here unused. Once the stateless path is confirmed, this
- * class and its binding get removed in a follow-up deploy, together with a
- * `deleted_classes: ["GHLServer"]` migration that reclaims the ~4.97 GB of
- * abandoned per-session storage.
- */
-export class GHLServer extends McpAgent<Env, unknown, GHLSessionProps> {
-  server = new McpServer(
-    { name: "ghl-mcp-server", version: "0.1.0" },
-    { instructions: SERVER_INSTRUCTIONS }
-  );
-
-  private apiToken: string = "";
-
-  override async updateProps(props?: GHLSessionProps): Promise<void> {
-    // Keep the caller-provided PIT request/session-scoped. The base McpAgent
-    // persists props in Durable Object storage; this server must not persist
-    // user GHL tokens.
-    this.props = props;
-  }
-
-  async init() {
-    this.apiToken = this.props?.apiToken || "";
-
-    registerTools(this.server, {
-      catalog: typedCatalog,
-      searchIndex,
-      actionById,
-      categorySummary,
-      getToken: () => this.apiToken,
-      rateLimiter: getRateLimiter(this.apiToken),
-      actionTips: ACTION_TIPS,
-    });
-  }
 }
 
 export default {
