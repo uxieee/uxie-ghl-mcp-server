@@ -411,7 +411,7 @@ if (cmd === "accounts") {
   console.log("  ghl-mcp accounts add …         add a sub-account (verified before writing)");
   console.log("  ghl-mcp accounts list [--json] list configured sub-accounts");
   console.log("  ghl-mcp accounts remove <id>   remove one");
-  console.log("  ghl-mcp scope \"Acme Dental\"      point this folder at one client (by name)");
+  console.log("  ghl-mcp scope \"Acme Dental\"    point this folder at one client (by name)");
   console.log("  ghl-mcp scope --list           what this folder is scoped to\n");
   console.log("Setting this up with an AI agent? Start with: ghl-mcp doctor --json\n");
   console.log("Single sub-account instead? Set GHL_API_TOKEN and skip the accounts file.\n");
