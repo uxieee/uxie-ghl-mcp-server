@@ -385,7 +385,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .record(z.string(), z.unknown())
           .default({})
           .describe(
-            "GHL API parameters only (path, query, and body fields as a flat object). Do NOT put result_filter, result_fields, result_offset, or result_limit here — those are separate top-level params."
+            "GHL parameters as a flat object; routed to path/query/body automatically. The result_* options are TOP-LEVEL, not part of this."
           ),
         confirm: z
           .boolean()
@@ -410,14 +410,14 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .max(100)
           .optional()
           .describe(
-            "Filter array results by keyword. Matches against string fields in each item (case-insensitive). Useful for finding specific items in large lists, e.g. searching custom fields by name."
+            "Keyword filter over string fields in returned items (case-insensitive)."
           ),
         result_fields: z
           .string()
           .max(500)
           .optional()
           .describe(
-            "Comma-separated list of fields to keep in each array item. Strips all other properties to reduce response size. E.g. 'id,name,fieldKey' returns only those 3 fields per item."
+            "Comma-separated fields to keep, e.g. 'id,name'. Applies to list items and to single records."
           ),
         result_offset: z
           .number()
@@ -425,7 +425,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .min(0)
           .default(0)
           .describe(
-            "Starting index for paginating array responses. Use with result_limit to page through large result sets."
+            "Start index for paginating array responses."
           ),
         result_limit: z
           .number()
