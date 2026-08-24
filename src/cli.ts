@@ -64,45 +64,102 @@ async function verify(token: string, locationId: string): Promise<{ ok: true; na
   return { ok: true, name: body.location?.name || body.name || locationId };
 }
 
-async function add(): Promise<void> {
+function parseFlags(argv: string[]): Record<string, string | boolean> {
+  const out: Record<string, string | boolean> = {};
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (!a.startsWith("--")) continue;
+    const key = a.slice(2);
+    const next = argv[i + 1];
+    if (next && !next.startsWith("--")) { out[key] = next; i++; } else { out[key] = true; }
+  }
+  return out;
+}
+
+/** Machine-readable when --json is passed, human-readable otherwise. */
+function emit(json: boolean, ok: boolean, payload: Record<string, unknown>, human: string): void {
+  if (json) console.log(JSON.stringify({ ok, ...payload }));
+  else console.log(human);
+  if (!ok) process.exit(1);
+}
+
+/**
+ * Add a sub-account.
+ *
+ * Two modes on purpose. Most people install this WITH an AI agent, and an agent cannot type
+ * into an interactive prompt — so flags plus --json exist for the agent, and the prompt
+ * remains for a human working alone. The agent cannot obtain the token or the location id
+ * itself either (both come from a browser), so the intended shape is collaborative: the agent
+ * runs `doctor`, tells the human exactly where to click, the human pastes two values, the
+ * agent runs `accounts add --token … --location … --json` and reports what GHL said.
+ */
+async function add(argv: string[]): Promise<void> {
+  const flags = parseFlags(argv);
+  const json = Boolean(flags.json);
   const p = filePath();
   const f = load(p);
-  const rl = createInterface({ input: stdin, output: stdout });
-  console.log(`\nAdding a GoHighLevel sub-account to ${p}\n`);
-  console.log("You need two things from the sub-account:");
-  console.log("  1. a Private Integration Token — Settings > Private Integrations > Create");
-  console.log("  2. its location id — the long string in the browser URL while you are in");
-  console.log("     that sub-account: app.gohighlevel.com/v2/location/<THIS>/dashboard\n");
-  const token = (await rl.question("Private Integration Token (pit-…): ")).trim();
-  const id = (await rl.question("Location id: ")).trim();
-  rl.close();
+
+  let token = typeof flags.token === "string" ? flags.token.trim() : "";
+  let id = typeof flags.location === "string" ? flags.location.trim() : "";
+
+  if (!token || !id) {
+    if (json || !stdin.isTTY) {
+      emit(true, false, {
+        error: "missing --token and/or --location",
+        need: ["--token pit-…", "--location <locationId>"],
+        howToGet: {
+          token: "In the sub-account: Settings > Private Integrations > Create. Tick the scopes you want.",
+          location: "The long id in the browser URL while in that sub-account: app.gohighlevel.com/v2/location/<THIS>/dashboard",
+        },
+        hint: "Both values come from the GHL web UI, so a person has to fetch them. Ask for them, then re-run with the flags.",
+      }, "");
+      return;
+    }
+    const rl = createInterface({ input: stdin, output: stdout });
+    console.log(`\nAdding a GoHighLevel sub-account to ${p}\n`);
+    console.log("You need two things from the sub-account:");
+    console.log("  1. a Private Integration Token — Settings > Private Integrations > Create");
+    console.log("  2. its location id — the long string in the browser URL while you are in");
+    console.log("     that sub-account: app.gohighlevel.com/v2/location/<THIS>/dashboard\n");
+    if (!token) token = (await rl.question("Private Integration Token (pit-…): ")).trim();
+    if (!id) id = (await rl.question("Location id: ")).trim();
+    rl.close();
+  }
 
   if (!token.startsWith("pit-")) {
-    console.error("\nThat does not look like a Private Integration Token (they start with 'pit-').\n");
-    process.exit(1);
+    emit(json, false, { error: "not a Private Integration Token", detail: "Private Integration Tokens start with 'pit-'." },
+      "\nThat does not look like a Private Integration Token (they start with 'pit-').\n");
+    return;
   }
-  process.stdout.write("\nChecking the token really reaches that sub-account… ");
+
+  if (!json) process.stdout.write("\nChecking the token really reaches that sub-account… ");
   const v = await verify(token, id);
   if (!v.ok) {
-    console.error(`no.\n\n  ${v.why}\n\nNothing was written.\n`);
-    process.exit(1);
+    emit(json, false, { error: "verification failed", detail: v.why, locationId: id, wrote: false },
+      `no.\n\n  ${v.why}\n\nNothing was written.\n`);
+    return;
   }
-  console.log(`yes — "${v.name}".\n`);
 
   const existing = f.accounts.findIndex((a) => a.id === id);
   const entry: Account = { id, name: v.name, token };
-  if (existing >= 0) { f.accounts[existing] = entry; console.log(`Updated the existing entry for "${v.name}".`); }
-  else { f.accounts.push(entry); console.log(`Added "${v.name}".`); }
+  const updated = existing >= 0;
+  if (updated) f.accounts[existing] = entry; else f.accounts.push(entry);
   if (!f.default) f.default = id;
   save(p, f);
-  console.log(`\n${p} now holds ${f.accounts.length} sub-account(s).`);
-  console.log("Point an MCP client at it with:\n");
-  console.log(`  claude mcp add ghl -e GHL_ACCOUNTS_FILE="${p}" -- npx -y @uxieee/ghl-mcp\n`);
+
+  emit(json, true, { action: updated ? "updated" : "added", name: v.name, locationId: id, file: p, total: f.accounts.length },
+    `yes — "${v.name}".\n\n${updated ? "Updated" : "Added"} "${v.name}".\n${p} now holds ${f.accounts.length} sub-account(s).\n\n` +
+    `Point an MCP client at it with:\n\n  claude mcp add ghl -e GHL_ACCOUNTS_FILE="${p}" -- npx -y @uxieee/ghl-mcp\n`);
 }
 
-function list(): void {
+function list(asJson = false): void {
   const p = filePath();
   const f = load(p);
+  if (asJson) {
+    console.log(JSON.stringify({ ok: true, file: p, count: f.accounts.length,
+      accounts: f.accounts.map((a) => ({ id: a.id, name: a.name, isDefault: a.id === f.default })) }));
+    return;   // tokens are never included
+  }
   if (!f.accounts.length) { console.log(`\nNo sub-accounts configured in ${p}.\nRun: ghl-mcp accounts add\n`); return; }
   console.log(`\n${f.accounts.length} sub-account(s) in ${p}:\n`);
   for (const a of f.accounts) {
@@ -122,22 +179,103 @@ function remove(which: string): void {
   console.log(`\nRemoved. ${f.accounts.length} sub-account(s) remain.\n`);
 }
 
-const [cmd, sub, arg] = process.argv.slice(2);
+/**
+ * Say what is configured and what is missing, in the order it has to be fixed.
+ *
+ * This is the command an agent should run first. It cannot fetch a token or a location id —
+ * both live behind a browser login — so its job is to work out exactly what is missing and
+ * hand back precise instructions for the person to follow.
+ */
+async function doctor(asJson: boolean): Promise<void> {
+  const p = filePath();
+  const singleToken = process.env.GHL_API_TOKEN || "";
+  const exists = existsSync(p);
+  const f = exists ? load(p) : { accounts: [] as Account[] };
+  const allowed = (process.env.GHL_ALLOWED_LOCATIONS || "").split(",").map((x) => x.trim()).filter(Boolean);
+
+  const checks: Array<{ name: string; ok: boolean; detail: string }> = [];
+  checks.push({ name: "node", ok: true, detail: process.version });
+
+  const mode = f.accounts.length ? "multi" : singleToken ? "single" : "unconfigured";
+  checks.push({
+    name: "mode", ok: mode !== "unconfigured",
+    detail: mode === "multi" ? `accounts file with ${f.accounts.length} sub-account(s)`
+          : mode === "single" ? "GHL_API_TOKEN set (one sub-account)"
+          : "nothing configured",
+  });
+
+  // Prove each configured token still reaches its sub-account, rather than assuming.
+  const live: Array<{ name: string; id: string; ok: boolean; why?: string }> = [];
+  for (const a of f.accounts) {
+    const v = await verify(a.token, a.id);
+    live.push(v.ok ? { name: v.name, id: a.id, ok: true } : { name: a.name, id: a.id, ok: false, why: v.why });
+  }
+  const dead = live.filter((l) => !l.ok);
+  if (f.accounts.length) {
+    checks.push({ name: "tokens", ok: dead.length === 0,
+      detail: dead.length ? `${dead.length} of ${live.length} cannot reach their sub-account` : `all ${live.length} verified against GHL` });
+  }
+  const unknownAllowed = allowed.filter((id) => !f.accounts.some((a) => a.id === id));
+  if (allowed.length) {
+    checks.push({ name: "scope", ok: unknownAllowed.length === 0,
+      detail: unknownAllowed.length ? `GHL_ALLOWED_LOCATIONS names ${unknownAllowed.join(", ")}, absent from the accounts file`
+                                    : `scoped to ${allowed.length} of ${f.accounts.length}` });
+  }
+
+  const nextSteps: string[] = [];
+  if (mode === "unconfigured") {
+    nextSteps.push("Ask the person for a Private Integration Token: in GoHighLevel, open the sub-account, Settings > Private Integrations > Create, tick the scopes needed, copy the pit-… value.");
+    nextSteps.push("Ask for that sub-account's location id: it is the long id in the browser URL while they are in it — app.gohighlevel.com/v2/location/<THIS>/dashboard");
+    nextSteps.push("Then run: ghl-mcp accounts add --token <pit-…> --location <id> --json");
+    nextSteps.push("For a single sub-account with no file, set GHL_API_TOKEN instead.");
+  }
+  for (const d of dead) {
+    nextSteps.push(`"${d.name}" (${d.id}): ${d.why}. Re-add it with a current token, or remove it: ghl-mcp accounts remove ${d.id}`);
+  }
+  for (const id of unknownAllowed) {
+    nextSteps.push(`GHL_ALLOWED_LOCATIONS lists ${id}, which is not in the accounts file — add it or drop it from the scope, or the server will refuse to start.`);
+  }
+
+  if (asJson) {
+    console.log(JSON.stringify({ ok: checks.every((c) => c.ok), mode, file: p, fileExists: exists, checks, accounts: live, nextSteps }, null, 2));
+    return;
+  }
+  console.log(`\nghl-mcp doctor\n`);
+  for (const c of checks) console.log(`  ${c.ok ? "ok  " : "FAIL"}  ${c.name.padEnd(8)} ${c.detail}`);
+  if (live.length) {
+    console.log("\n  sub-accounts:");
+    for (const l of live) console.log(`    ${l.ok ? "ok  " : "FAIL"}  ${l.name}  ${l.ok ? "" : "— " + l.why}`);
+  }
+  if (nextSteps.length) { console.log("\n  next:"); nextSteps.forEach((n, i) => console.log(`    ${i + 1}. ${n}`)); }
+  console.log();
+}
+
+const argv = process.argv.slice(2);
+const [cmd, sub, arg] = argv;
+
 if (cmd === "accounts") {
-  if (sub === "add") await add();
-  else if (sub === "list") list();
+  if (sub === "add") await add(argv.slice(2));
+  else if (sub === "list") list(parseFlags(argv).json === true);
   else if (sub === "remove" && arg) remove(arg);
   else {
-    console.log("\nUsage:\n  ghl-mcp accounts add\n  ghl-mcp accounts list\n  ghl-mcp accounts remove <id|name>\n");
+    console.log("\nUsage:");
+    console.log("  ghl-mcp accounts add --token pit-… --location <id> [--json]");
+    console.log("  ghl-mcp accounts add                 (interactive, for a person)");
+    console.log("  ghl-mcp accounts list [--json]");
+    console.log("  ghl-mcp accounts remove <id|name>\n");
     process.exit(1);
   }
+} else if (cmd === "doctor") {
+  await doctor(parseFlags(argv).json === true);
 } else if (cmd === "--help" || cmd === "-h") {
   console.log("\nghl-mcp — GoHighLevel public API over MCP\n");
   console.log("  ghl-mcp                        run the server over stdio");
-  console.log("  ghl-mcp accounts add           add a sub-account (verified before writing)");
-  console.log("  ghl-mcp accounts list          list configured sub-accounts");
+  console.log("  ghl-mcp doctor [--json]        check the setup and say what is missing");
+  console.log("  ghl-mcp accounts add …         add a sub-account (verified before writing)");
+  console.log("  ghl-mcp accounts list [--json] list configured sub-accounts");
   console.log("  ghl-mcp accounts remove <id>   remove one\n");
+  console.log("Setting this up with an AI agent? Start with: ghl-mcp doctor --json\n");
   console.log("Single sub-account instead? Set GHL_API_TOKEN and skip the accounts file.\n");
 } else {
-  await import("./stdio.js");   // no subcommand: be the MCP server
+  await import("./stdio.js");
 }

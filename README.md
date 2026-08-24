@@ -52,8 +52,8 @@ claude mcp add ghl -e GHL_ACCOUNTS_FILE="$HOME/.ghl/accounts.json" -- npx -y @ux
 Private Integration Token (pit-…): ****
 Location id: ****
 
-Checking the token really reaches that sub-account… yes — "SK Skin and Body Health".
-Added "SK Skin and Body Health".
+Checking the token really reaches that sub-account… yes — "Riverside Dental Co".
+Added "Riverside Dental Co".
 ```
 
 - **200** → the pairing is real, and the sub-account's name comes back from GHL rather than you typing it
@@ -64,9 +64,79 @@ Nothing is written unless it verifies. A mistyped location id is not a syntax er
 silent write to the wrong client — so it is checked at the point you enter it.
 
 ```
+npx -y @uxieee/ghl-mcp doctor                 # what is configured, what is missing
 npx -y @uxieee/ghl-mcp accounts list          # names and ids; never prints tokens
 npx -y @uxieee/ghl-mcp accounts remove <id>
 ```
+
+Every command accepts `--json`, and `accounts add` accepts `--token` / `--location`, so an
+agent can drive setup without an interactive prompt. See
+[Setting this up with an AI agent](#setting-this-up-with-an-ai-agent).
+
+### Setting this up with an AI agent
+
+Most people install this alongside an agent, so the setup is built for the pair of you. The
+agent cannot fetch either value — both live behind a browser login — so its job is to work out
+what is missing, tell you exactly where to click, and verify what you paste back.
+
+**Point your agent at this and it can drive the whole thing:**
+
+```bash
+npx -y @uxieee/ghl-mcp doctor --json
+```
+
+That returns the current state and an ordered `nextSteps` array. On a fresh machine:
+
+```json
+{
+  "ok": false,
+  "mode": "unconfigured",
+  "file": "/Users/you/.ghl/accounts.json",
+  "fileExists": false,
+  "checks": [
+    { "name": "node", "ok": true,  "detail": "v24.13.0" },
+    { "name": "mode", "ok": false, "detail": "nothing configured" }
+  ],
+  "accounts": [],
+  "nextSteps": [
+    "Ask the person for a Private Integration Token: in GoHighLevel, open the sub-account, Settings > Private Integrations > Create, tick the scopes needed, copy the pit-… value.",
+    "Ask for that sub-account's location id: it is the long id in the browser URL while they are in it — app.gohighlevel.com/v2/location/<THIS>/dashboard",
+    "Then run: ghl-mcp accounts add --token <pit-…> --location <id> --json",
+    "For a single sub-account with no file, set GHL_API_TOKEN instead."
+  ]
+}
+```
+
+On a machine that is already set up, `mode` is `multi` (or `single`), every account is
+re-verified against GHL, and `nextSteps` is empty when nothing needs doing.
+
+You paste the two values; the agent runs:
+
+```bash
+npx -y @uxieee/ghl-mcp accounts add --token pit-… --location <id> --json
+```
+
+```json
+{ "ok": true, "action": "added", "name": "Riverside Dental Co",
+  "locationId": "ve9EPM428h8vShlRW1KT", "total": 1 }
+```
+
+The `name` comes back **from GHL**, so it is proof the token reaches that sub-account rather
+than something either of you typed. Failures are structured too, with a non-zero exit:
+
+| | |
+|---|---|
+| `"the token is not valid (401)"` | revoked or mistyped token |
+| `"this token has no access to that location (403)"` | the id and token belong to **different** sub-accounts |
+| `"not a Private Integration Token"` | it does not start with `pit-` |
+
+**Nothing is written unless it verifies.** A mistyped location id is not a syntax error — it is
+a silent write to the wrong client — so it is caught here rather than in three weeks.
+
+Re-run `doctor --json` afterwards to confirm, and any time something stops working: it
+re-verifies every configured token against GHL and names the ones that have gone stale.
+
+Every command takes `--json`, and `accounts list --json` never includes a token.
 
 ### Getting the two values
 

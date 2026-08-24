@@ -1099,3 +1099,70 @@ test("result_fields trims a wrapped single record, not just arrays", async () =>
     globalThis.fetch = original;
   }
 });
+
+// ── the setup CLI, driven by an agent ────────────────────────────────────────────────
+// Most people install this WITH an AI agent, and an agent cannot type into a readline
+// prompt — so an interactive-only `accounts add` would be unusable by the party most
+// likely to be running the setup. These pin the non-interactive contract.
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, existsSync as fileExists } from "node:fs";
+import { tmpdir } from "node:os";
+import { join as pathJoin } from "node:path";
+
+function cli(args: string[], env: Record<string, string> = {}) {
+  try {
+    const out = execFileSync("node", ["dist/cli.js", ...args], {
+      encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, ...env },
+    });
+    return { code: 0, out };
+  } catch (e) {
+    const err = e as { status: number; stdout: string };
+    return { code: err.status, out: err.stdout ?? "" };
+  }
+}
+
+test("an agent asking to add an account with no values gets instructions, not a prompt", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    const r = cli(["accounts", "add", "--json"], { GHL_ACCOUNTS_FILE: pathJoin(dir, "a.json"), GHL_API_TOKEN: "" });
+    const d = JSON.parse(r.out);
+    assert.equal(d.ok, false);
+    assert.ok(Array.isArray(d.need), "tells the caller which flags are missing");
+    assert.match(d.howToGet.token, /Private Integrations/, "explains where a human gets the token");
+    assert.match(d.howToGet.location, /location/, "explains where a human gets the location id");
+    assert.notEqual(r.code, 0, "non-zero exit so the agent can branch on it");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("a bad token is refused as structured JSON and nothing is written", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  const file = pathJoin(dir, "a.json");
+  try {
+    const r = cli(["accounts", "add", "--token", "not-a-pit", "--location", "abc", "--json"], { GHL_ACCOUNTS_FILE: file });
+    const d = JSON.parse(r.out);
+    assert.equal(d.ok, false);
+    assert.match(d.error, /not a Private Integration Token/);
+    assert.equal(fileExists(file), false, "an invalid token must not create the accounts file");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("doctor reports an unconfigured machine with ordered next steps", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    const r = cli(["doctor", "--json"], { GHL_ACCOUNTS_FILE: pathJoin(dir, "a.json"), GHL_API_TOKEN: "" });
+    const d = JSON.parse(r.out);
+    assert.equal(d.mode, "unconfigured");
+    assert.ok(d.nextSteps.length >= 3, "gives the agent something concrete to do");
+    assert.match(d.nextSteps.join(" "), /accounts add --token/, "names the exact command to run next");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("accounts list --json never includes a token", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const r = cli(["accounts", "list", "--json"]);
+  assert.ok(!r.out.includes("pit-"), "tokens must never reach stdout");
+});

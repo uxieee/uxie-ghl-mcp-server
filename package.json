@@ -7,10 +7,11 @@
     "deploy": "wrangler deploy",
     "start:local": "tsx src/stdio.ts",
     "build-catalog": "tsx scripts/build-catalog.ts",
-    "test": "node --import tsx --test tests/**/*.test.ts",
+    "test": "node scripts/check-no-secrets.mjs && node --import tsx --test tests/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "node scripts/check-no-secrets.mjs && npm run build && npm test",
+    "check:secrets": "node scripts/check-no-secrets.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
