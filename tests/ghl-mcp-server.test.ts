@@ -5,7 +5,7 @@ import { registerTools, buildCatalogData } from "../src/tools.js";
 import { executeAction, previewActionRequest } from "../src/executor.js";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 import { ACTION_TIPS } from "../src/action-tips.js";
-import { AccountsRegistry } from "../src/accounts.js";
+import { AccountsRegistry, probeLocation, validateAccountsFile } from "../src/accounts.js";
 import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
 import type { Catalog, CatalogAction } from "../src/types.js";
 
@@ -1254,4 +1254,36 @@ test("scope --list never claims 'all accounts' for a folder with no server", (t)
     assert.equal(d.configured, false);
     assert.match(d.scopedTo, /^none/, "must not read as unrestricted access");
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("the writer and the reader agree on the accounts file format", () => {
+  // The CLI writes this file and the server reads it. When only the reader enforced the
+  // rules, the writer could produce a file the server then refused to start on — surfacing
+  // at the next session start rather than at the point of the mistake. One validator now.
+  assert.equal(validateAccountsFile({ accounts: [{ id: "a", name: "A", token: "pit-x" }] }), null);
+  assert.match(validateAccountsFile({ accounts: [] }) ?? "", /non-empty/);
+  assert.match(validateAccountsFile({ accounts: [{ id: "a", name: "A", token: "nope" }] }) ?? "", /does not look like a PIT/);
+  assert.match(validateAccountsFile({ accounts: [{ id: "a", name: "A", token: "pit-x" },
+                                                 { id: "a", name: "B", token: "pit-y" }] }) ?? "", /twice/);
+  assert.match(validateAccountsFile({ accounts: [{ id: "", name: "A", token: "pit-x" }] }) ?? "", /needs both/);
+
+  // and every rule the reader enforces is reachable through the same function
+  assert.throws(() => new AccountsRegistry({ accounts: [{ id: "a", name: "A", token: "nope" }] }),
+    /does not look like a PIT/, "the registry defers to the shared validator");
+});
+
+test("a 200 with an unreadable body is still a good binding", async () => {
+  // The status is the verdict; the name is a bonus. A malformed body must not turn a valid
+  // pairing into a failure.
+  const noJson = (async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
+  const r = await probeLocation("pit-x", "loc1", "https://example.test", noJson);
+  assert.equal(r.ok, true);
+  assert.equal((r as { name: string }).name, "loc1", "falls back to the id rather than throwing");
+});
+
+test("a network failure is reported as status 0, not as a bad token", async () => {
+  const boom = (async () => { throw new Error("ENOTFOUND"); }) as unknown as typeof fetch;
+  const r = await probeLocation("pit-x", "loc1", "https://example.test", boom);
+  assert.equal(r.ok, false);
+  assert.equal((r as { status: number }).status, 0, "callers must be able to tell this apart from a 401");
 });

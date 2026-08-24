@@ -16,28 +16,34 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from "n
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { probeLocation, validateAccountsFile, type Account, type AccountsFile } from "./accounts.js";
 import { stdin, stdout } from "node:process";
 
 const DEFAULT_FILE = join(homedir(), ".ghl", "accounts.json");
 const BASE = process.env.GHL_BASE_URL || "https://services.leadconnectorhq.com";
 
-interface Account { id: string; name: string; token: string }
-interface File { accounts: Account[]; default?: string }
 
 function filePath(): string {
   return process.env.GHL_ACCOUNTS_FILE || DEFAULT_FILE;
 }
-function load(p: string): File {
+function load(p: string): AccountsFile {
   if (!existsSync(p)) return { accounts: [] };
   try {
-    return JSON.parse(readFileSync(p, "utf8")) as File;
+    return JSON.parse(readFileSync(p, "utf8")) as AccountsFile;
   } catch (e) {
     console.error(`\n${p} is not valid JSON: ${(e as Error).message}`);
     console.error("Fix or delete it before adding accounts.\n");
     process.exit(1);
   }
 }
-function save(p: string, f: File): void {
+function save(p: string, f: AccountsFile): void {
+  // The server refuses to start on a malformed accounts file. Catching it here means the
+  // mistake surfaces at the point it is made, not at the next session start.
+  const problem = validateAccountsFile(f);
+  if (problem) {
+    console.error(`\nRefusing to write ${p}: ${problem}\n`);
+    process.exit(1);
+  }
   mkdirSync(dirname(p), { recursive: true });
   try { chmodSync(dirname(p), 0o700); } catch { /* pre-existing dir may not be ours */ }
   writeFileSync(p, JSON.stringify(f, null, 2));
@@ -45,24 +51,12 @@ function save(p: string, f: File): void {
 }
 
 /**
- * Ask GHL what this token can actually reach. Returns the sub-account's real name, which
- * doubles as proof the token belongs to that location: GHL answers 200 for a token's own
- * location and 403 ("The token does not have access to this location") for any other.
+ * Ask GHL whether this pairing is real. Delegates to the one shared probe in accounts.ts so
+ * the write path and the read path cannot disagree about what "verified" means.
  */
 async function verify(token: string, locationId: string): Promise<{ ok: true; name: string } | { ok: false; why: string }> {
-  let res: Response;
-  try {
-    res = await fetch(`${BASE}/locations/${locationId}`, {
-      headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28", Accept: "application/json" },
-    });
-  } catch (e) {
-    return { ok: false, why: `could not reach GHL (${(e as Error).message})` };
-  }
-  if (res.status === 401) return { ok: false, why: "the token is not valid (401) — it may have been revoked" };
-  if (res.status === 403) return { ok: false, why: "this token has no access to that location (403) — the id and the token belong to different sub-accounts" };
-  if (!res.ok) return { ok: false, why: `GHL answered ${res.status}` };
-  const body = (await res.json()) as { location?: { name?: string }; name?: string };
-  return { ok: true, name: body.location?.name || body.name || locationId };
+  const r = await probeLocation(token, locationId, BASE);
+  return r.ok ? { ok: true, name: r.name } : { ok: false, why: r.why };
 }
 
 /**

@@ -30,6 +30,74 @@ export interface AccountsFile {
   default?: string;
 }
 
+
+/**
+ * Ask GHL whether this token reaches this location, and what the location is called.
+ *
+ * The single place that call is made. `AccountsRegistry.verify` uses it to re-check a
+ * configured account's binding; the `accounts add` CLI uses it to refuse a pairing before
+ * writing it. Two copies of this would be two definitions of what "verified" means, on the
+ * write path and the read path of the same file.
+ *
+ * A PIT is bound to one sub-account, so the status code IS the answer: 200 for its own
+ * location, 403 for any other, 401 once revoked.
+ */
+export async function probeLocation(
+  token: string,
+  locationId: string,
+  baseUrl: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ ok: true; name: string } | { ok: false; status: number; why: string }> {
+  let res: Response;
+  try {
+    res = await fetchImpl(`${baseUrl}/locations/${locationId}`, {
+      headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28", Accept: "application/json" },
+    });
+  } catch (e) {
+    // A network failure is not evidence about the token. Callers must not treat it as one.
+    return { ok: false, status: 0, why: `could not reach GHL (${(e as Error).message})` };
+  }
+  if (res.status === 401) return { ok: false, status: 401, why: "the token is not valid (401) — it may have been revoked" };
+  if (res.status === 403) {
+    return { ok: false, status: 403,
+      why: "this token has no access to that location (403) — either the id and the token belong to different sub-accounts, or the token lacks the locations read scope" };
+  }
+  if (!res.ok) return { ok: false, status: res.status, why: `GHL answered ${res.status}` };
+  // The 200 is the verdict; the name is a bonus. A body that cannot be read must not turn a
+  // good binding into a failure, so fall back to the id rather than throwing.
+  try {
+    const body = (await res.json()) as { location?: { name?: string }; name?: string };
+    return { ok: true, name: body?.location?.name || body?.name || locationId };
+  } catch {
+    return { ok: true, name: locationId };
+  }
+}
+
+/**
+ * The accounts file's shape rules, in one place.
+ *
+ * The CLI writes this file and the server reads it. When only the reader enforced the rules,
+ * the writer could produce a file the server then refused to start on — a failure that
+ * surfaces at the worst possible moment, on the next session start rather than at the point
+ * of the mistake. Returns a human-readable problem, or null when the file is good.
+ */
+export function validateAccountsFile(file: AccountsFile): string | null {
+  if (!Array.isArray(file.accounts) || file.accounts.length === 0) {
+    return "accounts file must contain a non-empty `accounts` array";
+  }
+  const seen = new Set<string>();
+  for (let i = 0; i < file.accounts.length; i++) {
+    const a = file.accounts[i];
+    if (!a?.id || !a?.token) return `accounts[${i}] needs both an "id" and a "token"`;
+    if (!a.token.startsWith("pit-")) {
+      return `accounts[${i}] ("${a.name || a.id}") token does not look like a PIT (should start with "pit-")`;
+    }
+    if (seen.has(a.id)) return `accounts contains ${a.id} twice`;
+    seen.add(a.id);
+  }
+  return null;
+}
+
 export type BindingState = "unverified" | "verified" | "mismatched";
 
 export class AccountsRegistry {
@@ -46,9 +114,10 @@ export class AccountsRegistry {
    *   going back to one registration per client.
    */
   constructor(file: AccountsFile, allowed?: string[]) {
-    if (!Array.isArray(file.accounts) || file.accounts.length === 0) {
-      throw new Error("accounts file must contain a non-empty `accounts` array");
-    }
+    // Shape rules live in validateAccountsFile so the CLI that WRITES this file enforces the
+    // same ones the server that READS it does.
+    const problem = validateAccountsFile(file);
+    if (problem) throw new Error(problem);
     const allowSet = allowed && allowed.length > 0 ? new Set(allowed) : null;
     if (allowSet) {
       const known = new Set(file.accounts.map((a) => a?.id));
@@ -60,17 +129,7 @@ export class AccountsRegistry {
         );
       }
     }
-    for (const [i, a] of file.accounts.entries()) {
-      if (!a?.id || !a?.token) {
-        throw new Error(`accounts[${i}] needs both an "id" and a "token"`);
-      }
-      if (!a.token.startsWith("pit-")) {
-        // Fail at load, not with a mystery 401 an hour later.
-        throw new Error(`accounts[${i}] ("${a.name || a.id}") token does not look like a PIT`);
-      }
-      if (this.byId.has(a.id)) {
-        throw new Error(`accounts contains ${a.id} twice`);
-      }
+    for (const a of file.accounts) {
       if (allowSet && !allowSet.has(a.id)) continue; // scoped out for this project
       this.byId.set(a.id, { ...a, name: a.name || a.id });
     }
@@ -143,21 +202,14 @@ export class AccountsRegistry {
     const account = this.byId.get(locationId);
     if (!account) return "mismatched";
 
-    try {
-      const res = await fetchImpl(`${baseUrl}/locations/${locationId}`, {
-        headers: {
-          Authorization: `Bearer ${account.token}`,
-          Version: "2021-07-28",
-          Accept: "application/json",
-        },
-      });
-      const state: BindingState = res.ok ? "verified" : "mismatched";
-      this.binding.set(locationId, state);
-      return state;
-    } catch {
-      // A network failure is not proof of a bad binding; stay unverified and retry later.
-      return "unverified";
-    }
+    const r = await probeLocation(account.token, locationId, baseUrl, fetchImpl);
+    // status 0 means the request never reached GHL. That is not proof of a bad binding, so
+    // stay unverified and retry later rather than locking an account out over a dropped
+    // connection — a cached "mismatched" would outlive the outage.
+    if (!r.ok && r.status === 0) return "unverified";
+    const state: BindingState = r.ok ? "verified" : "mismatched";
+    this.binding.set(locationId, state);
+    return state;
   }
 }
 
