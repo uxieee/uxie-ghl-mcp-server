@@ -1228,6 +1228,26 @@ function inferActionRisk(action: CatalogAction): ActionRisk {
     notes.push("Can cancel, disable, disconnect, revoke, or otherwise interrupt an active setup.");
   }
 
+  // CONSEQUENCE, NOT KEYWORDS. The rules above read the description text, which misses
+  // anything whose consequence is not spelled out in prose. Measured against the catalog,
+  // 18 ad-manager mutations slipped through ungated — including fb-resume-campaign and
+  // fb-upsert-campaign, which start and change LIVE ad spend — while blogs__create-blog-post
+  // was gated because "post" appears in it. Advertising mutations are gated by what they
+  // touch, regardless of how their summary is worded.
+  if (method !== "GET" && action.category.startsWith("ad-manager")) {
+    kinds.add("billing");
+    notes.push(
+      "Touches a live advertising account: campaigns, ad sets, ads, audiences, or pixels. Can start, change, or stop real ad spend."
+    );
+  }
+
+  // Same reasoning for anything that puts something live or takes it down, where the verb
+  // lives in the action id rather than the description.
+  if (method !== "GET" && /\b(resume|activate|launch|enable|go-live)\b/.test(action.id.toLowerCase())) {
+    kinds.add("external_send");
+    notes.push("Makes something live or resumes a paused system.");
+  }
+
   const requiresConfirmation =
     method !== "GET" && (
       kinds.has("delete") ||

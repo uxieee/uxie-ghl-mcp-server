@@ -981,3 +981,29 @@ test("a typo in the allowlist fails loudly instead of silently narrowing access"
   const file = { accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] };
   assert.throws(() => new AccountsRegistry(file, ["loc_typo"]), /not present in the accounts file/);
 });
+
+// CONFIRMATION GATE CALIBRATION. The gate matched keywords in an action's description, so
+// its verdict tracked wording rather than consequence: 18 ad-manager mutations were ungated
+// — including fb-resume-campaign and fb-upsert-campaign, which start and change LIVE ad
+// spend — while blogs__create-blog-post WAS gated, because the word "post" appears in it.
+test("advertising mutations are gated by what they touch, not how they are worded", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "ad-manager__fb-resume-campaign", category: "ad-manager", method: "POST",
+      path: "/ad-manager/facebook/campaign/resume", summary: "Resume Campaign",
+      description: "Resume a campaign" }),
+    createAction({ id: "ad-manager__fb-get-campaign", category: "ad-manager", method: "GET",
+      path: "/ad-manager/facebook/campaign", summary: "Get Campaign", description: "Read a campaign" }),
+  ]);
+  const resume = (await tools.get("describe_action")!.handler({
+    action_id: "ad-manager__fb-resume-campaign",
+  })) as any;
+  assert.equal(resume.structuredContent.requiresConfirmation, true,
+    "resuming live ad spend must require confirmation, whatever its summary says");
+
+  // ...and a read of the same surface must NOT be gated, or the gate is just noise.
+  const read = (await tools.get("describe_action")!.handler({
+    action_id: "ad-manager__fb-get-campaign",
+  })) as any;
+  assert.equal(read.structuredContent.requiresConfirmation, false);
+  assert.equal(read.structuredContent.kind, "read");
+});
