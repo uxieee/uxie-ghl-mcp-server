@@ -19,3 +19,14 @@ export const SERVER_INSTRUCTIONS = [
   "Pipelines are writable (opportunities-v3__create-pipeline / update / delete). Workflow builder internals are NOT in the public API \u2014 search notes say so rather than leaving you hunting.",
   "Commerce: products__* and payments__* are the source of truth; direct Stripe access is rarely needed.",
 ].join("\n");
+
+/**
+ * Appended by the hosted Cloudflare Worker only (src/index.ts). Users of the npm package have
+ * already migrated, so telling them to migrate would be noise — and noise in the instructions
+ * is paid on every session.
+ */
+export const WORKER_DEPRECATION_NOTICE =
+  "NOTICE: this hosted endpoint is being retired in a few weeks. Move to the npm package: " +
+  "`claude mcp add ghl -e GHL_API_TOKEN=pit-... -- npx -y @uxieee/ghl-mcp`. It also supports " +
+  "many sub-accounts on one connection, and your token stays on your machine. See " +
+  "https://github.com/uxieee/uxie-ghl-mcp-server";

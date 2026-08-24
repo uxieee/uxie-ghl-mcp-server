@@ -1,0 +1,19 @@
+{
+  // Build config for the PUBLISHED npm package only.
+  //
+  // The Worker entry (src/index.ts) imports data/catalog.json as a module so wrangler can
+  // bundle it. That pulls data/ into the compilation, which moves tsc's inferred rootDir to
+  // the package root and emits dist/src/*.js instead of dist/*.js — breaking the `bin` path.
+  //
+  // The CLI reads the catalog from disk at runtime instead, so excluding the Worker entry
+  // keeps rootDir at src/ and the output flat. wrangler still builds the Worker from the
+  // base tsconfig; this file never affects it.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "resolveJsonModule": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "src/index.ts", "src/node-compat.d.ts.superseded"]
+}

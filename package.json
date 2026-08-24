@@ -1,7 +1,6 @@
 {
-  "name": "ghl-mcp-server",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@uxieee/ghl-mcp",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
@@ -9,7 +8,9 @@
     "start:local": "tsx src/stdio.ts",
     "build-catalog": "tsx scripts/build-catalog.ts",
     "test": "node --import tsx --test tests/**/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -18,8 +19,38 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250327.0",
+    "@types/node": "^26.2.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "wrangler": "^4.14.0"
+  },
+  "description": "GoHighLevel public API over MCP \u2014 671 operations, ranked search, and one connection across many sub-accounts.",
+  "bin": {
+    "ghl-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "data/catalog.json",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "gohighlevel",
+    "highlevel",
+    "ghl",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uxieee/uxie-ghl-mcp-server.git"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
   }
 }

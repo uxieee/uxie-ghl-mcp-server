@@ -1,4 +1,4 @@
-import { SERVER_INSTRUCTIONS } from "./instructions.js";
+import { SERVER_INSTRUCTIONS, WORKER_DEPRECATION_NOTICE } from "./instructions.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpHandler } from "agents/mcp";
 import { buildSearchIndex } from "./search.js";
@@ -57,7 +57,9 @@ function getRateLimiter(token: string): RateLimiter {
 function buildServer(apiToken: string): McpServer {
   const server = new McpServer(
     { name: "ghl-mcp-server", version: "0.1.0" },
-    { instructions: SERVER_INSTRUCTIONS }
+    { instructions: `${WORKER_DEPRECATION_NOTICE}
+
+${SERVER_INSTRUCTIONS}` }
   );
 
   registerTools(server, {

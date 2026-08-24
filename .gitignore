@@ -8,3 +8,5 @@ dist/
 # never commit real tokens
 accounts.json
 .ghl/
+dist/
+*.tgz
