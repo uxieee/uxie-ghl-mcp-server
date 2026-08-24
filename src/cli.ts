@@ -6,6 +6,7 @@
  *   ghl-mcp accounts add        add a sub-account, verifying the token before it is written
  *   ghl-mcp accounts list       show configured sub-accounts (never prints tokens)
  *   ghl-mcp accounts remove     remove one by id or name
+ *   ghl-mcp scope <name>…       point this folder at a subset of them, resolved by name
  *
  * The `accounts` commands exist because the alternative is hand-editing JSON containing
  * credentials and 20-character opaque ids — where a mistyped id is not a syntax error but a
@@ -64,6 +65,12 @@ async function verify(token: string, locationId: string): Promise<{ ok: true; na
   return { ok: true, name: body.location?.name || body.name || locationId };
 }
 
+/**
+ * Flags that never take a value. Without this list `scope --json "Acme Dental"` would read
+ * "Acme Dental" as the value of --json and then scope the folder to nothing.
+ */
+const BOOLEAN_FLAGS = new Set(["json", "all", "list", "dev", "help"]);
+
 function parseFlags(argv: string[]): Record<string, string | boolean> {
   const out: Record<string, string | boolean> = {};
   for (let i = 0; i < argv.length; i++) {
@@ -71,7 +78,20 @@ function parseFlags(argv: string[]): Record<string, string | boolean> {
     if (!a.startsWith("--")) continue;
     const key = a.slice(2);
     const next = argv[i + 1];
-    if (next && !next.startsWith("--")) { out[key] = next; i++; } else { out[key] = true; }
+    if (!BOOLEAN_FLAGS.has(key) && next && !next.startsWith("--")) { out[key] = next; i++; }
+    else out[key] = true;
+  }
+  return out;
+}
+
+/** Everything that is not a flag or a flag's value — e.g. the account names given to `scope`. */
+function positionals(argv: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (!a.startsWith("--")) { out.push(a); continue; }
+    const next = argv[i + 1];
+    if (!BOOLEAN_FLAGS.has(a.slice(2)) && next && !next.startsWith("--")) i++; // skip its value
   }
   return out;
 }
@@ -250,6 +270,121 @@ async function doctor(asJson: boolean): Promise<void> {
   console.log();
 }
 
+/**
+ * Point a folder at a subset of the configured sub-accounts.
+ *
+ * The whole point is that the caller names accounts, never ids. An agent setting up a client
+ * folder knows the client by name; the location id is a 20-character opaque string it would
+ * have to copy by hand, and copying it by hand is how a project ends up quietly pointed at
+ * the wrong client. A typo at least fails loudly (the server refuses to start), but picking
+ * the wrong real id fails silently forever — both ids are valid. Resolving by name removes
+ * the chance to get it wrong rather than catching it afterwards.
+ */
+function scope(argv: string[]): void {
+  const flags = parseFlags(argv);
+  const json = Boolean(flags.json);
+  const wanted = positionals(argv);
+  const dir = typeof flags.dir === "string" ? flags.dir : process.cwd();
+  const target = join(dir, ".mcp.json");
+  const SERVER = typeof flags.server === "string" ? flags.server : "ghl";
+
+  const p = filePath();
+  const f = load(p);
+  if (!f.accounts.length) {
+    emit(json, false, {
+      error: "no sub-accounts are configured yet",
+      file: p,
+      nextStep: "ghl-mcp accounts add --token pit-… --location <id> --json",
+    }, `\nNo sub-accounts configured yet. Add one first:\n  ghl-mcp accounts add\n`);
+    return;
+  }
+
+  // --list: report what this folder is currently scoped to, resolving ids back to names.
+  if (flags.list) {
+    const cur = readMcpJson(target);
+    const env = (cur?.mcpServers?.[SERVER]?.env ?? {}) as Record<string, string>;
+    const ids = (env.GHL_ALLOWED_LOCATIONS || "").split(",").map((x) => x.trim()).filter(Boolean);
+    const named = ids.map((id) => ({ id, name: f.accounts.find((a) => a.id === id)?.name ?? "(not in the accounts file)" }));
+    emit(json, true, { file: target, configured: Boolean(cur?.mcpServers?.[SERVER]), scopedTo: named.length ? named : "all accounts" },
+      named.length
+        ? `\n${target}\n${named.map((n) => `  - ${n.name}`).join("\n")}\n`
+        : cur?.mcpServers?.[SERVER]
+          ? `\n${target}\n  (no scope set — this folder sees all ${f.accounts.length} sub-accounts)\n`
+          : `\n${target}\n  (no ${SERVER} server configured in this folder)\n`);
+    return;
+  }
+
+  // Resolve each requested name to exactly one account, or refuse.
+  const chosen: Account[] = [];
+  if (flags.all) {
+    chosen.push(...f.accounts);
+  } else {
+    if (!wanted.length) {
+      emit(json, false, {
+        error: "name at least one sub-account, or pass --all",
+        available: f.accounts.map((a) => a.name),
+        usage: 'ghl-mcp scope "Acme Dental" "Acme Med Spa" --json',
+      }, `\nName at least one sub-account, or pass --all.\n\nConfigured:\n${f.accounts.map((a) => `  - ${a.name}`).join("\n")}\n`);
+      return;
+    }
+    for (const w of wanted) {
+      const needle = w.toLowerCase();
+      const exact = f.accounts.filter((a) => a.name.toLowerCase() === needle || a.id === w);
+      const matches = exact.length ? exact : f.accounts.filter((a) => a.name.toLowerCase().includes(needle));
+      if (matches.length === 0) {
+        emit(json, false, {
+          error: `no sub-account matches "${w}"`,
+          available: f.accounts.map((a) => a.name),
+        }, `\nNo sub-account matches "${w}".\n\nConfigured:\n${f.accounts.map((a) => `  - ${a.name}`).join("\n")}\n`);
+        return;
+      }
+      if (matches.length > 1) {
+        emit(json, false, {
+          error: `"${w}" matches ${matches.length} sub-accounts`,
+          matches: matches.map((a) => a.name),
+          hint: "use the full name so there is no doubt which client this folder points at",
+        }, `\n"${w}" matches ${matches.length} sub-accounts:\n${matches.map((a) => `  - ${a.name}`).join("\n")}\n\nUse the full name.\n`);
+        return;
+      }
+      if (!chosen.some((c) => c.id === matches[0].id)) chosen.push(matches[0]);
+    }
+  }
+
+  // Merge rather than overwrite: a client folder may already have other MCP servers, and
+  // silently dropping them would be a far worse bug than anything this command fixes.
+  const existing = readMcpJson(target) ?? {};
+  const servers = (existing.mcpServers ?? {}) as Record<string, unknown>;
+  const preserved = Object.keys(servers).filter((k) => k !== SERVER);
+
+  servers[SERVER] = {
+    command: flags.dev ? "node" : "npx",
+    args: flags.dev ? [process.argv[1]] : ["-y", "@uxieee/ghl-mcp"],
+    env: {
+      GHL_ACCOUNTS_FILE: p,
+      ...(flags.all ? {} : { GHL_ALLOWED_LOCATIONS: chosen.map((a) => a.id).join(",") }),
+    },
+  };
+  const created = !existsSync(target);
+  writeFileSync(target, JSON.stringify({ ...existing, mcpServers: servers }, null, 2) + "\n");
+
+  emit(json, true, {
+    file: target, server: SERVER, created,
+    scopedTo: flags.all ? "all" : chosen.map((a) => ({ name: a.name, id: a.id })),
+    preserved,
+  }, `\n${created ? "Created" : "Updated"} ${target}\n\n  This folder now sees:\n${
+      (flags.all ? f.accounts : chosen).map((a) => `    - ${a.name}`).join("\n")
+    }\n${preserved.length ? `\n  Left alone: ${preserved.join(", ")}\n` : ""}`);
+}
+
+function readMcpJson(pth: string): { mcpServers?: Record<string, { env?: Record<string, string> }> } | null {
+  if (!existsSync(pth)) return null;
+  try { return JSON.parse(readFileSync(pth, "utf8")); }
+  catch (e) {
+    console.error(`\n${pth} is not valid JSON: ${(e as Error).message}\nFix or remove it first.\n`);
+    process.exit(1);
+  }
+}
+
 const argv = process.argv.slice(2);
 const [cmd, sub, arg] = argv;
 
@@ -265,6 +400,8 @@ if (cmd === "accounts") {
     console.log("  ghl-mcp accounts remove <id|name>\n");
     process.exit(1);
   }
+} else if (cmd === "scope") {
+  scope(argv.slice(1));
 } else if (cmd === "doctor") {
   await doctor(parseFlags(argv).json === true);
 } else if (cmd === "--help" || cmd === "-h") {
@@ -273,7 +410,9 @@ if (cmd === "accounts") {
   console.log("  ghl-mcp doctor [--json]        check the setup and say what is missing");
   console.log("  ghl-mcp accounts add …         add a sub-account (verified before writing)");
   console.log("  ghl-mcp accounts list [--json] list configured sub-accounts");
-  console.log("  ghl-mcp accounts remove <id>   remove one\n");
+  console.log("  ghl-mcp accounts remove <id>   remove one");
+  console.log("  ghl-mcp scope \"Acme Dental\"      point this folder at one client (by name)");
+  console.log("  ghl-mcp scope --list           what this folder is scoped to\n");
   console.log("Setting this up with an AI agent? Start with: ghl-mcp doctor --json\n");
   console.log("Single sub-account instead? Set GHL_API_TOKEN and skip the accounts file.\n");
 } else {

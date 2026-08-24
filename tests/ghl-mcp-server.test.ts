@@ -1105,7 +1105,7 @@ test("result_fields trims a wrapped single record, not just arrays", async () =>
 // prompt — so an interactive-only `accounts add` would be unusable by the party most
 // likely to be running the setup. These pin the non-interactive contract.
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, existsSync as fileExists } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync as fileExists } from "node:fs";
 import { tmpdir } from "node:os";
 import { join as pathJoin } from "node:path";
 
@@ -1165,4 +1165,80 @@ test("accounts list --json never includes a token", (t) => {
   if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
   const r = cli(["accounts", "list", "--json"]);
   assert.ok(!r.out.includes("pit-"), "tokens must never reach stdout");
+});
+
+// ── `scope`: point a folder at a subset of sub-accounts, by name ──────────────────────────
+// Names, never ids. A typo in a hand-copied id fails loudly (the server refuses to start), but
+// pasting a *different real* id fails silently forever — the folder just points at the wrong
+// client. Resolving by name removes the chance rather than catching it afterwards.
+function fixtureAccounts(dir: string): string {
+  const p = pathJoin(dir, "accounts.json");
+  writeFileSync(p, JSON.stringify({ accounts: [
+    { id: "aaaaaaaaaaaaaaaaaaaa", name: "Acme Dental",  token: "pit-test-a" },
+    { id: "bbbbbbbbbbbbbbbbbbbb", name: "Acme Med Spa", token: "pit-test-b" },
+    { id: "cccccccccccccccccccc", name: "Riverside Co", token: "pit-test-c" },
+  ] }));
+  return p;
+}
+
+test("scope resolves an account by name and writes the folder config", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    const r = cli(["scope", "Riverside Co", "--dir", dir, "--json"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const d = JSON.parse(r.out);
+    assert.equal(d.ok, true);
+    assert.deepEqual(d.scopedTo.map((x: { name: string }) => x.name), ["Riverside Co"]);
+    const cfg = JSON.parse(readFileSync(pathJoin(dir, ".mcp.json"), "utf8"));
+    assert.equal(cfg.mcpServers.ghl.env.GHL_ALLOWED_LOCATIONS, "cccccccccccccccccccc");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("an ambiguous name is refused rather than guessed", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    const r = cli(["scope", "Acme", "--dir", dir, "--json"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const d = JSON.parse(r.out);
+    assert.equal(d.ok, false);
+    assert.equal(d.matches.length, 2, "names both candidates so the caller can disambiguate");
+    assert.equal(fileExists(pathJoin(dir, ".mcp.json")), false, "an ambiguous scope must write nothing");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("scope merges into an existing .mcp.json instead of clobbering other servers", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    writeFileSync(pathJoin(dir, ".mcp.json"), JSON.stringify({ mcpServers: { playwright: { command: "npx" } } }));
+    const r = cli(["scope", "Acme Dental", "--dir", dir, "--json"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const d = JSON.parse(r.out);
+    assert.deepEqual(d.preserved, ["playwright"]);
+    const cfg = JSON.parse(readFileSync(pathJoin(dir, ".mcp.json"), "utf8"));
+    assert.equal(cfg.mcpServers.playwright.command, "npx", "the unrelated server survived");
+    assert.ok(cfg.mcpServers.ghl, "and ours was added alongside it");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("a boolean flag does not swallow the account name after it", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    // `--json "Acme Dental"` must scope to Acme Dental, not read it as --json's value.
+    const r = cli(["scope", "--dir", dir, "--json", "Acme Dental"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const d = JSON.parse(r.out);
+    assert.equal(d.ok, true);
+    assert.deepEqual(d.scopedTo.map((x: { name: string }) => x.name), ["Acme Dental"]);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("--all scopes to everything by omitting the allowlist entirely", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    cli(["scope", "--all", "--dir", dir, "--json"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const cfg = JSON.parse(readFileSync(pathJoin(dir, ".mcp.json"), "utf8"));
+    assert.equal(cfg.mcpServers.ghl.env.GHL_ALLOWED_LOCATIONS, undefined,
+      "no allowlist key at all, rather than one listing every id, so adding an account later is picked up");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

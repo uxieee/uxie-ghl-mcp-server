@@ -138,6 +138,40 @@ re-verifies every configured token against GHL and names the ones that have gone
 
 Every command takes `--json`, and `accounts list --json` never includes a token.
 
+### Pointing a folder at one client
+
+One accounts file, narrowed per folder. The agent names the client; it never types an id:
+
+```bash
+cd ~/Work/Clients/Riverside
+npx -y @uxieee/ghl-mcp scope "Riverside Dental" "Riverside Med Spa" --json
+```
+
+```json
+{ "ok": true, "file": "…/Riverside/.mcp.json", "created": true,
+  "scopedTo": [ {"name": "Riverside Dental", "id": "…"},
+                {"name": "Riverside Med Spa", "id": "…"} ],
+  "preserved": ["playwright"] }
+```
+
+That writes the folder's `.mcp.json`, **merging** rather than replacing, so other MCP servers
+in that folder survive (`preserved` lists them). The server started from it sees those two
+sub-accounts and no others.
+
+Why by name: a mistyped id fails loudly, since the server refuses to start on an id that is
+not in the accounts file. But pasting a **different real** id fails silently forever, because
+both ids are valid and the folder simply points at the wrong client. Naming removes the chance
+instead of catching it afterwards. An ambiguous name is refused with the candidates listed
+rather than guessed, and nothing is written.
+
+```bash
+npx -y @uxieee/ghl-mcp scope --list     # what this folder currently sees
+npx -y @uxieee/ghl-mcp scope --all      # your own folder: every sub-account
+```
+
+`--all` omits the allowlist entirely rather than listing every id, so sub-accounts you add
+later are picked up without re-scoping.
+
 ### Getting the two values
 
 | | Where |
