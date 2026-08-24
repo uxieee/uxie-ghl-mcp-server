@@ -38,6 +38,81 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
     })
   );
 
+  // Tool 1b: describe_action — the middle step of search -> describe -> execute.
+  // search_actions now returns stubs; this is where the full schema for the ONE action the
+  // agent chose gets fetched. Splitting it this way took a discovery cycle from ~63 KB to ~5 KB.
+  server.registerTool(
+    "describe_action",
+    {
+      description:
+        "Get the full schema for ONE action id returned by search_actions: every path/query/body parameter with types, enums and required flags, the request-body schema, required scopes, risk metadata, and any known gotcha for this endpoint. Call this after search_actions and before execute_action whenever the action takes parameters you are unsure of.",
+      inputSchema: {
+        action_id: z
+          .string()
+          .describe("Action ID from search_actions, e.g. 'contacts__create-contact'."),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ action_id }) => {
+      const action = actionById.get(action_id);
+      if (!action) {
+        const near = catalog.actions
+          .filter((a: CatalogAction) => a.id.includes(action_id.split("__").pop() ?? action_id))
+          .slice(0, 5)
+          .map((a) => a.id);
+        const structuredContent = {
+          error: `Unknown action_id "${action_id.slice(0, 80)}".`,
+          didYouMean: near,
+          nextStep: "Call search_actions to find a valid action id.",
+        };
+        return {
+          structuredContent,
+          content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+        };
+      }
+
+      const risk = inferActionRisk(action);
+      const tip = actionTips[action.id];
+      const structuredContent = {
+        id: action.id,
+        category: action.category,
+        method: action.method,
+        path: action.path,
+        summary: action.summary,
+        description: action.description,
+        // MCP-standard-shaped safety hints, so a caller can reason about consequence
+        // without re-deriving it from the method string.
+        kind: action.method === "GET" ? "read" : "write",
+        readOnly: action.method === "GET",
+        destructive: action.method === "DELETE",
+        requiresConfirmation: risk.requiresConfirmation,
+        risk,
+        scopes: action.scopes,
+        versionHeader: action.versionHeader,
+        parameters: action.parameters.map((p: CatalogAction["parameters"][number]) => ({
+          name: p.name,
+          in: p.in,
+          required: p.required,
+          type: p.type,
+          description: p.description,
+          ...(p.enum && { enum: p.enum }),
+        })),
+        requestBody: action.requestBody
+          ? { required: action.requestBody.required, schema: action.requestBody.schema }
+          : null,
+        ...(tip?.note && { note: tip.note }),
+        nextStep:
+          action.method === "GET"
+            ? "Call execute_action with these params."
+            : "Call execute_action with dry_run=true first to preview the routed request.",
+      };
+      return {
+        structuredContent,
+        content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+      };
+    }
+  );
+
   // Tool 2: Search actions by intent
   server.registerTool(
     "search_actions",
@@ -75,10 +150,13 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .boolean()
           .default(false)
           .describe("When true and category is provided, enumerate every action in that category (paginated by offset/limit). intent can be empty in this mode."),
+        // DEFAULT TRUE since 2026-08-24. Measured: full results cost ~15,800 tokens for a
+        // 10-hit search because every hit carried its whole OpenAPI schema. Stubs cost ~2,100.
+        // Callers that genuinely need the schema call describe_action on the one id they chose.
         compact: z
           .boolean()
-          .default(false)
-          .describe("When true, return only id/method/path/summary/category/risk/note per result. Omits parameters, requestBody, and scopes to reduce response size."),
+          .default(true)
+          .describe("Return compact stubs (id/method/path/summary/category/risk/note/kind). Default true — call describe_action for the full parameter and request-body schema of the one action you choose. Set false only to inline full schemas for every hit (expensive)."),
       },
       annotations: { readOnlyHint: true },
     },
@@ -211,12 +289,14 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         crossCategoryHints,
       };
 
+      // One copy, not two. This block used to also emit a pretty-printed JSON text duplicate
+      // of structuredContent, doubling the cost of the single most-called tool.
       return {
         structuredContent,
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(structuredContent, null, 2),
+            text: JSON.stringify(structuredContent),
           },
         ],
       };

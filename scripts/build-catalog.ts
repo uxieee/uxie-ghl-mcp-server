@@ -175,7 +175,16 @@ export function extractActions(spec: any, category: string): CatalogAction[] {
         description: details.description || "",
         tags: details.tags || [],
         scopes,
-        parameters: parameters.filter((p) => p.name.toLowerCase() !== "version"),
+        // Drop header params the transport supplies itself. `version` was already stripped;
+        // `Authorization` must be too — the executor only routes path/query, so a required
+        // Authorization param made 75 actions unreachable (knowledge-base, store, saas-api,
+        // proposals, links, social-planner-v3), and supplying it to satisfy the check pushed
+        // the caller's PIT into the REQUEST BODY, where it was echoed back in responses.
+        parameters: parameters.filter(
+          (p) =>
+            !(p.in === "header" &&
+              ["version", "authorization"].includes(p.name.toLowerCase()))
+        ),
         requestBody,
         versionHeader,
       });

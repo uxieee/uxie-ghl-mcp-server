@@ -3,7 +3,8 @@ import type { CatalogAction } from "./types.js";
 const GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 const FETCH_TIMEOUT_MS = 15_000;
-const MAX_ERROR_HINT_LEN = 200;
+// 4xx bodies carry the per-field reasons an agent needs to fix its call; 200 chars cut them off.
+const MAX_ERROR_HINT_LEN = 1000;
 const MAX_BODY_SIZE = 1_048_576; // 1MB
 
 /**
@@ -16,6 +17,8 @@ export interface RequestPreview {
   query: Record<string, string>;
   body: Record<string, unknown>;
   contentType: string | null;
+  /** Spec-said-required-but-absent fields. The request is sent regardless; GHL adjudicates. */
+  warnings?: string[];
 }
 
 export async function executeAction(
@@ -48,7 +51,19 @@ export async function executeAction(
         const contentType = response.headers.get("content-type") || "";
         if (contentType.includes("application/json")) {
           const errorBody = (await response.json()) as Record<string, unknown>;
-          const msg = String(errorBody.message || errorBody.error || "");
+          // GHL (NestJS) returns `message` as an ARRAY of per-field validation errors on a
+          // 422. Collapsing that with String() comma-joined them and the old 200-char slice
+          // cut the tail — discarding the single most useful signal for self-correction.
+          const parts: string[] = [];
+          const raw = errorBody.message ?? errorBody.error;
+          if (Array.isArray(raw)) parts.push(...raw.map((m) => String(m)));
+          else if (raw != null) parts.push(String(raw));
+          for (const extra of ["errors", "details"] as const) {
+            const v = errorBody[extra];
+            if (v == null) continue;
+            parts.push(typeof v === "string" ? v : JSON.stringify(v));
+          }
+          const msg = parts.filter(Boolean).join("; ");
           if (msg) {
             errorHint = ` — ${msg.slice(0, MAX_ERROR_HINT_LEN)}`;
           }
@@ -91,6 +106,7 @@ export function previewActionRequest(
     query: Object.fromEntries(url.searchParams.entries()),
     body: request.bodyParams,
     contentType: request.contentType,
+    ...(request.warnings.length > 0 && { warnings: request.warnings }),
   };
 }
 
@@ -105,6 +121,8 @@ function buildGhlRequest(
   headers: Record<string, string>;
   body: BodyInit | undefined;
   bodyParams: Record<string, unknown>;
+  /** Spec-said-required-but-absent fields. Advisory: the request is sent regardless. */
+  warnings: string[];
   contentType: string | null;
 } {
   // Validate HTTP method (normalize case)
@@ -144,12 +162,31 @@ function buildGhlRequest(
     }
   }
 
-  // Validate required params are present
+  // Required-ness is ADVISORY, not a gate. The catalog's `required` arrays come from GHL's
+  // OpenAPI specs, which are wrong often enough that enforcing them client-side blocked
+  // requests GHL would have accepted — e.g. conversations__send-a-new-message declares
+  // `status` (an INBOUND-message enum) required on an outbound send. This mirrors the
+  // passthrough philosophy already applied to undocumented body keys: let GHL adjudicate,
+  // and hand its verdict back. Only an unresolved PATH placeholder is a hard error, because
+  // that literally cannot be turned into a URL.
+  const warnings: string[] = [];
+
+  const missingPath = action.parameters
+    .filter((p) => p.in === "path" && params[p.name] === undefined)
+    .map((p) => p.name);
+  if (missingPath.length > 0) {
+    throw new Error(
+      `Missing required path parameter(s): ${missingPath.join(", ")} — these form the URL and cannot be omitted.`
+    );
+  }
+
   const missing = action.parameters
-    .filter((p) => p.required && params[p.name] === undefined)
+    .filter((p) => p.required && p.in !== "path" && params[p.name] === undefined)
     .map((p) => `${p.name} (${p.in})`);
   if (missing.length > 0) {
-    throw new Error(`Missing required parameter(s): ${missing.join(", ")}`);
+    warnings.push(
+      `Spec marks these required but they were not supplied: ${missing.join(", ")}. Sent anyway; GHL will reject if it genuinely needs them.`
+    );
   }
 
   const requiredBodyFields = getRequiredBodyFields(action);
@@ -157,8 +194,8 @@ function buildGhlRequest(
     (name) => params[name] === undefined
   );
   if (missingBodyFields.length > 0) {
-    throw new Error(
-      `Missing required request body field(s): ${missingBodyFields.join(", ")}`
+    warnings.push(
+      `Spec marks these body fields required but they were not supplied: ${missingBodyFields.join(", ")}. Sent anyway; GHL will reject if it genuinely needs them.`
     );
   }
 
@@ -220,7 +257,7 @@ function buildGhlRequest(
     }
   }
 
-  return { method, url, headers, body, bodyParams, contentType };
+  return { method, url, headers, body, bodyParams, contentType, warnings };
 }
 
 /**

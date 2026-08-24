@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildSearchIndex } from "../src/search.js";
 import { registerTools } from "../src/tools.js";
-import { executeAction } from "../src/executor.js";
+import { executeAction, previewActionRequest } from "../src/executor.js";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 import { ACTION_TIPS } from "../src/action-tips.js";
 import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
@@ -228,7 +228,14 @@ test("executeAction sends form-urlencoded actions as URLSearchParams", async () 
   assert.equal(capturedContentType, "application/x-www-form-urlencoded");
 });
 
-test("executeAction validates required path, query, and body fields", async () => {
+// CHANGED 2026-08-24. This used to assert that missing query and body fields THROW. They no
+// longer do. The catalog's `required` arrays come from GHL's OpenAPI specs, which are wrong
+// often enough that enforcing them client-side blocked requests GHL would have accepted —
+// conversations__send-a-new-message declares `status` (an inbound-message enum) required on an
+// outbound send, so the README's own "send an SMS" example failed on the first try. Required-ness
+// is now advisory and returned as a warning; GHL adjudicates. Only an unresolved PATH
+// placeholder still throws, because it cannot be turned into a URL at all.
+test("executeAction hard-fails only on missing PATH params; query and body are advisory", async () => {
   const action = createAction({
     id: "contacts__update-contact",
     category: "contacts",
@@ -251,18 +258,25 @@ test("executeAction validates required path, query, and body fields", async () =
     },
   });
 
+  // A missing path param still throws — the URL cannot be formed without it.
   await assert.rejects(
     () => executeAction(action, { locationId: "loc_123", firstName: "Ada" }, "pit-test-token"),
-    /Missing required parameter\(s\): contactId \(path\)/
+    /Missing required path parameter\(s\): contactId/
   );
-  await assert.rejects(
-    () => executeAction(action, { contactId: "con_123", firstName: "Ada" }, "pit-test-token"),
-    /Missing required parameter\(s\): locationId \(query\)/
-  );
-  await assert.rejects(
-    () => executeAction(action, { contactId: "con_123", locationId: "loc_123" }, "pit-test-token"),
-    /Missing required request body field\(s\): firstName/
-  );
+
+  // A missing required QUERY param no longer throws; it is previewed as a warning.
+  const missingQuery = previewActionRequest(action, { contactId: "con_123", firstName: "Ada" });
+  assert.match((missingQuery.warnings ?? []).join(" "), /locationId \(query\)/);
+
+  // A missing required BODY field no longer throws either.
+  const missingBody = previewActionRequest(action, { contactId: "con_123", locationId: "loc_123" });
+  assert.match((missingBody.warnings ?? []).join(" "), /firstName/);
+
+  // ...and a complete call carries no warnings at all.
+  const complete = previewActionRequest(action, {
+    contactId: "con_123", locationId: "loc_123", firstName: "Ada",
+  });
+  assert.equal(complete.warnings, undefined);
 });
 
 test("executeAction gives a typo hint for case-mismatched params", async () => {
@@ -714,4 +728,80 @@ test("the update-agent note warns off locationId, which the endpoint 422s in the
     assert.match(note, /422/, `${id} should say what happens`);
   }
   assert.match(ACTION_TIPS["opportunities-v3__update-pipeline"]?.note ?? "", /QUERY STRING/);
+});
+
+// ── 2026-08-24 regressions ───────────────────────────────────────────────────────────
+// Each of these encodes a defect found by an external design review, so that fixing it
+// once is permanent.
+
+// A required `Authorization` header param made 75 actions UNREACHABLE: the executor only
+// routes path and query, so the check could never be satisfied — and supplying the header
+// to get past it pushed the caller's PIT into the request BODY, where it was echoed back
+// in the response. Both halves are fixed by never emitting the param at all.
+test("build-catalog strips Authorization header params, which made 75 actions unreachable", () => {
+  const actions = extractActions({
+    paths: {
+      "/knowledge-base/": {
+        get: {
+          operationId: "list",
+          summary: "List",
+          parameters: [
+            { name: "Authorization", in: "header", required: true, schema: { type: "string" } },
+            { name: "Version", in: "header", required: true, schema: { type: "string" } },
+            { name: "locationId", in: "query", required: true, schema: { type: "string" } },
+          ],
+        },
+      },
+    },
+  } as never, "knowledge-base");
+  const names = actions[0].parameters.map((p) => p.name.toLowerCase());
+  assert.ok(!names.includes("authorization"), "Authorization must not reach the catalog");
+  assert.ok(!names.includes("version"), "Version must not reach the catalog");
+  assert.ok(names.includes("locationid"), "real params must survive");
+});
+
+// search_actions used to inline every hit's full OpenAPI schema AND return the whole payload
+// twice (structuredContent + a pretty-printed text copy), costing ~15,800 tokens per call.
+// Stubs are now the default; describe_action fetches the schema for the ONE chosen action.
+test("search_actions returns stubs by default, and describe_action carries the full schema", async () => {
+  const tools = registerTestTools([
+    createAction({
+      id: "contacts__create-contact",
+      category: "contacts",
+      method: "POST",
+      path: "/contacts/",
+      summary: "Create Contact",
+      parameters: [
+        { name: "locationId", in: "query", required: true, description: "", type: "string" },
+      ],
+      requestBody: {
+        required: true,
+        contentType: "application/json",
+        schema: { type: "object", required: ["firstName"], properties: { firstName: { type: "string" } } },
+      },
+    }),
+  ]);
+
+  // NOTE: this fake server bypasses Zod, so schema defaults are not applied — pass them.
+  const search = (await tools.get("search_actions")!.handler({
+    intent: "create a contact", offset: 0, limit: 10, include_all: false, compact: true,
+  })) as any;
+  const first = search.structuredContent.results[0];
+  assert.ok(first.id && first.method && first.path, "stub keeps identity fields");
+  assert.equal(first.parameters, undefined, "stub must not inline parameters");
+  assert.equal(first.requestBody, undefined, "stub must not inline the request body schema");
+
+  const described = (await tools.get("describe_action")!.handler({ action_id: first.id })) as any;
+  assert.ok(Array.isArray(described.structuredContent.parameters), "describe returns parameters");
+  assert.ok("requestBody" in described.structuredContent, "describe returns the request body");
+  assert.ok("kind" in described.structuredContent, "describe exposes read/write kind");
+});
+
+test("describe_action fails helpfully on an unknown id", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "contacts__create-contact", category: "contacts", method: "POST", path: "/contacts/" }),
+  ]);
+  const res = (await tools.get("describe_action")!.handler({ action_id: "contacts__nope" })) as any;
+  assert.match(String(res.structuredContent.error), /Unknown action_id/);
+  assert.ok(Array.isArray(res.structuredContent.didYouMean));
 });

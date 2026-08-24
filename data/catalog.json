@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-10T23:48:19.085Z",
+  "generatedAt": "2026-08-24T07:23:59.295Z",
   "baseUrl": "https://services.leadconnectorhq.com",
   "totalActions": 1207,
   "categories": [
@@ -12264,12 +12264,12 @@
             },
             "sleepTime": {
               "type": "number",
-              "description": "Duration of sleep period (required if sleepEnabled is true). Set to null for indefinite sleep. (max 2880 for minutes, 172800 for seconds, 48 for hours)",
+              "description": "Duration of sleep period (required if sleepEnabled is true). Set to null for indefinite sleep. (max 2880 for minutes, 172800 for seconds, 48 for hours) Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).",
               "example": 10
             },
             "sleepTimeUnit": {
               "type": "string",
-              "description": "Unit of sleep time - HOURS, MINUTES, or SECONDS (required if sleepEnabled is true). Set to null for indefinite sleep.",
+              "description": "Unit of sleep time - HOURS, MINUTES, or SECONDS (required if sleepEnabled is true). Set to null for indefinite sleep. Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).",
               "enum": [
                 "hours",
                 "minutes",
@@ -20151,13 +20151,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "query",
           "required": true,
@@ -20200,15 +20193,7 @@
         "Faqs"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -20259,13 +20244,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "id",
           "in": "path",
           "required": true,
@@ -20311,13 +20289,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "id",
           "in": "path",
           "required": true,
@@ -20340,13 +20311,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "knowledgeBaseId",
           "in": "query",
@@ -20397,15 +20361,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -20459,15 +20415,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -20512,13 +20460,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "query",
           "required": true,
@@ -20554,15 +20495,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -20616,13 +20549,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "path",
           "required": true,
@@ -20646,13 +20572,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "path",
           "required": true,
@@ -20675,13 +20594,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "id",
           "in": "path",
@@ -20721,13 +20633,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -20771,15 +20676,7 @@
         "Knowledge Base"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -20816,13 +20713,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -20923,13 +20813,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -28790,13 +28673,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "query",
           "required": true,
@@ -28879,15 +28755,7 @@
         "Documents"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -28973,13 +28841,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "query",
           "required": true,
@@ -29057,15 +28918,7 @@
         "Templates"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -29461,13 +29314,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "companyId",
           "in": "path",
           "required": true,
@@ -29490,13 +29336,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "path",
@@ -29527,13 +29366,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "companyId",
           "in": "path",
@@ -29588,13 +29420,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "companyId",
           "in": "path",
           "required": true,
@@ -29625,13 +29450,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "planId",
           "in": "path",
           "required": true,
@@ -29661,13 +29479,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "customerId",
           "in": "query",
@@ -29705,13 +29516,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "path",
@@ -29764,13 +29568,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "companyId",
           "in": "path",
           "required": true,
@@ -29812,13 +29609,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "path",
@@ -29908,13 +29698,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "path",
           "required": true,
@@ -29959,13 +29742,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "companyId",
           "in": "path",
@@ -30039,13 +29815,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "companyId",
           "in": "path",
           "required": true,
@@ -30068,13 +29837,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "path",
@@ -30105,13 +29867,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "companyId",
           "in": "path",
@@ -30166,13 +29921,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "companyId",
           "in": "path",
           "required": true,
@@ -30202,13 +29950,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "planId",
           "in": "path",
@@ -32147,13 +31888,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "id",
           "in": "path",
           "required": true,
@@ -32316,15 +32050,7 @@
         "Shipping Zone"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -32374,13 +32100,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "altId",
           "in": "query",
@@ -32436,13 +32155,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -32489,13 +32201,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "shippingZoneId",
           "in": "path",
@@ -32548,13 +32253,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -32593,15 +32291,7 @@
         "Shipping Zone"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -33190,13 +32880,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -33309,13 +32992,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -33370,13 +33046,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -33423,13 +33092,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "shippingZoneId",
           "in": "path",
@@ -33539,13 +33201,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingZoneId",
           "in": "path",
           "required": true,
@@ -33591,15 +33246,7 @@
         "Shipping Carrier"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -33660,13 +33307,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "altId",
           "in": "query",
           "required": true,
@@ -33699,13 +33339,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "shippingCarrierId",
           "in": "path",
@@ -33746,13 +33379,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "shippingCarrierId",
           "in": "path",
@@ -33815,13 +33441,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "shippingCarrierId",
           "in": "path",
           "required": true,
@@ -33860,15 +33479,7 @@
         "Store Setting"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -33920,13 +33531,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "altId",
           "in": "query",
@@ -47238,6 +46842,13 @@
           "required": true,
           "description": "The chat widget ID",
           "type": "string"
+        },
+        {
+          "name": "version",
+          "in": "query",
+          "required": false,
+          "description": "",
+          "type": "string"
         }
       ],
       "requestBody": null,
@@ -49594,12 +49205,12 @@
             },
             "sleepTime": {
               "type": "number",
-              "description": "Duration of sleep period (required if sleepEnabled is true). Set to null for indefinite sleep. (max 2880 for minutes, 172800 for seconds, 48 for hours)",
+              "description": "Duration of sleep period (required if sleepEnabled is true). Set to null for indefinite sleep. (max 2880 for minutes, 172800 for seconds, 48 for hours) Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).",
               "example": 10
             },
             "sleepTimeUnit": {
               "type": "string",
-              "description": "Unit of sleep time - HOURS, MINUTES, or SECONDS (required if sleepEnabled is true). Set to null for indefinite sleep.",
+              "description": "Unit of sleep time - HOURS, MINUTES, or SECONDS (required if sleepEnabled is true). Set to null for indefinite sleep. Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).",
               "enum": [
                 "hours",
                 "minutes",
@@ -58071,13 +57682,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "query",
           "required": true,
@@ -58120,15 +57724,7 @@
         "Faqs"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -58179,13 +57775,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "id",
           "in": "path",
           "required": true,
@@ -58231,13 +57820,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "id",
           "in": "path",
           "required": true,
@@ -58260,13 +57842,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "knowledgeBaseId",
           "in": "query",
@@ -58317,15 +57892,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -58379,15 +57946,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -58432,13 +57991,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "query",
           "required": true,
@@ -58474,15 +58026,7 @@
         "Web Crawler"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -58536,13 +58080,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "path",
           "required": true,
@@ -58566,13 +58103,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "knowledgeBaseId",
           "in": "path",
           "required": true,
@@ -58595,13 +58125,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "id",
           "in": "path",
@@ -58641,13 +58164,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -58691,15 +58207,7 @@
         "Knowledge Base"
       ],
       "scopes": [],
-      "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        }
-      ],
+      "parameters": [],
       "requestBody": {
         "required": true,
         "contentType": "application/json",
@@ -58738,13 +58246,6 @@
         "links.readonly"
       ],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -58849,13 +58350,6 @@
         "links.readonly"
       ],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "query",
@@ -69559,13 +69053,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "platform",
           "in": "path",
           "required": true,
@@ -69629,13 +69116,6 @@
       "scopes": [],
       "parameters": [
         {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
-        {
           "name": "locationId",
           "in": "path",
           "required": true,
@@ -69691,13 +69171,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "locationId",
           "in": "path",
@@ -69823,13 +69296,6 @@
       ],
       "scopes": [],
       "parameters": [
-        {
-          "name": "Authorization",
-          "in": "header",
-          "required": true,
-          "description": "Access Token",
-          "type": "string"
-        },
         {
           "name": "id",
           "in": "path",
@@ -74204,6 +73670,13 @@
           "in": "path",
           "required": true,
           "description": "ID of the pipeline to update.",
+          "type": "string"
+        },
+        {
+          "name": "locationId",
+          "in": "query",
+          "required": false,
+          "description": "Sub-account (location) ID. Goes in the QUERY STRING — unlike create-pipeline, this endpoint rejects locationId in the request body with 422.",
           "type": "string"
         }
       ],
