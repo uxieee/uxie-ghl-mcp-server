@@ -34,3 +34,13 @@ export interface Catalog {
   categories: string[];
   actions: CatalogAction[];
 }
+
+/** What a call TOUCHES — the basis for confirmation gating. See risk.ts. */
+export type ActionRiskKind = "read" | "write" | "external_send" | "billing" | "delete";
+
+export interface ActionRisk {
+  level: "low" | "medium" | "high";
+  kinds: ActionRiskKind[];
+  notes: string[];
+  requiresConfirmation: boolean;
+}
