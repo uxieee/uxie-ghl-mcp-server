@@ -214,8 +214,8 @@ If you need every action inside a category instead of ranked matches, use `searc
 These are GHL platform limitations, not bugs in this MCP server. The server now tries to surface them explicitly in search results and action notes so an LLM can stop early instead of repeatedly hunting for endpoints that do not exist.
 
 - **Workflow internals**: `workflows__get-workflow` is a minimal read-only list. Workflow triggers, steps, conditions, and AI-agent usage remain UI-only.
-- **Pipelines and stages**: `opportunities__get-pipelines` is read-only. Creating or editing pipeline containers and stages still has to be done in the GHL UI.
-- **SMS/email template creation**: the public API can list or delete templates, but template creation is still UI-only.
+- **Pipelines and stages**: fully writable since GHL's 2026-06-26 API addition — `opportunities-v3__create-pipeline` / `update-pipeline` / `delete-pipeline`. (This line previously said read-only; it was stale.) Note th
+- **SMS template creation**: still UI-only — `/locations/{locationId}/templates` supports list and delete only. EMAIL templates CAN be created: `emails-v3__create-email-template` / `import-email-template`, or the older `emails__create-template`.
 - **Contact/opportunity custom-field folders**: folder containers must be created in the GHL UI. Once a folder exists, fields can be assigned or moved with `parentId` on `locations__create-custom-field` and `locations__update-custom-field`.
 - **Sub-account security settings**: sender domains, A2P registration, and webhook signing keys are UI-only.
 
@@ -258,7 +258,7 @@ The build is configurable via environment variables:
 
 ### API versioning & v3 readiness
 
-The GHL API is currently **v2** (host `services.leadconnectorhq.com`, date version headers `2021-07-28` / `2021-04-15`). HighLevel is rolling out a breaking **v3** revision (camelCase params, kebab-case paths, required `Version` headers, new `*V3` schemas, location-scoped paths), but as of 2026-06-14 **v3 is not yet in the public OpenAPI specs** this catalog builds from. The server is built to adopt v3 with a single `npm run build-catalog` once GHL publishes it.
+The GHL API is currently **v2** (host `services.leadconnectorhq.com`, date version headers `2021-07-28` / `2021-04-15`). HighLevel is rolling out a breaking **v3** revision (camelCase params, kebab-case paths, required `Version` headers, new `*V3` schemas, location-scoped paths), GHL published the v3 specs on 2026-06-19 and this catalog carries them: 42 `-v3` categories are present. (This paragraph previously said v3 was not yet published; it was stale.)
 
 See [`docs/api-v3/`](docs/api-v3/) for the full audit, the per-domain v3 change breakdown, and the migration playbook.
 
@@ -266,11 +266,24 @@ See [`docs/api-v3/`](docs/api-v3/) for the full audit, the per-domain v3 change 
 
 ```
 Claude / Codex / opencode ──MCP──► Cloudflare Worker ──HTTPS──► GHL API
-                    │
-                    ├── search_actions (keyword search over 1207-action catalog)
-                    ├── execute_action (builds HTTP request, calls GHL, returns response)
-                    └── list_categories (browse available categories)
+                    │              (or local stdio: src/stdio.ts)
+                    ├── search_actions   ranked search -> COMPACT stubs, one row per operation
+                    ├── describe_action  full params + body schema for the ONE id you chose
+                    ├── execute_action   routes and calls GHL; dry_run, confirm, response shaping
+                    ├── list_categories  45 category families
+                    └── list_locations   configured sub-accounts (stdio + accounts file only)
 ```
+
+**Three steps, not two.** `search_actions` returns stubs; `describe_action` returns the schema
+for the single action you picked. Inlining every hit's schema cost ~15,800 tokens a search;
+the split cycle costs ~14,000 bytes. Set `compact:false` only if you truly want every schema.
+
+**671 distinct operations, 1207 catalog entries.** GHL publishes most endpoints twice — a v2
+spec and a v3 twin at the same method+path. Search returns one row per operation and names the
+other id as `alsoAvailableAs`; `execute_action` accepts either. Do not assume a `-v3` category
+means the v3 header: 124 actions in `-v3` categories do not carry one.
+
+**Multiple sub-accounts** from one connection: see [`docs/multi-sub-account.md`](docs/multi-sub-account.md).
 
 - **Catalog**: Auto-generated from GHL's [official OpenAPI specs](https://github.com/GoHighLevel/highlevel-api-docs) (1207 actions across 83 categories: v2 specs in apps/ plus the v3 specs GHL published to apps/v3/ on 2026-06-19)
 - **Catalog overrides**: Runtime patches correct a few high-value spec mismatches such as `parentId` / `options` on location custom fields
@@ -287,7 +300,7 @@ Claude / Codex / opencode ──MCP──► Cloudflare Worker ──HTTPS──
 - Request body size capped at 1MB
 - HTTP methods allowlisted (GET, POST, PUT, PATCH, DELETE only)
 - SSRF protection on catalog paths
-- Rate limited to prevent API abuse
+- Rate limited per token — **per edge isolate**, so the effective ceiling is 60/min multiplied by the number of live isolates. It smooths accidental loops; it is not an enforcement boundary and should not be described as one.
 - 15-second timeout on all outbound requests
 
 ## Project structure

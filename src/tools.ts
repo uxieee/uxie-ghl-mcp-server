@@ -246,27 +246,39 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
             .slice()
             .sort((a, b) => a.id.localeCompare(b.id))
         : [];
-      // COLLAPSE v2/v3 TWINS. 536 method+path pairs exist twice in the catalog (410 of them
-      // byte-identical), so an un-collapsed search spent roughly half its results showing the
-      // same operation to the agent twice and made it choose. Keyword search now returns one
-      // row per operation and names the alias; execute_action still accepts either id.
-      // Deliberately NOT applied to include_all, which is an explicit "enumerate this
-      // category" request.
-      const rawResults = include_all
-        ? allCategoryActions.slice(offset, offset + limit)
-        : collapseTwins(
-            searchActions(searchIndex, actions, intent, (offset + limit) * 2)
-          ).slice(offset, offset + limit);
-      const results = rawResults;
-
-      // Cross-category hint: if a category filter is active, check if better results exist elsewhere
+      // ONE ranked pass over the whole catalog, then slice. A category-filtered query used to
+      // rank `actions` and then rank `catalog.actions` AGAIN just to build cross-category
+      // hints — scoring all 1207 entries twice per call. Ranking the full set once and
+      // partitioning it gives the same two answers for half the work.
+      //
+      // COLLAPSE v2/v3 TWINS: 536 method+path pairs exist twice (410 byte-identical), so an
+      // un-collapsed search spent half its rows showing the agent the same operation and made
+      // it choose. include_all is deliberately left alone — it is an explicit enumeration.
+      let results: CatalogAction[];
       let crossCategoryHints: string[] = [];
-      if (category && !include_all) {
-        const allResults = searchActions(searchIndex, catalog.actions, intent, 3);
-        const outsideResults = allResults.filter((a) => a.category !== category);
-        if (outsideResults.length > 0) {
-          const hints = outsideResults.map((a) => `${a.id} (${a.category})`);
-          crossCategoryHints = hints;
+      let matchedTotal = 0;
+
+      if (include_all) {
+        results = allCategoryActions.slice(offset, offset + limit);
+        matchedTotal = allCategoryActions.length;
+      } else {
+        // Rank once over everything, collapse twins, then partition by the category filter.
+        const ranked = collapseTwins(
+          searchActions(searchIndex, catalog.actions, intent, (offset + limit) * 2 + 20)
+        );
+        // Match the category FAMILY, not the exact string: `contacts` and `contacts-v3` are
+        // the same endpoints. Comparing exact names made a twin of an already-returned result
+        // show up under crossCategoryHints as if it were somewhere else to look.
+        const inCategory = category
+          ? ranked.filter((a) => categoryFamily(a.category) === categoryFamily(category))
+          : ranked;
+        matchedTotal = inCategory.length;
+        results = inCategory.slice(offset, offset + limit);
+        if (category) {
+          crossCategoryHints = ranked
+            .filter((a) => categoryFamily(a.category) !== categoryFamily(category))
+            .slice(0, 3)
+            .map((a) => `${a.id} (${a.category})`);
         }
       }
 
@@ -328,14 +340,17 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       const structuredContent = {
         results: formatted,
         notes,
+        // `total` and `nextOffset` used to be undefined in keyword mode, so they vanished
+        // from the JSON and the agent could not tell whether more results existed — the same
+        // tool answered with two different contracts depending on which mode it ran in.
         pagination: {
           offset,
           limit,
           returned: results.length,
-          total: include_all ? allCategoryActions.length : undefined,
-          nextOffset: include_all && offset + results.length < allCategoryActions.length
-            ? offset + results.length
-            : undefined,
+          total: matchedTotal,
+          hasMore: offset + results.length < matchedTotal,
+          nextOffset:
+            offset + results.length < matchedTotal ? offset + results.length : undefined,
         },
         crossCategoryHints,
       };
@@ -1176,6 +1191,11 @@ function twinIdOf(action: CatalogAction, all: CatalogAction[]): string {
     (a) => a.id !== action.id && a.method === action.method && a.path === action.path
   );
   return twin?.id ?? "";
+}
+
+/** `contacts` and `contacts-v3` are one family — the same endpoints under two specs. */
+function categoryFamily(category: string): string {
+  return category.endsWith("-v3") ? category.slice(0, -3) : category;
 }
 
 function collapseTwins(actions: CatalogAction[]): CatalogAction[] {

@@ -1023,3 +1023,44 @@ test("list_categories folds -v3 twins into their base category", () => {
   assert.ok(!/^contacts-v3:/m.test(categorySummary), "contacts-v3 must not get its own line");
   assert.match(categorySummary, /3 distinct operations/, "counts operations, not catalog entries");
 });
+
+// A category filter matches the FAMILY. Comparing exact category names made the -v3 twin of
+// an already-returned result appear under crossCategoryHints as if it were somewhere else
+// worth looking — pointing the agent at the same operation it had just been given.
+test("a category filter covers its -v3 twin, and hints are genuine alternatives", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "contacts__create-contact", category: "contacts", method: "POST",
+      path: "/contacts/", summary: "Create Contact", versionHeader: "2021-07-28" }),
+    createAction({ id: "contacts-v3__create-contact", category: "contacts-v3", method: "POST",
+      path: "/contacts/", summary: "Create Contact", versionHeader: "v3" }),
+    createAction({ id: "blogs__create-blog-post", category: "blogs", method: "POST",
+      path: "/blogs/posts", summary: "Create Blog Post" }),
+  ]);
+  const res = (await tools.get("search_actions")!.handler({
+    intent: "create contact", category: "contacts", offset: 0, limit: 10,
+    include_all: false, compact: true,
+  })) as any;
+  const hints: string[] = res.structuredContent.crossCategoryHints;
+  assert.ok(!hints.some((h) => h.includes("contacts-v3")),
+    "the twin of a returned result is not a cross-category alternative");
+  assert.equal(res.structuredContent.results.length, 1, "twins still collapse to one row");
+});
+
+// The same tool answered with two different pagination contracts: include_all populated
+// total/nextOffset while keyword mode left them undefined, so they vanished from the JSON
+// and the agent could not tell whether more results existed.
+test("pagination reports total and hasMore in keyword mode too", async () => {
+  const actions = Array.from({ length: 8 }, (_, i) =>
+    createAction({ id: `contacts__act-${i}`, category: "contacts", method: "GET",
+      path: `/contacts/${i}`, summary: `Contact thing ${i}` })
+  );
+  const tools = registerTestTools(actions);
+  const res = (await tools.get("search_actions")!.handler({
+    intent: "contact thing", offset: 0, limit: 3, include_all: false, compact: true,
+  })) as any;
+  const p = res.structuredContent.pagination;
+  assert.equal(p.returned, 3);
+  assert.equal(p.total, 8, "total must be present in keyword mode");
+  assert.equal(p.hasMore, true);
+  assert.equal(p.nextOffset, 3);
+});
