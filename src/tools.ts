@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { searchActions, SearchIndex } from "./search.js";
 import { executeAction, previewActionRequest } from "./executor.js";
+import type { AccountsRegistry } from "./accounts.js";
 import { RateLimiter } from "./rate-limiter.js";
 import type { ActionTip } from "./action-tips.js";
 import type { Catalog, CatalogAction } from "./types.js";
@@ -12,12 +13,14 @@ export interface ToolDeps {
   actionById: Map<string, CatalogAction>;
   categorySummary: string;
   getToken: () => string;
+  /** Present only when the server was started with an accounts file (multi sub-account). */
+  accounts?: AccountsRegistry;
   rateLimiter: RateLimiter;
   actionTips: Record<string, ActionTip>;
 }
 
 export function registerTools(server: McpServer, deps: ToolDeps) {
-  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter, actionTips } = deps;
+  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter, actionTips, accounts } = deps;
 
   // Tool 1: List all categories
   server.registerTool(
@@ -37,6 +40,34 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       ],
     })
   );
+
+  // Tool 0: list_locations — only exists when an accounts file is configured.
+  // Reads the file's own entries; makes no API call, so it cannot hit the 403 that GHL's
+  // /locations/search returns for a sub-account PIT.
+  if (accounts) {
+    server.registerTool(
+      "list_locations",
+      {
+        description:
+          "List the GHL sub-accounts (locations) this server holds a token for. Call this before execute_action when you do not already know which sub-account to operate on, and pass the chosen id as execute_action's locationId. `binding` reports whether the configured token has been proven to reach that location yet.",
+        inputSchema: {},
+        annotations: { readOnlyHint: true },
+      },
+      async () => {
+        const structuredContent = {
+          locations: accounts.list(),
+          note:
+            accounts.size === 1
+              ? "One sub-account configured; locationId may be omitted."
+              : "Pass locationId on execute_action to choose one. An id with no configured token is refused rather than silently sent with another account's token.",
+        };
+        return {
+          structuredContent,
+          content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+        };
+      }
+    );
+  }
 
   // Tool 1b: describe_action — the middle step of search -> describe -> execute.
   // search_actions now returns stubs; this is where the full schema for the ONE action the
@@ -340,6 +371,12 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           .describe(
             "Set to true only after reviewing a preview for high-risk actions such as send, publish, delete, remove, cancel, payment, or billing actions."
           ),
+        locationId: z
+          .string()
+          .optional()
+          .describe(
+            "Which configured GHL sub-account to operate on. Omit when only one is configured. Required when several are. Call list_locations to see them. An id with no configured token is refused — this server never substitutes another account's token."
+          ),
         dry_run: z
           .boolean()
           .default(false)
@@ -380,7 +417,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       },
       annotations: { openWorldHint: true },
     },
-    async ({ action_id, params, confirm, dry_run, result_filter, result_fields, result_offset, result_limit }) => {
+    async ({ action_id, params, confirm, dry_run, locationId, result_filter, result_fields, result_offset, result_limit }) => {
       const action = actionById.get(action_id);
       if (!action) {
         const structuredContent = buildExecuteStructured({
@@ -422,6 +459,75 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         delete params.result_limit;
       }
 
+      // ── multi sub-account resolution ────────────────────────────────────────────────
+      // Pick the token, inject the location the way THIS action expresses it, and refuse
+      // outright when the action carries no location at all and the binding is unproven.
+      let selectedAccount: { id: string; name: string; token: string } | null = null;
+      if (accounts) {
+        try {
+          selectedAccount = accounts.resolve(locationId);
+        } catch (err) {
+          const structuredContent = {
+            action: { id: action.id },
+            status: "error",
+            ok: false,
+            error: err instanceof Error ? err.message : "Could not resolve a sub-account",
+            nextStep: "Call list_locations, then retry with an explicit locationId.",
+          };
+          return {
+            isError: true,
+            structuredContent,
+            content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+          };
+        }
+
+        const shape = locationShapeOf(action);
+        if (shape === "locationId") {
+          // The executor routes by the catalog's `in`, and anything undeclared falls through
+          // to the body — so one assignment covers the query (301), path (186) and
+          // body-only (221) cases correctly.
+          if (params.locationId === undefined) params.locationId = selectedAccount.id;
+          else if (params.locationId !== selectedAccount.id) {
+            const structuredContent = {
+              action: { id: action.id },
+              status: "error",
+              ok: false,
+              error: `Conflicting locations: locationId="${selectedAccount.id}" selects the token, but params.locationId="${String(params.locationId)}" would be sent to GHL. Refusing rather than letting one pick the credential and the other pick the target.`,
+            };
+            return {
+              isError: true,
+              structuredContent,
+              content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+            };
+          }
+        } else if (shape === "altId") {
+          if (params.altId === undefined) params.altId = selectedAccount.id;
+          if (params.altType === undefined) params.altType = "location";
+        } else {
+          // ~407 actions name no location anywhere. Nothing to inject and nothing for GHL to
+          // reject, so a mis-keyed token would write to the WRONG client silently. Prove the
+          // binding first; this is the one case where an unverified mapping is unsafe.
+          const state = await accounts.verify(selectedAccount.id, catalog.baseUrl);
+          if (state !== "verified") {
+            const structuredContent = {
+              action: { id: action.id },
+              status: "error",
+              ok: false,
+              error:
+                state === "mismatched"
+                  ? `The token configured for "${selectedAccount.name}" (${selectedAccount.id}) cannot reach that location. The accounts file maps it to the wrong sub-account. Refusing: this action names no location, so GHL would have accepted the call against whichever sub-account the token really belongs to.`
+                  : `Could not verify which sub-account the token for "${selectedAccount.name}" belongs to, and this action carries no location parameter for GHL to check. Refusing rather than risk writing to the wrong sub-account.`,
+              nextStep: "Fix the id in the accounts file, or retry when GHL is reachable.",
+            };
+            return {
+              isError: true,
+              structuredContent,
+              content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }],
+            };
+          }
+        }
+      }
+
       const risk = inferActionRisk(action);
       const requiresConfirmation = requiresActionConfirmation(risk);
       if (dry_run || (requiresConfirmation && !confirm)) {
@@ -458,7 +564,9 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         }
       }
 
-      const apiToken = getToken();
+      // The selected account's token when multi-account is configured; otherwise the single
+      // connection token exactly as before.
+      const apiToken = selectedAccount?.token ?? getToken();
       if (!apiToken) {
         const structuredContent = buildExecuteStructured({
           action: summarizeAction(action, risk),
@@ -1023,6 +1131,27 @@ interface ActionRisk {
  * The real header wins first.
  */
 /** The id of the other action sharing this method+path, if the catalog carries a twin. */
+/**
+ * How an action names its sub-account. Derived from the live catalog:
+ *   locationId as a query param   301
+ *   locationId as a path param    186
+ *   locationId in the body schema 221   (no parameters[] entry — the executor routes it there)
+ *   altId + altType pair           84
+ *   none at all                   407
+ * Injecting blindly into path/query would have broken the 305 body-only and altId actions,
+ * including contacts__create-contact, the most-used write in the API.
+ */
+function locationShapeOf(action: CatalogAction): "locationId" | "altId" | "none" {
+  const names = new Set(action.parameters.map((p) => p.name));
+  if (names.has("locationId")) return "locationId";
+  if (names.has("altId") && names.has("altType")) return "altId";
+  const schema = action.requestBody?.schema as Record<string, unknown> | undefined;
+  const props = schema?.properties as Record<string, unknown> | undefined;
+  if (props && Object.prototype.hasOwnProperty.call(props, "locationId")) return "locationId";
+  if (props && Object.prototype.hasOwnProperty.call(props, "altId")) return "altId";
+  return "none";
+}
+
 function twinIdOf(action: CatalogAction, all: CatalogAction[]): string {
   const twin = all.find(
     (a) => a.id !== action.id && a.method === action.method && a.path === action.path

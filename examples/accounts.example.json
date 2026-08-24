@@ -1,0 +1,7 @@
+{
+  "accounts": [
+    { "id": "REPLACE_WITH_LOCATION_ID", "name": "Client One", "token": "pit-REPLACE" },
+    { "id": "REPLACE_WITH_LOCATION_ID_2", "name": "Client Two", "token": "pit-REPLACE" }
+  ],
+  "default": "REPLACE_WITH_LOCATION_ID"
+}

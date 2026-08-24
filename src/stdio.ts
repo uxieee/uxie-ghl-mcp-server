@@ -30,6 +30,7 @@ import { RateLimiter } from "./rate-limiter.js";
 import { ACTION_TIPS, getSearchBoosts } from "./action-tips.js";
 import { applyCatalogOverrides } from "./catalog-overrides.js";
 import type { Catalog } from "./types.js";
+import { parseAccountsFile, type AccountsRegistry } from "./accounts.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const catalogPath = join(__dirname, "..", "data", "catalog.json");
@@ -37,9 +38,28 @@ const typedCatalog: Catalog = applyCatalogOverrides(
   JSON.parse(readFileSync(catalogPath, "utf-8"))
 );
 
+// Multi sub-account: a PATH to a secrets file, never the secrets themselves. Claude Code
+// writes env values verbatim into ~/.claude.json, so putting N tokens there would ship every
+// PIT on every request and park them in a file people paste into bug reports.
+const accountsPath = process.env.GHL_ACCOUNTS_FILE || "";
+let accounts: AccountsRegistry | undefined;
+if (accountsPath) {
+  try {
+    accounts = parseAccountsFile(readFileSync(accountsPath, "utf-8"));
+  } catch (err) {
+    console.error(`Error reading GHL_ACCOUNTS_FILE (${accountsPath}): ${(err as Error).message}`);
+    process.exit(1);
+  }
+}
+
 const apiToken = process.env.GHL_API_TOKEN || "";
-if (!apiToken) {
-  console.error("Error: GHL_API_TOKEN environment variable is required.");
+if (!accounts && !apiToken) {
+  console.error("Error: set GHL_ACCOUNTS_FILE (multi sub-account) or GHL_API_TOKEN (single).");
+  console.error("");
+  console.error("  GHL_ACCOUNTS_FILE — path to a JSON file, chmod 600:");
+  console.error('    { "accounts": [ { "id": "<locationId>", "name": "Client", "token": "pit-..." } ],');
+  console.error('      "default": "<locationId>" }');
+  console.error("");
   console.error("Set it when adding to Claude Code, Codex CLI, or opencode:");
   console.error(
     "  claude mcp add ghl -e GHL_API_TOKEN=pit-xxx -- npx tsx src/stdio.ts"
@@ -70,6 +90,7 @@ registerTools(server, {
   actionById,
   categorySummary,
   getToken: () => apiToken,
+  accounts,
   rateLimiter,
   actionTips: ACTION_TIPS,
 });

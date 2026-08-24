@@ -5,6 +5,7 @@ import { registerTools } from "../src/tools.js";
 import { executeAction, previewActionRequest } from "../src/executor.js";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 import { ACTION_TIPS } from "../src/action-tips.js";
+import { AccountsRegistry } from "../src/accounts.js";
 import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
 import type { Catalog, CatalogAction } from "../src/types.js";
 
@@ -884,4 +885,70 @@ test("twin preference follows the real version header, not the category name", a
   })) as any;
   assert.equal(res.structuredContent.results[0].id, "store__list",
     "-v3 in the name must not beat a real version header");
+});
+
+// ── multi sub-account ────────────────────────────────────────────────────────────────
+// A PIT is hard-bound to one sub-account (proven live: another location's id returns 403
+// "The token does not have access to this location"). Multi-account here means holding N
+// PITs and choosing one per call, so every request GHL sees is identical to a single-token
+// connection. These tests pin the safety properties, not the convenience.
+
+test("an unknown locationId is refused, never served with another account's token", () => {
+  const reg = new AccountsRegistry({
+    accounts: [
+      { id: "loc_a", name: "Client A", token: "pit-aaa" },
+      { id: "loc_b", name: "Client B", token: "pit-bbb" },
+    ],
+  });
+  assert.throws(() => reg.resolve("loc_zzz"), /No token configured for location/);
+  // and with several configured, omitting the id must not silently pick one
+  assert.throws(() => reg.resolve(), /locationId is required/);
+  assert.equal(reg.resolve("loc_b").token, "pit-bbb");
+});
+
+test("a single configured account keeps the old single-token behaviour", () => {
+  const reg = new AccountsRegistry({ accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] });
+  assert.equal(reg.resolve().id, "loc_a");
+  assert.equal(reg.list()[0].isDefault, true);
+});
+
+test("the accounts file is validated at load, not with a 401 an hour later", () => {
+  assert.throws(() => new AccountsRegistry({ accounts: [] }), /non-empty/);
+  assert.throws(
+    () => new AccountsRegistry({ accounts: [{ id: "a", name: "A", token: "nope" }] }),
+    /does not look like a PIT/
+  );
+  assert.throws(
+    () => new AccountsRegistry({
+      accounts: [{ id: "a", name: "A", token: "pit-1" }, { id: "a", name: "B", token: "pit-2" }],
+    }),
+    /twice/
+  );
+  assert.throws(
+    () => new AccountsRegistry({ accounts: [{ id: "a", name: "A", token: "pit-1" }], default: "zzz" }),
+    /not one of the configured accounts/
+  );
+});
+
+// THE SILENT-WRONG-ACCOUNT HOLE. ~407 catalog actions name no location anywhere, so nothing
+// is injected and GHL has nothing to reject: a mis-keyed token would succeed against
+// whichever sub-account it really belongs to, and the agent would believe otherwise.
+test("binding verification catches a mis-keyed token", async () => {
+  const reg = new AccountsRegistry({ accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] });
+  assert.equal(reg.getBinding("loc_a"), "unverified");
+
+  const forbidden = (async () =>
+    ({ ok: false, status: 403 })) as unknown as typeof fetch;
+  assert.equal(await reg.verify("loc_a", "https://x", forbidden), "mismatched");
+
+  const reg2 = new AccountsRegistry({ accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] });
+  const allowed = (async () => ({ ok: true, status: 200 })) as unknown as typeof fetch;
+  assert.equal(await reg2.verify("loc_a", "https://x", allowed), "verified");
+  assert.equal(reg2.getBinding("loc_a"), "verified", "result is cached, not re-fetched");
+});
+
+test("a network failure leaves the binding unverified rather than asserting it is fine", async () => {
+  const reg = new AccountsRegistry({ accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] });
+  const boom = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
+  assert.equal(await reg.verify("loc_a", "https://x", boom), "unverified");
 });

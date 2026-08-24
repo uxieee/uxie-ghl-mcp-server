@@ -4,3 +4,7 @@ dist/
 .wrangler/
 .DS_Store
 .playwright-mcp/
+
+# never commit real tokens
+accounts.json
+.ghl/
