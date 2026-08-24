@@ -15,11 +15,41 @@ So this server holds **N PITs and picks one per call**. Every request GHL receiv
 byte-identical to a single-token connection. No privilege is gained that GHL had not already
 granted that individual token, which is what makes it safe.
 
+## Where the file lives — three ways
+
+`GHL_ACCOUNTS_FILE` is a path, so you choose the trade between reach and isolation.
+
+| Mode | Registration | Reach |
+|---|---|---|
+| **Global** | `GHL_ACCOUNTS_FILE=~/.ghl/accounts.json` | every client, from anywhere. One registration total. |
+| **Global, scoped** | same file + `GHL_ALLOWED_LOCATIONS=<id>[,<id>]` | one shared file of secrets, narrowed per folder |
+| **Per project** | `GHL_ACCOUNTS_FILE=<project>/.ghl/accounts.json` | only what that file lists |
+
+**Why this matters.** The existing per-project `.ghl/` token files were not only convenient,
+they were a boundary: an agent working in client A's folder physically could not reach client
+B, because the credential was not there. A single global file removes that. `GHL_ALLOWED_LOCATIONS`
+gives it back — one file to maintain, scoped down where it should be:
+
+```bash
+# your own workspace — everything
+claude mcp add ghl -e GHL_ACCOUNTS_FILE="$HOME/.ghl/accounts.json" -- npx tsx …/src/stdio.ts
+
+# inside a client folder — that client only
+claude mcp add ghl \
+  -e GHL_ACCOUNTS_FILE="$HOME/.ghl/accounts.json" \
+  -e GHL_ALLOWED_LOCATIONS="wdzEoUZnXO9tB3PPzcot" \
+  -- npx tsx …/src/stdio.ts
+```
+
+Scoped-out accounts do not appear in `list_locations` and are refused exactly like an unknown
+id. A location id in the allowlist that is **not** in the accounts file is a startup error, so
+a typo cannot silently narrow your access instead.
+
 ## Setting it up
 
 ### 1. Create the accounts file
 
-Anywhere outside a git repo. `~/.ghl/accounts.json` is the convention:
+Anywhere outside a git repo. `~/.ghl/accounts.json` is the convention for the global file:
 
 ```json
 {

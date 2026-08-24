@@ -952,3 +952,32 @@ test("a network failure leaves the binding unverified rather than asserting it i
   const boom = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
   assert.equal(await reg.verify("loc_a", "https://x", boom), "unverified");
 });
+
+// PER-PROJECT SCOPE. A global accounts file removes the isolation that per-project token
+// files gave: an agent in client A's folder could otherwise reach client B. The allowlist
+// restores it without going back to one registration per client.
+test("an allowlist scopes one shared accounts file down to a single project", () => {
+  const file = {
+    accounts: [
+      { id: "loc_a", name: "Client A", token: "pit-aaa" },
+      { id: "loc_b", name: "Client B", token: "pit-bbb" },
+      { id: "loc_c", name: "Client C", token: "pit-ccc" },
+    ],
+    default: "loc_c",
+  };
+  const scoped = new AccountsRegistry(file, ["loc_a"]);
+  assert.equal(scoped.size, 1);
+  assert.equal(scoped.list()[0].id, "loc_a");
+  // the others are simply not reachable from this project
+  assert.throws(() => scoped.resolve("loc_b"), /No token configured for location/);
+  // a single remaining account still resolves without an explicit id
+  assert.equal(scoped.resolve().id, "loc_a");
+
+  // unscoped, the same file exposes everything
+  assert.equal(new AccountsRegistry(file).size, 3);
+});
+
+test("a typo in the allowlist fails loudly instead of silently narrowing access", () => {
+  const file = { accounts: [{ id: "loc_a", name: "A", token: "pit-aaa" }] };
+  assert.throws(() => new AccountsRegistry(file, ["loc_typo"]), /not present in the accounts file/);
+});

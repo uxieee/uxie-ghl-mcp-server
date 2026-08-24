@@ -42,10 +42,16 @@ const typedCatalog: Catalog = applyCatalogOverrides(
 // writes env values verbatim into ~/.claude.json, so putting N tokens there would ship every
 // PIT on every request and park them in a file people paste into bug reports.
 const accountsPath = process.env.GHL_ACCOUNTS_FILE || "";
+// Optional per-project scope. One shared accounts file, narrowed per folder: a client
+// project sees only that client, your own workspace sees everything.
+const allowedLocations = (process.env.GHL_ALLOWED_LOCATIONS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 let accounts: AccountsRegistry | undefined;
 if (accountsPath) {
   try {
-    accounts = parseAccountsFile(readFileSync(accountsPath, "utf-8"));
+    accounts = parseAccountsFile(readFileSync(accountsPath, "utf-8"), allowedLocations);
   } catch (err) {
     console.error(`Error reading GHL_ACCOUNTS_FILE (${accountsPath}): ${(err as Error).message}`);
     process.exit(1);

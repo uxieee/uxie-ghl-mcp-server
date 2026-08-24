@@ -38,9 +38,27 @@ export class AccountsRegistry {
   /** locationId -> binding outcome. Process-lifetime only; no storage, no Durable Object. */
   private readonly binding = new Map<string, BindingState>();
 
-  constructor(file: AccountsFile) {
+  /**
+   * @param allowed Optional per-project allowlist of location ids. One shared accounts file
+   *   can then be scoped down per folder: a client project sees only that client, while your
+   *   own workspace sees everything. This restores the isolation that per-project token files
+   *   gave — an agent working in one client's folder cannot reach another's data — without
+   *   going back to one registration per client.
+   */
+  constructor(file: AccountsFile, allowed?: string[]) {
     if (!Array.isArray(file.accounts) || file.accounts.length === 0) {
       throw new Error("accounts file must contain a non-empty `accounts` array");
+    }
+    const allowSet = allowed && allowed.length > 0 ? new Set(allowed) : null;
+    if (allowSet) {
+      const known = new Set(file.accounts.map((a) => a?.id));
+      const unknown = [...allowSet].filter((id) => !known.has(id));
+      if (unknown.length > 0) {
+        // A typo here would silently narrow access instead of erroring, so fail loudly.
+        throw new Error(
+          `allowed locations not present in the accounts file: ${unknown.join(", ")}`
+        );
+      }
     }
     for (const [i, a] of file.accounts.entries()) {
       if (!a?.id || !a?.token) {
@@ -53,12 +71,21 @@ export class AccountsRegistry {
       if (this.byId.has(a.id)) {
         throw new Error(`accounts contains ${a.id} twice`);
       }
+      if (allowSet && !allowSet.has(a.id)) continue; // scoped out for this project
       this.byId.set(a.id, { ...a, name: a.name || a.id });
     }
-    if (file.default && !this.byId.has(file.default)) {
-      throw new Error(`default "${file.default}" is not one of the configured accounts`);
+    if (this.byId.size === 0) {
+      throw new Error("the allowed-locations filter excluded every configured account");
     }
-    this.defaultId = file.default;
+    // A default that is scoped out for this project is simply not the default here.
+    if (file.default && !this.byId.has(file.default)) {
+      if (!allowSet) {
+        throw new Error(`default "${file.default}" is not one of the configured accounts`);
+      }
+      this.defaultId = this.byId.size === 1 ? [...this.byId.keys()][0] : undefined;
+    } else {
+      this.defaultId = file.default;
+    }
   }
 
   get size(): number {
@@ -134,12 +161,12 @@ export class AccountsRegistry {
   }
 }
 
-export function parseAccountsFile(raw: string): AccountsRegistry {
+export function parseAccountsFile(raw: string, allowed?: string[]): AccountsRegistry {
   let parsed: AccountsFile;
   try {
     parsed = JSON.parse(raw) as AccountsFile;
   } catch (err) {
     throw new Error(`accounts file is not valid JSON: ${(err as Error).message}`);
   }
-  return new AccountsRegistry(parsed);
+  return new AccountsRegistry(parsed, allowed);
 }
