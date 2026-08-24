@@ -378,7 +378,13 @@ test("search_actions can enumerate every action in a category when include_all i
   assert.equal(result.structuredContent.pagination.returned, 2);
   assert.match(output, /opportunities__get-pipelines/);
   assert.match(output, /opportunities__create-opportunity/);
-  assert.match(output, /"risk"/);
+  // Was: assert.match(output, /"risk"/). Search stubs no longer embed the full risk object —
+  // it repeated kinds:["write"] and the prose "POST can change GHL account data." on every
+  // hit, restating the method printed two fields above. The signal an agent cannot derive is
+  // `kind` and, when true, `requiresConfirmation`; describe_action still returns full risk.
+  assert.match(output, /"kind":"write"/);
+  assert.match(output, /"kind":"read"/);
+  assert.ok(!output.includes("can change GHL account data"), "boilerplate prose must not repeat per hit");
 });
 
 test("search_actions explains when a GHL feature has no public API endpoint", async () => {

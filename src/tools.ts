@@ -317,7 +317,13 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           path: a.path,
           summary: a.summary,
           category: a.category,
-          risk,
+          // A search stub carries only what the agent cannot derive from the row itself.
+          // The full risk object repeated `kinds:["write"]` and the prose "POST can change
+          // GHL account data." on every hit — restating the method printed two fields above,
+          // for ~120 B x every result. `kind` and the confirmation flag are the signal;
+          // describe_action still returns the full risk object with its notes.
+          kind: a.method === "GET" ? "read" : "write",
+          ...(risk.requiresConfirmation && { requiresConfirmation: true }),
           ...(tip?.note && { note: tip.note }),
           ...(twinIdOf(a, catalog.actions) && { alsoAvailableAs: twinIdOf(a, catalog.actions) }),
           ...(compact ? {} : {
