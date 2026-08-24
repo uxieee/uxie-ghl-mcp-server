@@ -1064,3 +1064,32 @@ test("pagination reports total and hasMore in keyword mode too", async () => {
   assert.equal(p.hasMore, true);
   assert.equal(p.nextOffset, 3);
 });
+
+// result_fields silently did nothing on single-record reads. GHL wraps most of them —
+// {location: {...}}, {contact: {...}} — and the projector only descended into ARRAY values,
+// so the wrapper's object was copied through whole and nothing was trimmed.
+test("result_fields trims a wrapped single record, not just arrays", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "locations__get-location", category: "locations", method: "GET",
+      path: "/locations/{locationId}",
+      parameters: [{ name: "locationId", in: "path", required: true, description: "", type: "string" }] }),
+  ]);
+  const original = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    ok: true, status: 200,
+    headers: new Headers({ "content-type": "application/json" }),
+    json: async () => ({ location: { id: "loc_1", name: "Client", brandId: "b", companyId: "c", email: "x@y.z" } }),
+  })) as unknown as typeof fetch;
+  try {
+    const res = (await tools.get("execute_action")!.handler({
+      action_id: "locations__get-location",
+      params: { locationId: "loc_1" },
+      result_fields: "id,name",
+      confirm: false, dry_run: false,
+    })) as any;
+    const loc = res.structuredContent.data.location;
+    assert.deepEqual(Object.keys(loc).sort(), ["id", "name"], "only the requested fields survive");
+  } finally {
+    globalThis.fetch = original;
+  }
+});

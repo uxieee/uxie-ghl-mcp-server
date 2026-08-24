@@ -825,9 +825,19 @@ function projectResponseFields(data: unknown, fields: string): unknown {
 
   if (typeof data === "object" && data !== null) {
     const obj = data as Record<string, unknown>;
+
+    // The record itself, unwrapped: project it directly.
+    if ([...keys].some((k) => k in obj)) return project(obj);
+
+    // A wrapper such as {location: {...}} or {contacts: [...]}. This used to project only
+    // ARRAY values and pass nested single objects through untouched, so result_fields
+    // silently did nothing on single-record reads — which is most GHL reads, since it wraps
+    // them as {location}, {contact}, {opportunity} and so on.
     const result: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(obj)) {
-      result[key] = Array.isArray(val) ? val.map(project) : val;
+      if (Array.isArray(val)) result[key] = val.map(project);
+      else if (typeof val === "object" && val !== null) result[key] = project(val);
+      else result[key] = val;
     }
     return result;
   }
