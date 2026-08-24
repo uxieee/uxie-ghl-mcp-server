@@ -1,3 +1,4 @@
+import { SERVER_INSTRUCTIONS } from "./instructions.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpHandler } from "agents/mcp";
 import { buildSearchIndex } from "./search.js";
@@ -12,24 +13,6 @@ const typedCatalog = applyCatalogOverrides(catalog as unknown as Catalog);
 const searchIndex = buildSearchIndex(typedCatalog.actions, getSearchBoosts(ACTION_TIPS));
 const { actionById, categorySummary } = buildCatalogData(typedCatalog);
 
-const SERVER_INSTRUCTIONS = [
-  "GoHighLevel API MCP server — 1207 endpoints across 83 categories, covering both GHL API v2 and the API v3 surface published 2026-06-19.",
-  "Categories ending in -v3 are API v3 (Version header v3, camelCase params) — prefer them; the same-named category without the suffix is the legacy v2 spec kept for compatibility.",
-  "Flow: search_actions (find the action ID + params) → execute_action (call the API).",
-  "execute_action has built-in response shaping — these are top-level params, NOT inside params:",
-  "  result_filter: search array items by keyword (e.g. find a custom field by name).",
-  "  result_fields: project specific fields (e.g. 'id,name,fieldKey' to reduce response size).",
-  "  result_offset / result_limit: paginate large array responses (e.g. result_limit=10, result_offset=10 for page 2).",
-  "  result_limit=0 returns only the item count without data.",
-  "  dry_run=true previews non-GET request routing without calling GHL.",
-  "High-risk actions such as send, publish, delete, remove, cancel, and billing/payment actions require confirm=true after preview.",
-  "  search_actions also accepts include_all=true with a category to enumerate every action in that category.",
-  "Tools return structuredContent plus JSON text fallback for older MCP clients.",
-  "Rate limit: 60 execute calls per minute, per token, per edge isolate.",
-  "Param routing: path params → URL, query params → query string, remainder → request body. Undocumented but valid body keys are passed through to GHL so OpenAPI spec gaps do not block valid requests.",
-  "Pipelines are now fully writable: opportunities-v3__create-pipeline / update-pipeline / delete-pipeline (API addition of 2026-06-26). Remaining public-API gaps such as workflow builder internals are surfaced explicitly in search notes so the model does not keep hunting for non-existent endpoints. Conversation AI agents are exposed under the conversation-ai category.",
-  "For commerce setup, GHL's products__* and payments__* endpoints are the source of truth. Stripe is the underlying rail, but direct Stripe API access is usually not needed.",
-].join("\n");
 
 /**
  * No bindings. `/mcp` is served statelessly, so the Worker holds no Durable

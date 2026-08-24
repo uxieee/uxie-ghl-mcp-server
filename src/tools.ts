@@ -208,9 +208,18 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
             .slice()
             .sort((a, b) => a.id.localeCompare(b.id))
         : [];
-      const results = include_all
+      // COLLAPSE v2/v3 TWINS. 536 method+path pairs exist twice in the catalog (410 of them
+      // byte-identical), so an un-collapsed search spent roughly half its results showing the
+      // same operation to the agent twice and made it choose. Keyword search now returns one
+      // row per operation and names the alias; execute_action still accepts either id.
+      // Deliberately NOT applied to include_all, which is an explicit "enumerate this
+      // category" request.
+      const rawResults = include_all
         ? allCategoryActions.slice(offset, offset + limit)
-        : searchActions(searchIndex, actions, intent, offset + limit).slice(offset);
+        : collapseTwins(
+            searchActions(searchIndex, actions, intent, (offset + limit) * 2)
+          ).slice(offset, offset + limit);
+      const results = rawResults;
 
       // Cross-category hint: if a category filter is active, check if better results exist elsewhere
       let crossCategoryHints: string[] = [];
@@ -247,7 +256,10 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       }
 
       const formatted = results.map((a) => {
-        const tip = actionTips[a.id];
+        // ACTION_TIPS are keyed by action id, and 14 of the 21 entries key the v2 id while
+        // an untipped -v3 twin exists. Since search now prefers the v3 twin, look the tip up
+        // under BOTH ids or every hand-written correction would be silently discarded.
+        const tip = actionTips[a.id] ?? actionTips[twinIdOf(a, catalog.actions)];
         const risk = inferActionRisk(a);
         return {
           id: a.id,
@@ -257,6 +269,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           category: a.category,
           risk,
           ...(tip?.note && { note: tip.note }),
+          ...(twinIdOf(a, catalog.actions) && { alsoAvailableAs: twinIdOf(a, catalog.actions) }),
           ...(compact ? {} : {
             parameters: a.parameters.map((p) => ({
               name: p.name,
@@ -998,6 +1011,56 @@ interface ActionRisk {
   kinds: ActionRiskKind[];
   notes: string[];
   requiresConfirmation: boolean;
+}
+
+/**
+ * One row per (method, path). GHL publishes most operations twice — a v2 spec in `apps/`
+ * and a v3 twin in `apps/v3/` — which the catalog faithfully carries as two actions.
+ *
+ * Preference order is deliberately NOT "category ends in -v3": 124 actions sitting in -v3
+ * categories do not actually carry a `Version: v3` header (94 of them in ad-publishing-v3),
+ * so trusting the category name would tell agents to prefer a twin that is not v3 at all.
+ * The real header wins first.
+ */
+/** The id of the other action sharing this method+path, if the catalog carries a twin. */
+function twinIdOf(action: CatalogAction, all: CatalogAction[]): string {
+  const twin = all.find(
+    (a) => a.id !== action.id && a.method === action.method && a.path === action.path
+  );
+  return twin?.id ?? "";
+}
+
+function collapseTwins(actions: CatalogAction[]): CatalogAction[] {
+  const seen = new Map<string, CatalogAction>();
+  const order: string[] = [];
+  for (const action of actions) {
+    const key = `${action.method} ${action.path}`;
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, action);
+      order.push(key);
+      continue;
+    }
+    if (preferTwin(action, existing)) seen.set(key, action);
+  }
+  return order.map((k) => seen.get(k)!);
+}
+
+function preferTwin(candidate: CatalogAction, incumbent: CatalogAction): boolean {
+  // 1. A real `Version: v3` header beats everything.
+  const realV3 = (a: CatalogAction) => a.versionHeader === "v3";
+  if (realV3(candidate) !== realV3(incumbent)) return realV3(candidate);
+
+  // 2. Otherwise prefer the twin that declares ANY version over one declaring none. When a
+  //    -v3 twin carries no header at all (124 actions do this), the v2 spec with an explicit
+  //    date version is the better-specified of the two, whatever the category is called.
+  const hasVersion = (a: CatalogAction) => Boolean(a.versionHeader);
+  if (hasVersion(candidate) !== hasVersion(incumbent)) return hasVersion(candidate);
+
+  // 3. Only then fall back to the category name, which is the weakest signal.
+  const namedV3 = (a: CatalogAction) => a.category.endsWith("-v3");
+  if (namedV3(candidate) !== namedV3(incumbent)) return namedV3(candidate);
+  return false;
 }
 
 function inferActionRisk(action: CatalogAction): ActionRisk {

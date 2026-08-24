@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildSearchIndex } from "../src/search.js";
+import { buildSearchIndex, searchActions } from "../src/search.js";
 import { registerTools } from "../src/tools.js";
 import { executeAction, previewActionRequest } from "../src/executor.js";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
@@ -804,4 +804,84 @@ test("describe_action fails helpfully on an unknown id", async () => {
   const res = (await tools.get("describe_action")!.handler({ action_id: "contacts__nope" })) as any;
   assert.match(String(res.structuredContent.error), /Unknown action_id/);
   assert.ok(Array.isArray(res.structuredContent.didYouMean));
+});
+
+// RELEVANCE. There was no search-quality test at all, which is how the ranker shipped
+// scoring by raw substring: it joined every field into one string and used String.includes,
+// so "book an appointment" matched faceBOOK and ad-mANager and returned ten Facebook
+// ad-manager endpoints while calendars__create-appointment did not appear at all. These
+// assert the queries that were provably broken.
+test("search ranks by whole words, not substrings", () => {
+  const actions = [
+    createAction({ id: "calendars__create-appointment", category: "calendars", method: "POST",
+      path: "/calendars/events/appointments", summary: "Create Appointment" }),
+    createAction({ id: "ad-manager__fb-get-current-user", category: "ad-manager", method: "GET",
+      path: "/ad-manager/facebook/user", summary: "Get Facebook Current User" }),
+    createAction({ id: "ad-manager__fb-upsert-campaign", category: "ad-manager", method: "POST",
+      path: "/ad-manager/facebook/campaign", summary: "Upsert Facebook Campaign" }),
+  ];
+  const index = buildSearchIndex(actions);
+  const top = searchActions(index, actions, "book an appointment", 5).map((a) => a.id);
+  assert.equal(top[0], "calendars__create-appointment",
+    'the calendar action must win; "book" must not match faceBOOK');
+  assert.ok(!top.includes("ad-manager__fb-get-current-user"),
+    "substring noise from face-BOOK / ad-m-AN-ager must not rank at all");
+});
+
+// Parameter names, enum values and request-body property names were never indexed, so
+// "send an SMS" scored ZERO on the send endpoint — `SMS` lives there only as an enum value.
+test("search indexes request-body enums, so 'SMS' finds the send endpoint", () => {
+  const actions = [
+    createAction({ id: "conversations__send-a-new-message", category: "conversations",
+      method: "POST", path: "/conversations/messages", summary: "Send a New Message",
+      requestBody: { required: true, contentType: "application/json",
+        schema: { type: "object", required: ["type"],
+          properties: { type: { type: "string", enum: ["SMS", "Email", "WhatsApp"] } } } } }),
+    createAction({ id: "contacts__add-contact-to-campaign", category: "contacts", method: "POST",
+      path: "/contacts/{contactId}/campaigns/{campaignId}", summary: "Add Contact to Campaign" }),
+  ];
+  const index = buildSearchIndex(actions);
+  const top = searchActions(index, actions, "send an SMS to a contact", 5).map((a) => a.id);
+  assert.equal(top[0], "conversations__send-a-new-message");
+});
+
+test("stop words alone match nothing", () => {
+  const actions = [createAction({ id: "contacts__get-contact", category: "contacts", method: "GET", path: "/contacts/{id}" })];
+  const index = buildSearchIndex(actions);
+  assert.equal(searchActions(index, actions, "at an on in to the", 5).length, 0);
+});
+
+// v2/v3 TWINS. GHL publishes most operations twice — a v2 spec and a v3 twin at the same
+// method+path — so 536 of 671 operations appeared in search results twice and the agent had
+// to choose. Keyword search now returns one row per operation.
+test("keyword search collapses v2/v3 twins and names the alias", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "contacts__create-contact", category: "contacts", method: "POST",
+      path: "/contacts/", summary: "Create Contact", versionHeader: "2021-07-28" }),
+    createAction({ id: "contacts-v3__create-contact", category: "contacts-v3", method: "POST",
+      path: "/contacts/", summary: "Create Contact", versionHeader: "v3" }),
+  ]);
+  const res = (await tools.get("search_actions")!.handler({
+    intent: "create a contact", offset: 0, limit: 10, include_all: false, compact: true,
+  })) as any;
+  const ids = res.structuredContent.results.map((r: any) => r.id);
+  assert.equal(ids.length, 1, "one row per operation, not two");
+  assert.equal(ids[0], "contacts-v3__create-contact", "the twin with a real v3 header wins");
+  assert.equal(res.structuredContent.results[0].alsoAvailableAs, "contacts__create-contact");
+});
+
+// 124 actions sit in a -v3 category WITHOUT carrying Version: v3 (94 in ad-publishing-v3).
+// Preferring on the category NAME would hand the agent a twin that is not v3 at all.
+test("twin preference follows the real version header, not the category name", async () => {
+  const tools = registerTestTools([
+    createAction({ id: "store__list", category: "store", method: "GET", path: "/store/x",
+      summary: "List Store", versionHeader: "2021-07-28" }),
+    createAction({ id: "store-v3__list", category: "store-v3", method: "GET", path: "/store/x",
+      summary: "List Store", versionHeader: null }),
+  ]);
+  const res = (await tools.get("search_actions")!.handler({
+    intent: "list store", offset: 0, limit: 10, include_all: false, compact: true,
+  })) as any;
+  assert.equal(res.structuredContent.results[0].id, "store__list",
+    "-v3 in the name must not beat a real version header");
 });
