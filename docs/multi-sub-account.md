@@ -37,7 +37,7 @@ claude mcp add ghl -e GHL_ACCOUNTS_FILE="$HOME/.ghl/accounts.json" -- npx tsx �
 # inside a client folder — that client only
 claude mcp add ghl \
   -e GHL_ACCOUNTS_FILE="$HOME/.ghl/accounts.json" \
-  -e GHL_ALLOWED_LOCATIONS="wdzEoUZnXO9tB3PPzcot" \
+  -e GHL_ALLOWED_LOCATIONS="ve9EPM428h8vShlRW1KT" \
   -- npx tsx …/src/stdio.ts
 ```
 
@@ -54,10 +54,10 @@ Anywhere outside a git repo. `~/.ghl/accounts.json` is the convention for the gl
 ```json
 {
   "accounts": [
-    { "id": "wdzEoUZnXO9tB3PPzcot", "name": "GROM AU",  "token": "pit-xxxxxxxx" },
-    { "id": "yoQVVJFp6wyjxcxilA2H", "name": "GROM UK",  "token": "pit-yyyyyyyy" }
+    { "id": "ve9EPM428h8vShlRW1KT", "name": "GROM AU",  "token": "pit-xxxxxxxx" },
+    { "id": "b7vHnLzQ2kRxTmDcW9pY", "name": "GROM UK",  "token": "pit-yyyyyyyy" }
   ],
-  "default": "wdzEoUZnXO9tB3PPzcot"
+  "default": "ve9EPM428h8vShlRW1KT"
 }
 ```
 
