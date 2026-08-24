@@ -305,7 +305,11 @@ function scope(argv: string[]): void {
     const env = (cur?.mcpServers?.[SERVER]?.env ?? {}) as Record<string, string>;
     const ids = (env.GHL_ALLOWED_LOCATIONS || "").split(",").map((x) => x.trim()).filter(Boolean);
     const named = ids.map((id) => ({ id, name: f.accounts.find((a) => a.id === id)?.name ?? "(not in the accounts file)" }));
-    emit(json, true, { file: target, configured: Boolean(cur?.mcpServers?.[SERVER]), scopedTo: named.length ? named : "all accounts" },
+    // `scopedTo` must never read "all accounts" for a folder that has no server at all —
+    // an agent reading that field concludes the folder sees everything, when it sees nothing.
+    const configured = Boolean(cur?.mcpServers?.[SERVER]);
+    emit(json, true, { file: target, configured,
+        scopedTo: !configured ? "none — no ghl server in this folder" : named.length ? named : "all accounts" },
       named.length
         ? `\n${target}\n${named.map((n) => `  - ${n.name}`).join("\n")}\n`
         : cur?.mcpServers?.[SERVER]

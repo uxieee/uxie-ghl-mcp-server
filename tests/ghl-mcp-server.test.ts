@@ -1242,3 +1242,16 @@ test("--all scopes to everything by omitting the allowlist entirely", (t) => {
       "no allowlist key at all, rather than one listing every id, so adding an account later is picked up");
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("scope --list never claims 'all accounts' for a folder with no server", (t) => {
+  if (!fileExists("dist/cli.js")) return t.skip("run npm run build first");
+  const dir = mkdtempSync(pathJoin(tmpdir(), "ghl-"));
+  try {
+    // An empty folder sees NOTHING. Reporting "all accounts" here would tell an agent the
+    // opposite of the truth, in the one field it reads to decide what this folder can touch.
+    const r = cli(["scope", "--list", "--dir", dir, "--json"], { GHL_ACCOUNTS_FILE: fixtureAccounts(dir) });
+    const d = JSON.parse(r.out);
+    assert.equal(d.configured, false);
+    assert.match(d.scopedTo, /^none/, "must not read as unrestricted access");
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
