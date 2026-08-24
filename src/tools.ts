@@ -132,6 +132,13 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           ? { required: action.requestBody.required, schema: action.requestBody.schema }
           : null,
         ...(tip?.note && { note: tip.note }),
+        // Search collapses twins, but an agent can reach describe_action with either id
+        // directly — it should learn the other exists here too, not only via search.
+        ...(twinIdOf(action, catalog.actions) && {
+          alsoAvailableAs: twinIdOf(action, catalog.actions),
+          twinNote:
+            "The same method+path is published twice by GHL (a v2 spec and a v3 twin). Either id works; they usually differ only in the Version header.",
+        }),
         nextStep:
           action.method === "GET"
             ? "Call execute_action with these params."
@@ -972,12 +979,24 @@ export function buildCatalogData(catalog: Catalog) {
   for (const action of catalog.actions) {
     counts[action.category] = (counts[action.category] || 0) + 1;
   }
+  // 38 of the 42 "-v3" categories are a duplicate of a base category, so a bare list of 83
+  // made an agent browsing categories choose between `contacts` and `contacts-v3` with no
+  // basis. Pair them on one line instead, and state the real number of distinct operations.
+  const distinctOps = new Set(catalog.actions.map((a) => `${a.method} ${a.path}`)).size;
+  const names = new Set(Object.keys(counts));
+  const lines: string[] = [];
+  for (const cat of [...names].sort((a, b) => a.localeCompare(b))) {
+    if (cat.endsWith("-v3") && names.has(cat.slice(0, -3))) continue; // folded into its base
+    const twin = `${cat}-v3`;
+    // The "+v3" marker is explained once in the header rather than repeated 38 times —
+    // spelling it out per line cost more bytes than the 83-line list it replaced.
+    lines.push(
+      names.has(twin) ? `${cat}: ${counts[cat]} (+v3)` : `${cat}: ${counts[cat]}`
+    );
+  }
   const categorySummary =
-    `${catalog.totalActions} total actions across ${catalog.categories.length} categories:\n\n` +
-    Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([cat, count]) => `${cat}: ${count} actions`)
-      .join("\n");
+    `${distinctOps} distinct operations across ${lines.length} categories. "(+v3)" means the same endpoints are also published under <category>-v3; search returns one row per operation and names the other id.\n\n` +
+    lines.join("\n");
 
   return { actionById, categorySummary };
 }

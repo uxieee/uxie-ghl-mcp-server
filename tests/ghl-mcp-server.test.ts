@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildSearchIndex, searchActions } from "../src/search.js";
-import { registerTools } from "../src/tools.js";
+import { registerTools, buildCatalogData } from "../src/tools.js";
 import { executeAction, previewActionRequest } from "../src/executor.js";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 import { ACTION_TIPS } from "../src/action-tips.js";
@@ -1006,4 +1006,20 @@ test("advertising mutations are gated by what they touch, not how they are worde
   })) as any;
   assert.equal(read.structuredContent.requiresConfirmation, false);
   assert.equal(read.structuredContent.kind, "read");
+});
+
+test("list_categories folds -v3 twins into their base category", () => {
+  const { categorySummary } = buildCatalogData({
+    generatedAt: "", baseUrl: "https://x", totalActions: 4,
+    categories: ["contacts", "contacts-v3", "ad-manager"],
+    actions: [
+      createAction({ id: "contacts__a", category: "contacts", method: "GET", path: "/c/a" }),
+      createAction({ id: "contacts-v3__a", category: "contacts-v3", method: "GET", path: "/c/a" }),
+      createAction({ id: "ad-manager__x", category: "ad-manager", method: "GET", path: "/ad/x" }),
+      createAction({ id: "ad-manager__y", category: "ad-manager", method: "POST", path: "/ad/y" }),
+    ],
+  } as never);
+  assert.match(categorySummary, /contacts: 1 \(\+v3\)/, "the twin is folded in, not listed separately");
+  assert.ok(!/^contacts-v3:/m.test(categorySummary), "contacts-v3 must not get its own line");
+  assert.match(categorySummary, /3 distinct operations/, "counts operations, not catalog entries");
 });
