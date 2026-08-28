@@ -170,7 +170,7 @@ export class AccountsRegistry {
       const hit = this.byId.get(locationId);
       if (!hit) {
         throw new Error(
-          `No token configured for location "${locationId}". Call list_locations to see the ${this.byId.size} configured sub-account(s). This server will not substitute another account's token.`
+          `No token configured for location "${locationId}". Call list_locations to see the ${this.byId.size} configured sub-account(s), or add one with \`npx @uxieee/ghl-mcp accounts add\` (/uxie-ghl-factory:public-add-account) and restart the client. This server will not substitute another account's token.`
         );
       }
       return hit;
