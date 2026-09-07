@@ -54,10 +54,10 @@ Anywhere outside a git repo. `~/.ghl/accounts.json` is the convention for the gl
 ```json
 {
   "accounts": [
-    { "id": "ve9EPM428h8vShlRW1KT", "name": "GROM AU",  "token": "pit-xxxxxxxx" },
-    { "id": "b7vHnLzQ2kRxTmDcW9pY", "name": "GROM UK",  "token": "pit-yyyyyyyy" }
+    { "id": "LOCATION_ID_A", "name": "Acme AU",  "token": "pit-xxxxxxxx" },
+    { "id": "LOCATION_ID_B", "name": "Acme UK",  "token": "pit-yyyyyyyy" }
   ],
-  "default": "ve9EPM428h8vShlRW1KT"
+  "default": "LOCATION_ID_A"
 }
 ```
 

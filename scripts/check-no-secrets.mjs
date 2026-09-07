@@ -7,6 +7,7 @@
 //
 // This exists because a real client's name reached README.md and was caught by hand. Hands miss.
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -20,6 +21,38 @@ try {
   // Short names produce false positives against ordinary prose; a real business name is longer.
   names = rows.map((r) => r.name).filter((n) => typeof n === "string" && n.length > 4);
 } catch { /* no accounts on this machine — shape checks still run */ }
+
+// Names that identify the operator or a client but are NOT literal sub-account names in
+// accounts.json — so the id/name loop above can never see them. "GROM AU" and "GROM UK" reached
+// this repo's multi-sub-account example, survived a cleanup commit that fixed the location ids
+// sitting on the same two lines, and were pushed to the public remote. Stored as SHA-256, never
+// plaintext: a public repo must not carry the list of names it screens for.
+// Matching is on whole normalised words (1-3 word n-grams, each also tested de-spaced), so
+// "grommet" does not collide with "grom".
+const BRAND_HASHES = new Set([
+  "5aa3e52217564bfba44147cf4bfefcbf0f9b78a0520dd7a7a20408a5182ab41a",
+  "0036d6860307ae3a04e7cfea875855c8ca542c6847b3469762d038b7e011ed28",
+  "14030c7515ed32064d54afcd91c0707ae735fd029425cb4d60787dd8e33cced8",
+  "86c8a7871284f9d010e102d4a3d1e4ed27effec6b371629ab042420d1ceb9ec7",
+]);
+// Same normalisation as the knowledge corpus's check-privacy.mjs, so a hash computed by
+// `node scripts/check-privacy.mjs --hash "Name"` over there can be pasted straight in here.
+const norm = (x) => x.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const sha = (x) => createHash("sha256").update(norm(x)).digest("hex");
+
+function brandHits(line) {
+  const words = norm(line).split(" ").filter(Boolean);
+  const found = [];
+  for (let n = 1; n <= 3; n++) {
+    for (let i = 0; i + n <= words.length; i++) {
+      const gram = words.slice(i, i + n).join(" ");
+      for (const cand of new Set([gram, gram.replace(/ /g, "")])) {
+        if (BRAND_HASHES.has(sha(cand))) found.push(gram);
+      }
+    }
+  }
+  return found;
+}
 
 // A credential's *shape*, not a specific value. Placeholders are exempt by pattern, not by
 // listing them, so a new placeholder does not need a code change.
@@ -51,6 +84,11 @@ for (const f of files) {
     let i = text.indexOf(n);
     while (i !== -1) { hits.push({ f, line: lineOf(i), what: "real client name", val: n }); i = text.indexOf(n, i + 1); }
   }
+  text.split(/\r?\n/).forEach((line, i) => {
+    for (const _ of brandHits(line)) {
+      hits.push({ f, line: i + 1, what: "brand / client identifier", val: "<redacted>" });
+    }
+  });
   for (const { label, re } of SHAPES) {
     for (const m of text.matchAll(re)) {
       const v = m[0];

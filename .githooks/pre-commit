@@ -1,0 +1,12 @@
+#!/bin/sh
+# Gate for a PUBLIC repo. Enable with:  git config core.hooksPath .githooks
+#
+# check-no-secrets.mjs is already wired into `npm test` and `prepublishOnly`, but neither runs at
+# commit time — and this repo had no commit-time gate at all until 2026-09-08. That is how two
+# agency brand names reached docs/multi-sub-account.md and were pushed to the public remote,
+# surviving a cleanup commit that fixed the location ids sitting on the very same lines.
+#
+# The scan is whole-tree, not --staged: it is fast (38 tracked files) and a staged-only scan would
+# miss a leak already sitting in the working tree from an earlier commit.
+set -e
+node scripts/check-no-secrets.mjs
