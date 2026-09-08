@@ -27,6 +27,17 @@ try {
 // this repo's multi-sub-account example, survived a cleanup commit that fixed the location ids
 // sitting on the same two lines, and were pushed to the public remote. Stored as SHA-256, never
 // plaintext: a public repo must not carry the list of names it screens for.
+//
+// 🔴 THIS REPO SCREENS THE GROM NAMES AND THE PLUGIN REPO DOES NOT. That is deliberate, it is
+// not drift, and it should not be "fixed" in either direction without reading this first.
+//   uxieee/uxie-ghl-factory names "GROM AU" 147 times on purpose — its documented policy is that
+//   a repo may name the account it tests against, and its own gate passes clean with those
+//   mentions present.
+//   This repo has no such need. Nothing here tests against GROM; the names appeared once, in a
+//   worked example, where "Acme AU" reads exactly as well. So the cheap rule holds: screen them.
+// Two repos, two policies, one reason — the plugin has a use for the name and this one never did.
+//
+// The related history question was settled on 2026-09-08 and answered NO. See the note below.
 // Matching is on whole normalised words (1-3 word n-grams, each also tested de-spaced), so
 // "grommet" does not collide with "grom".
 const BRAND_HASHES = new Set([

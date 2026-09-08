@@ -153,3 +153,24 @@ Actions that *do* carry a location skip this: GHL itself rejects a cross-tenant 
 It is not OAuth. New sub-accounts do not appear on their own — you create a PIT and add a
 line. For a fixed roster of clients that is a few minutes a year; if you ever need dynamic
 authorisation across many agencies, that is when OAuth earns its build.
+
+<!--
+  Why the two brand names in this file's history were NOT rewritten out — decided 2026-09-08.
+
+  The working tree was fixed in 6338e09; the names remain in 07f7135 on the public remote. A
+  filter-repo rewrite plus force-push was considered and rejected on three grounds:
+
+  1. They are the operator's OWN agency brand, not a client's. The sibling public repo
+     uxieee/uxie-ghl-factory names the same brand 147 times deliberately and its gate passes
+     clean, because a repo is allowed to name the account it tests against.
+  2. The location ids sitting beside them were never secret. ve9EPM428h8vShlRW1KT is
+     GoHighLevel's own documentation sample id and appears 70 more times in this repo untouched.
+  3. A force-push does not do what it looks like it does. Proven the same day on the plugin repo:
+     after a successful rewrite the pre-rewrite commit was still fetchable by SHA through the
+     contents API, and two forks kept their own copies. The rewrite cost every downstream SHA and
+     removed nothing on its own.
+
+  Rewriting public history is for third-party data that should never have been published. This is
+  the operator's own name, published on purpose next door. The gate screens it going forward
+  because it has no use for it here; the history stays.
+-->
