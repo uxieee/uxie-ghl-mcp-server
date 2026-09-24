@@ -15,5 +15,5 @@
     "resolveJsonModule": false
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "src/index.ts", "src/node-compat.d.ts.superseded"]
+  "exclude": ["node_modules", "src/index.ts", "src/retired.ts", "src/retired-notice.ts", "src/node-compat.d.ts.superseded"]
 }

@@ -1,7 +1,9 @@
 {
   "name": "ghl-mcp-server",
   "account_id": "3ce79708257fa1c3646f3c1ca491fe9b",
-  "main": "src/index.ts",
+  // Retired 2026-09-24: serves only the migration notice (src/retired.ts). The full
+  // server is src/index.ts, kept for reference; the npm package is the live product.
+  "main": "src/retired.ts",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": ["nodejs_compat"],
   // v1 must stay: the deployed script records its migration tag, and wrangler

@@ -13,14 +13,15 @@ claude mcp add ghl -e GHL_API_TOKEN=pit-your-token -- npx -y @uxieee/ghl-mcp
 
 ---
 
-> ### ⚠️ The hosted Cloudflare Worker is being retired
+> ### ⚠️ The hosted Cloudflare Worker has been retired
 >
-> `https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp` still works today and is running
-> the current code, but it will be **switched off in a few weeks**. Move to the npm package.
+> `https://ghl-mcp-server.xanderjohnrazonroque.workers.dev/mcp` was switched off on 2026-09-24.
+> It still accepts a connection, but every tool call now returns only a link to this repository,
+> and nothing is sent to GoHighLevel. If your agent sent you here, you are in the right place.
 >
-> **Why:** the Worker can only ever hold one token per connection, so reaching ten sub-accounts
-> means ten registrations — ten copies of the same tool schemas loaded into every session. It
-> also means your token travels to a third-party host on every request. The npm package fixes
+> **Why it was retired:** the Worker could only ever hold one token per connection, so reaching ten sub-accounts
+> meant ten registrations — ten copies of the same tool schemas loaded into every session. It
+> also meant your token travelled to a third-party host on every request. The npm package fixes
 > both: many sub-accounts on one connection, and credentials that never leave your machine.
 >
 > **Migrating** is one line — see [From the hosted Worker](#from-the-hosted-worker).
@@ -291,7 +292,8 @@ Pipelines and stages *are* fully writable — `opportunities-v3__create-pipeline
 
 ## From the hosted Worker
 
-Replace the URL registration with the package. Your token does not change.
+The hosted Worker no longer runs GoHighLevel actions. Replace the URL registration with the
+package. Your token does not change.
 
 ```bash
 claude mcp remove ghl-api                                  # or whatever you named it
