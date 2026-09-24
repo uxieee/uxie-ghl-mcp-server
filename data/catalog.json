@@ -1,5 +1,11 @@
 {
-  "generatedAt": "2026-08-24T07:23:59.295Z",
+  "generatedAt": "2026-09-24T09:02:31.587Z",
+  "source": {
+    "repo": "GoHighLevel/highlevel-api-docs",
+    "ref": "main",
+    "sha": "0af86a4cbd48c66a4071c7e509d1079f9f10ed17",
+    "committedAt": "2026-06-19T11:48:40Z"
+  },
   "baseUrl": "https://services.leadconnectorhq.com",
   "totalActions": 1207,
   "categories": [

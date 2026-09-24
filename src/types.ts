@@ -29,6 +29,8 @@ export interface RequestBodyInfo {
 
 export interface Catalog {
   generatedAt: string;
+  /** Which commit of GHL's docs repo the catalogue was built from (build-catalog.ts). Absent before 2026-09-24. */
+  source?: { repo: string; ref: string; sha: string | null; committedAt: string | null };
   baseUrl: string;
   totalActions: number;
   categories: string[];

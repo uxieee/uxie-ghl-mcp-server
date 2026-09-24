@@ -11,6 +11,24 @@ import { applyCatalogOverrides } from "../src/catalog-overrides.js";
 // a preview branch (e.g. to adopt API v3 specs before they merge to main).
 const REPO = process.env.GHL_DOCS_REPO || "GoHighLevel/highlevel-api-docs";
 const BRANCH = process.env.GHL_DOCS_REF || "main";
+// The build is pinned to ONE commit of the docs repo, resolved once at the start: every spec file is
+// read at that commit, and the catalogue records it as `source`. That makes "is our catalogue current?"
+// one comparison (our source.sha vs the branch head) instead of a full rebuild, and stops a build that
+// straddles a docs push from mixing two versions of the specs. If the commit cannot be resolved the
+// build still runs against the branch and records sha: null.
+let REF = BRANCH;
+let SOURCE: { repo: string; ref: string; sha: string | null; committedAt: string | null } = { repo: REPO, ref: BRANCH, sha: null, committedAt: null };
+async function resolveSource(): Promise<void> {
+  try {
+    const c = await fetchJSON(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`);
+    if (typeof c?.sha === "string") {
+      SOURCE = { repo: REPO, ref: BRANCH, sha: c.sha, committedAt: c.commit?.committer?.date ?? null };
+      REF = c.sha;
+    }
+  } catch (e) {
+    console.warn(`could not resolve ${REPO}@${BRANCH} to a commit (${(e as Error).message}); building against the branch, source.sha = null`);
+  }
+}
 // GHL published API v3 as a parallel spec set (apps/v3/*-v3.json) on 2026-06-19,
 // keeping the v2 specs in apps/*.json. Both surfaces are live on the same host,
 // selected per-request via the Version header, so the catalog carries both.
@@ -62,7 +80,7 @@ async function fetchFileContent(path: string): Promise<any> {
   // Fetch via the raw CDN, which has no API rate limit. The GitHub contents API
   // is capped at 60 requests/hour unauthenticated, and a full build pulls 40+
   // specs — enough to risk a mid-build rate-limit failure.
-  const url = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${path}`;
+  const url = `https://raw.githubusercontent.com/${REPO}/${REF}/${path}`;
   const res = await fetch(url, {
     headers: { "User-Agent": "ghl-mcp-catalog-builder" },
   });
@@ -197,7 +215,7 @@ export function extractActions(spec: any, category: string): CatalogAction[] {
 async function listSpecFiles(): Promise<string[]> {
   const paths: string[] = [];
   for (const dir of APPS_DIRS) {
-    const url = `https://api.github.com/repos/${REPO}/contents/${dir}?ref=${BRANCH}`;
+    const url = `https://api.github.com/repos/${REPO}/contents/${dir}?ref=${REF}`;
     const entries = await fetchJSON(url);
     paths.push(
       ...entries
@@ -209,6 +227,8 @@ async function listSpecFiles(): Promise<string[]> {
 }
 
 async function main() {
+  await resolveSource();
+  console.log(`docs source: ${SOURCE.repo}@${SOURCE.ref} = ${SOURCE.sha ?? "(unresolved)"} (${SOURCE.committedAt ?? "?"})`);
   const allowPartial = process.argv.includes("--allow-partial");
   console.log("Fetching spec file list...");
   const specFiles = await listSpecFiles();
@@ -250,6 +270,7 @@ async function main() {
   // Build the catalog
   const rawCatalog = {
     generatedAt: new Date().toISOString(),
+    source: SOURCE,
     baseUrl: process.env.GHL_BASE_URL || "https://services.leadconnectorhq.com",
     totalActions: allActions.length,
     categories: [...new Set(allActions.map((a) => a.category))].sort(),
