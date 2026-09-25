@@ -245,16 +245,24 @@ function buildGhlRequest(
   // valid GHL requests such as `parentId` or `options`.
   let body: BodyInit | undefined;
   let contentType: string | null = null;
+  // A DELETE carries a body only when its spec declares one: GHL's remove-tags,
+  // remove-followers and coupon deletes, among others, read their arguments from it, and a
+  // body on the other DELETEs would be a guess.
   const bodyParams: Record<string, unknown> = {};
-  if (["POST", "PUT", "PATCH"].includes(method)) {
-    for (const [key, val] of Object.entries(params)) {
-      if (usedParams.has(key)) continue;
-      bodyParams[key] = val;
-    }
+  const sendsBody =
+    ["POST", "PUT", "PATCH"].includes(method) ||
+    (method === "DELETE" && Boolean(action.requestBody));
+  const leftover = Object.entries(params).filter(([key]) => !usedParams.has(key));
+  if (sendsBody) {
+    for (const [key, val] of leftover) bodyParams[key] = val;
     if (Object.keys(bodyParams).length > 0) {
       contentType = action.requestBody?.contentType || "application/json";
       body = encodeRequestBody(bodyParams, contentType, headers);
     }
+  } else if (leftover.length > 0) {
+    warnings.push(
+      `Not sent: ${leftover.map(([key]) => key).join(", ")}. A ${method} to this route has no body and these are not path or query parameters.`
+    );
   }
 
   return { method, url, headers, body, bodyParams, contentType, warnings };

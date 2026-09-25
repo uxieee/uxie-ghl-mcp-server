@@ -466,6 +466,59 @@ test("execute_action dry_run previews non-GET routing without calling fetch", as
   }
 });
 
+test("execute_action sends the body of a DELETE whose spec declares one, and warns when it cannot", async () => {
+  const removeTags = createAction({
+    id: "contacts__remove-tags",
+    category: "contacts",
+    method: "DELETE",
+    path: "/contacts/{contactId}/tags",
+    summary: "Remove Tags",
+    parameters: [
+      { name: "contactId", in: "path", required: true, description: "", type: "string" },
+    ],
+    requestBody: {
+      required: true,
+      contentType: "application/json",
+      schema: { type: "object", required: ["tags"], properties: { tags: { type: "array" } } },
+    },
+  });
+  const deleteTask = createAction({
+    id: "contacts__delete-task",
+    category: "contacts",
+    method: "DELETE",
+    path: "/contacts/{contactId}/tasks/{taskId}",
+    summary: "Delete Task",
+    parameters: [
+      { name: "contactId", in: "path", required: true, description: "", type: "string" },
+      { name: "taskId", in: "path", required: true, description: "", type: "string" },
+    ],
+  });
+  const tools = registerTestTools([removeTags, deleteTask]);
+  const executeTool = tools.get("execute_action");
+  assert.ok(executeTool);
+
+  type DryRun = { structuredContent: { data: { body: Record<string, unknown>; contentType: string | null; warnings?: string[] } } };
+  const withBody = (await executeTool.handler({
+    action_id: removeTags.id,
+    params: { contactId: "c_1", tags: ["a", "b"] },
+    dry_run: true,
+    confirm: false,
+    result_offset: 0,
+  })) as DryRun;
+  assert.deepEqual(withBody.structuredContent.data.body, { tags: ["a", "b"] });
+  assert.equal(withBody.structuredContent.data.contentType, "application/json");
+
+  const withoutBody = (await executeTool.handler({
+    action_id: deleteTask.id,
+    params: { contactId: "c_1", taskId: "t_1", stray: "x" },
+    dry_run: true,
+    confirm: false,
+    result_offset: 0,
+  })) as DryRun;
+  assert.deepEqual(withoutBody.structuredContent.data.body, {});
+  assert.match((withoutBody.structuredContent.data.warnings ?? []).join(" "), /Not sent: stray/);
+});
+
 test("execute_action requires confirmation for externally visible sends", async () => {
   const action = createAction({
     id: "conversations__send-message",
