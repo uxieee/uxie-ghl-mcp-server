@@ -131,13 +131,18 @@ const PIPELINE_STAGE_SCHEMA = {
     "Pipeline stages in display order. At least one stage is required. Stage names must be unique within the pipeline (case-insensitive).",
   items: {
     type: "object",
-    required: ["name"],
+    required: ["name", "position"],
     properties: {
       name: { type: "string", description: "Stage name." },
+      position: {
+        type: "number",
+        description:
+          "0-based display order. REQUIRED: without it GHL answers 422 \"stages.N.position should not be empty\" and creates nothing (measured live 2026-09-28).",
+      },
       stageWinProbability: {
         type: "number",
         description:
-          "Win probability 0-100. Required on every stage when useOpportunityProbability is true.",
+          "Win probability 0-100. Give EVERY stage one: if any stage omits it, GHL discards all of them and stores an even ramp ((i + 1) / (n + 1) * 100) whatever useOpportunityProbability says (measured live 2026-09-28: 11, missing, 33 was stored as 25, 50, 75).",
       },
     },
   },
@@ -178,7 +183,7 @@ const HAND_AUTHORED_ACTIONS: CatalogAction[] = [
           useOpportunityProbability: {
             type: "boolean",
             description:
-              "Enable manual win probability. When true, every stage must carry stageWinProbability; otherwise probabilities are auto-computed.",
+              "Enable manual win probability. Independently of this switch, give every stage a stageWinProbability: one missing value makes GHL rewrite them all to an even ramp.",
           },
           locationId: {
             type: "string",
@@ -259,8 +264,13 @@ const HAND_AUTHORED_ACTIONS: CatalogAction[] = [
               "Full replacement array of stages. Include an existing stage's id to keep it; omit the id to create a new stage; leave a stage out to delete it (its opportunities move to the lowest-position remaining stage).",
             items: {
               type: "object",
-              required: ["name"],
+              required: ["name", "position"],
               properties: {
+                position: {
+                  type: "number",
+                  description:
+                    "0-based display order. Required on every stage, as on create (the same route refuses a stage without it).",
+                },
                 id: {
                   type: "string",
                   description:
@@ -270,7 +280,7 @@ const HAND_AUTHORED_ACTIONS: CatalogAction[] = [
                 stageWinProbability: {
                   type: "number",
                   description:
-                    "Win probability 0-100. Required on every stage when useOpportunityProbability is true.",
+                    "Win probability 0-100. Give EVERY stage one: if any stage omits it, GHL discards all of them and stores an even ramp ((i + 1) / (n + 1) * 100) whatever useOpportunityProbability says (measured live 2026-09-28: 11, missing, 33 was stored as 25, 50, 75).",
                 },
               },
             },
@@ -278,7 +288,7 @@ const HAND_AUTHORED_ACTIONS: CatalogAction[] = [
           useOpportunityProbability: {
             type: "boolean",
             description:
-              "Enable manual win probability. When true, every stage must carry stageWinProbability.",
+              "Enable manual win probability. Independently of this switch, give every stage a stageWinProbability: one missing value makes GHL rewrite them all to an even ramp.",
           },
         },
       },

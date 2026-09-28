@@ -1340,3 +1340,28 @@ test("a network failure is reported as status 0, not as a bad token", async () =
   assert.equal(r.ok, false);
   assert.equal((r as { status: number }).status, 0, "callers must be able to tell this apart from a 401");
 });
+
+test("create-pipeline and update-pipeline require stages[].position — GHL answers 422 without it", () => {
+  const catalog = applyCatalogOverrides(
+    createCatalog([
+      createAction({ id: "opportunities-v3__get-pipelines", category: "opportunities-v3", method: "GET", path: "/opportunities/pipelines" }),
+    ])
+  );
+  for (const id of ["opportunities-v3__create-pipeline", "opportunities-v3__update-pipeline"]) {
+    const stages = (catalog.actions.find((a) => a.id === id)?.requestBody?.schema as any)?.properties?.stages;
+    assert.deepEqual(stages?.items?.required, ["name", "position"], id);
+    assert.ok(stages?.items?.properties?.position, `${id} documents position`);
+    // CONTROL: the probability description no longer ties the rule to the switch alone.
+    assert.match(stages?.items?.properties?.stageWinProbability?.description ?? "", /whatever useOpportunityProbability says|even ramp/);
+  }
+  assert.match(ACTION_TIPS["opportunities-v3__create-pipeline"]?.note ?? "", /position/);
+});
+
+test("the SHIPPED catalogue carries the current hand-authored pipeline schema, not a stale baked copy", async () => {
+  const { readFileSync } = await import("node:fs");
+  const shipped = JSON.parse(readFileSync(new URL("../data/catalog.json", import.meta.url), "utf8"));
+  for (const id of ["opportunities-v3__create-pipeline", "opportunities-v3__update-pipeline"]) {
+    const a = shipped.actions.find((x: any) => x.id === id);
+    assert.deepEqual(a?.requestBody?.schema?.properties?.stages?.items?.required, ["name", "position"], `${id} in data/catalog.json`);
+  }
+});

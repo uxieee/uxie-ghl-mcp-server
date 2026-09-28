@@ -142,7 +142,7 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
     ],
   },
   "opportunities-v3__create-pipeline": {
-    note: "Creates a pipeline with stages in one call. Pipeline and stage names must be unique (case-insensitive) within the location. Set useOpportunityProbability true only if every stage carries stageWinProbability.",
+    note: "Creates a pipeline with stages in one call. Every stage needs position (0-based; without it: 422, nothing created) and stageWinProbability (one missing value makes GHL rewrite all of them to an even ramp, whatever useOpportunityProbability says). Pipeline and stage names must be unique (case-insensitive) within the location.",
     searchBoost: [
       "create pipeline",
       "new pipeline",
