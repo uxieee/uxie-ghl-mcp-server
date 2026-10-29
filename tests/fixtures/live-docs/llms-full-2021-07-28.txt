@@ -1,0 +1,80 @@
+# HighLevel API 2021-07-28: full reference
+
+> Every endpoint of HighLevel API version 2021-07-28 (740 endpoints in 44 services). Compact reference generated from the OpenAPI specs: every endpoint lists what is needed to call it.
+
+- Base URL: https://services.leadconnectorhq.com
+- Send the header `Version: 2021-07-28` on every request.
+- Send `Authorization: Bearer <token>` unless the endpoint says "Auth: none".
+- Index of this version: https://marketplace.gohighlevel.com/docs/llms/2021-07-28/llms.txt
+
+- fromEmail string - Sender email address
+- subjectLine string - Email subject line
+- previewText string - Preview text
+- previewUrl string - Preview URL
+- createdAt string - Created timestamp
+- updatedAt string - Updated timestamp
+- traceId string - Trace ID of request
+
+Errors: 400, 401, 403, 404, 422 (400, 401, 422: see Common error responses)
+Response 403 (The token does not have access to this location) application/json:
+- statusCode number - HTTP status code for invalid location access
+- message string - Error message describing the location access failure
+Response 404 (Not Found) application/json:
+- statusCode number - HTTP status code for not found
+- message string - Error message describing the not found failure
+- error string - Error type identifier
+
+### Create a new template
+POST /emails/builder
+URL: https://services.leadconnectorhq.com/emails/builder
+Docs: https://marketplace.gohighlevel.com/docs/2021-07-28/ghl/emails/create-template | Markdown: https://marketplace.gohighlevel.com/docs/2021-07-28/ghl/emails/create-template.md
+
+DEPRECATED.
+
+Auth: Sub-Account token: OAuth access token or Private Integration Token. Scopes: emails/builder.write
+
+Headers:
+- Authorization: Bearer <token> (required)
+- Version: 2021-07-28 (required)
+
+Request body (required) (application/json) CreateBuilderDto:
+- locationId* string (e.g. "ve9EPM428h8vShlRW1KT")
+- title string (e.g. "template title")
+- type* string (enum: html | folder | import | builder | blank | ai_template | vibe-editor)
+- updatedBy string (e.g. "zYy3YOUuHxgomU1uYJty")
+- builderVersion string (enum: 1 | 2; default: 2)
+- name string (e.g. "Template1")
+- parentId string (e.g. "zYy3YOUuHxgomU1uYJty")
+- templateDataUrl string (e.g. "")
+- importProvider* string (enum: mailchimp | active_campaign | kajabi | other | import_with_email_ai)
+- importURL string (e.g. "https://tplshare.com/fhYJ3Mi")
+- templateSource string (e.g. "template_library")
+- isPlainText boolean
+- subjectLine string (e.g. "Email Subject")
+- fromName string (e.g. "Name of sender")
+- fromEmail string (e.g. "test@abc.com")
+- previewText string (e.g. "preview text")
+
+Response 201 (Success) application/json:
+- redirect* string - template id
+- traceId* string - trace id
+
+Errors: 400, 401, 404, 422 (400, 401, 422: see Common error responses)
+Response 404 (Not Found): no body
+
+### Create a template folder
+POST /emails/public/v2/locations/{locationId}/templates/folders
+URL: https://services.leadconnectorhq.com/emails/public/v2/locations/{locationId}/templates/folders
+Docs: https://marketplace.gohighlevel.com/docs/2021-07-28/ghl/emails/create-template-folder-v-2 | Markdown: https://marketplace.gohighlevel.com/docs/2021-07-28/ghl/emails/create-template-folder-v-2.md
+
+DEPRECATED. Removed in version v3.
+
+Create a new template folder
+
+Auth: Sub-Account token: OAuth access token or Private Integration Token. Scopes: emails/builder.write
+
+Headers:
+- Authorization: Bearer <token> (required)
+- Version: 2021-07-28 (required)
+
+Path parameters:

@@ -1,0 +1,70 @@
+# HighLevel API v3: full reference
+
+> Every endpoint of HighLevel API version v3 (812 endpoints in 46 services). Compact reference generated from the OpenAPI specs: every endpoint lists what is needed to call it.
+
+- Base URL: https://services.leadconnectorhq.com
+- Send the header `Version: v3` on every request.
+- Send `Authorization: Bearer <token>` unless the endpoint says "Auth: none".
+- Index of this version: https://marketplace.gohighlevel.com/docs/llms/v3/llms.txt
+
+DELETE /ad-publishing/facebook/integration
+URL: https://services.leadconnectorhq.com/ad-publishing/facebook/integration
+Docs: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-delete-integration | Markdown: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-delete-integration.md
+
+Remove the Facebook ad integration from a location
+
+Auth: Sub-Account token: OAuth access token or Private Integration Token. Scopes: adPublishing.write
+
+Headers:
+- Authorization: Bearer <token> (required)
+- Version: v3 (required)
+
+Request body (required) (application/json) LocationIdBodyDTO:
+- locationId* string (e.g. "HChooFuiyPpVYzeJ4HMe") - Location identifier
+
+Response 200 (Acknowledgement that the integration was removed) application/json:
+- success* boolean - True when the operation succeeded
+
+Errors: 400, 401, 422, 500 (400, 401, 422, 500: see Common error responses)
+
+### Delete page connection
+DELETE /ad-publishing/facebook/page
+URL: https://services.leadconnectorhq.com/ad-publishing/facebook/page
+Docs: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-delete-page | Markdown: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-delete-page.md
+
+DEPRECATED. Scheduled for removal in a future version.
+
+Remove a Facebook page connection from a location. Deprecated: use DELETE /ad-publishing/facebook/pages/{pageId} with header version: v4.
+
+Auth: Sub-Account token: OAuth access token or Private Integration Token. Scopes: adPublishing.write
+
+Headers:
+- Authorization: Bearer <token> (required)
+- Version: v3 (required)
+
+Query parameters:
+- locationId* string (e.g. "loc_abc123") - Location identifier
+- pageId* string (e.g. "123456789") - Facebook page ID
+
+Response 200 (Acknowledgement that the page was disconnected) application/json:
+- success* boolean - True when the operation succeeded
+
+Errors: 400, 401, 422, 500 (400, 401, 422, 500: see Common error responses)
+
+### Duplicate ad
+POST /ad-publishing/facebook/ads/{adId}/duplicate
+URL: https://services.leadconnectorhq.com/ad-publishing/facebook/ads/{adId}/duplicate
+Docs: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-duplicate-ad | Markdown: https://marketplace.gohighlevel.com/docs/ghl/ad-publishing/fb-duplicate-ad.md
+
+Duplicate an existing Facebook ad
+
+Auth: Sub-Account token: OAuth access token or Private Integration Token. Scopes: adPublishing.write
+
+Headers:
+- Authorization: Bearer <token> (required)
+- Version: v3 (required)
+
+Path parameters:
+- adId* string (e.g. "507f1f77bcf86cd799439013") - Ad identifier
+
+Request body (required) (application/json) LocationIdBodyDTO:

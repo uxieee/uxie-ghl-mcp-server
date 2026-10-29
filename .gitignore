@@ -10,3 +10,4 @@ accounts.json
 .ghl/
 dist/
 *.tgz
+.cache/
