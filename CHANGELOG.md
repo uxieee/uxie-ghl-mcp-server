@@ -8,7 +8,8 @@
   396 new. New coverage includes Courses, Projects, Client Portal AI, Affiliates, Workflows, countdown timers,
   brand-board design kits, Conversation AI working hours and managed agents. Every previous action id still works.
 - **Nothing removed.** 33 actions GHL no longer documents stay in the catalogue. They are listed in
-  `data/undocumented.json` and noted in `describe_action`.
+  `data/undocumented.json` and noted in `describe_action`. Query parameters GHL stopped documenting on
+  existing actions (37) are kept as optional and noted.
 - **Version headers fixed.** 30 operations (store, marketplace, funnels, conversations, phone-system) sent no `Version`
   header and failed with 401 on every call. They now send `v3`, checked live.
 - **GHL's own marks reach the agent.** `describe_action` shows `deprecated` (with the replacement GHL names) and notes
