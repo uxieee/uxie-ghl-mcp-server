@@ -1,4 +1,5 @@
 import type { CatalogAction } from "./types.js";
+import type { RateBudget, RateLimitInfo } from "./rate-budget.js";
 
 const GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
@@ -21,75 +22,131 @@ export interface RequestPreview {
   warnings?: string[];
 }
 
+export interface ExecuteOptions {
+  /** GHL's rate budget (rate-budget.ts) and the key it is kept under — the selected account, or "single". */
+  budget?: RateBudget;
+  key?: string;
+  fetchImpl?: typeof fetch;
+  sleep?: (ms: number) => Promise<void>;
+}
+
+const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * One call to GHL. With a budget, it waits AT MOST ONCE per call — before sending (the window is spent) or after a 429
+ * — so a tool call never runs longer than one window plus the request timeouts. A 429 is retried only when GHL's
+ * gateway sent it (it carries X-RateLimit-* headers) or the body says retryable:true; never when it says
+ * retryable:false, and never when the daily quota is spent (W3, 2026-10-29).
+ */
 export async function executeAction(
   action: CatalogAction,
   params: Record<string, unknown>,
   apiToken: string,
-  baseUrl: string = GHL_BASE_URL
-): Promise<{ status: number; data: unknown }> {
+  baseUrl: string = GHL_BASE_URL,
+  opts: ExecuteOptions = {}
+): Promise<{ status: number; data: unknown; rateLimit?: RateLimitInfo }> {
   const request = buildGhlRequest(action, params, apiToken, baseUrl);
+  const { budget, key = "single", fetchImpl = fetch, sleep = realSleep } = opts;
+  let waited = false;
 
-  // Execute with timeout
+  if (budget) {
+    const d = budget.before(key);
+    if (d.action === "refuse") {
+      const mins = d.resetMs == null ? null : Math.ceil(d.resetMs / 60000);
+      return { status: 429, data: `GHL rate limit: the daily quota for this sub-account is spent${mins == null ? "" : `; it resets in about ${mins} min`}. Nothing was sent.`, rateLimit: budget.info(key) };
+    }
+    if (d.action === "wait") { await sleep(d.ms); waited = true; }
+  }
+
+  for (let attempt = 0; ; attempt++) {
+    budget?.sent(key);
+    const { response, body } = await send(request, fetchImpl);
+    budget?.observe(key, response.headers);
+    if (response.status === 429 && budget && attempt === 0 && !waited) {
+      const retry = retryDelay(response, body, budget, key);
+      if (retry != null) { await sleep(retry); waited = true; continue; }
+    }
+    const result = toResult(response, body, action);
+    if (budget && (response.status === 429 || budget.isLow(key))) result.rateLimit = budget.info(key);
+    return result;
+  }
+}
+
+async function send(request: ReturnType<typeof buildGhlRequest>, fetchImpl: typeof fetch): Promise<{ response: Response; body: string }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(
     () => controller.abort(new Error(`GHL API request timed out after ${FETCH_TIMEOUT_MS}ms`)),
     FETCH_TIMEOUT_MS
   );
-
   try {
-    const response = await fetch(request.url, {
+    const response = await fetchImpl(request.url, {
       method: request.method,
       headers: request.headers,
       body: request.body,
       signal: controller.signal,
     });
-
-    // Sanitize error responses
-    if (!response.ok) {
-      let errorHint = "";
-      try {
-        const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const errorBody = (await response.json()) as Record<string, unknown>;
-          // GHL (NestJS) returns `message` as an ARRAY of per-field validation errors on a
-          // 422. Collapsing that with String() comma-joined them and the old 200-char slice
-          // cut the tail — discarding the single most useful signal for self-correction.
-          const parts: string[] = [];
-          const raw = errorBody.message ?? errorBody.error;
-          if (Array.isArray(raw)) parts.push(...raw.map((m) => String(m)));
-          else if (raw != null) parts.push(String(raw));
-          for (const extra of ["errors", "details"] as const) {
-            const v = errorBody[extra];
-            if (v == null) continue;
-            parts.push(typeof v === "string" ? v : JSON.stringify(v));
-          }
-          const msg = parts.filter(Boolean).join("; ");
-          if (msg) {
-            errorHint = ` — ${msg.slice(0, MAX_ERROR_HINT_LEN)}`;
-          }
-        }
-      } catch {
-        // Ignore parse errors on error responses
-      }
-      return {
-        status: response.status,
-        data: `GHL API error (HTTP ${response.status})${errorHint}`,
-      };
-    }
-
-    // Parse successful response
-    let data: unknown;
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      data = await response.text();
-    }
-
-    return { status: response.status, data };
+    // A fetch-like response may offer only json() (some callers and test doubles); read whichever exists.
+    const body = typeof response.text === "function" ? await response.text()
+      : JSON.stringify(await (response as unknown as { json: () => Promise<unknown> }).json());
+    return { response, body };
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+/** ms to wait before the one retry, or null when this 429 must not be retried. */
+function retryDelay(response: Response, body: string, budget: RateBudget, key: string): number | null {
+  let retryable: unknown;
+  try { retryable = (JSON.parse(body) as Record<string, unknown>)?.retryable; } catch { /* not JSON */ }
+  if (retryable === false) return null;
+  const info = budget.info(key);
+  if (info.dailyRemaining === 0) return null;
+  const gateway = [...response.headers.keys()].some((h) => h.toLowerCase().startsWith("x-ratelimit-"));
+  const after = Number(response.headers.get("retry-after"));
+  if (Number.isFinite(after) && after > 0 && (retryable === true || gateway)) return Math.min(after * 1000, 10_000);
+  if (!gateway) return null;
+  const d = budget.before(key);
+  return d.action === "wait" ? d.ms : d.action === "go" ? 1000 : null;
+}
+
+function toResult(response: Response, body: string, action: CatalogAction): { status: number; data: unknown; rateLimit?: RateLimitInfo } {
+  const contentType = response.headers.get("content-type") || "";
+  // Sanitize error responses
+  if (!response.ok) {
+    let errorHint = "";
+    try {
+      if (contentType.includes("application/json")) {
+        const errorBody = JSON.parse(body) as Record<string, unknown>;
+        // GHL (NestJS) returns `message` as an ARRAY of per-field validation errors on a
+        // 422. Collapsing that with String() comma-joined them and the old 200-char slice
+        // cut the tail — discarding the single most useful signal for self-correction.
+        const parts: string[] = [];
+        const raw = errorBody.message ?? errorBody.error;
+        if (Array.isArray(raw)) parts.push(...raw.map((m) => String(m)));
+        else if (raw != null) parts.push(String(raw));
+        for (const extra of ["errors", "details"] as const) {
+          const v = errorBody[extra];
+          if (v == null) continue;
+          parts.push(typeof v === "string" ? v : JSON.stringify(v));
+        }
+        const msg = parts.filter(Boolean).join("; ");
+        if (msg) errorHint = ` — ${msg.slice(0, MAX_ERROR_HINT_LEN)}`;
+      }
+    } catch {
+      // Ignore parse errors on error responses
+    }
+    // Workflows (GHL's docs): the daily quota is shared by every token on the sub-account, and a separate 10 s budget
+    // per sub-account is shared across tokens, reads and writes counted apart — no header reports it.
+    const wfNote = response.status === 429 && /^\/workflows(\/|$)/.test(action.path)
+      ? " (Workflows API: the daily quota and a per-sub-account 10-second budget are shared by every token on the sub-account; reads and writes are counted separately.)"
+      : "";
+    return { status: response.status, data: `GHL API error (HTTP ${response.status})${errorHint}${wfNote}` };
+  }
+  let data: unknown = body;
+  if (contentType.includes("application/json")) {
+    try { data = JSON.parse(body); } catch { data = body; }
+  }
+  return { status: response.status, data };
 }
 
 export function previewActionRequest(

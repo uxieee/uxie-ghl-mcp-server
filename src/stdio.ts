@@ -26,7 +26,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { buildSearchIndex } from "./search.js";
 import { registerTools, buildCatalogData } from "./tools.js";
-import { RateLimiter } from "./rate-limiter.js";
+import { RateBudget } from "./rate-budget.js";
 import { ACTION_TIPS, getSearchBoosts } from "./action-tips.js";
 import { applyCatalogOverrides } from "./catalog-overrides.js";
 import type { Catalog } from "./types.js";
@@ -81,7 +81,8 @@ if (!accounts && !apiToken) {
 
 const searchIndex = buildSearchIndex(typedCatalog.actions, getSearchBoosts(ACTION_TIPS));
 const { actionById, categorySummary } = buildCatalogData(typedCatalog);
-const rateLimiter = new RateLimiter(60_000, 60);
+// GHL's documented limits, one budget per account (W3, 2026-10-29) — not a flat 60/min shared by every account.
+const rateBudget = new RateBudget();
 
 const server = new McpServer(
   { name: "ghl-mcp-server", version: "0.1.0" },
@@ -97,7 +98,7 @@ registerTools(server, {
   categorySummary,
   getToken: () => apiToken,
   accounts,
-  rateLimiter,
+  rateBudget,
   actionTips: ACTION_TIPS,
 });
 

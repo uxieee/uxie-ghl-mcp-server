@@ -4,6 +4,7 @@ import { searchActions, SearchIndex } from "./search.js";
 import { executeAction, previewActionRequest } from "./executor.js";
 import type { AccountsRegistry } from "./accounts.js";
 import { RateLimiter } from "./rate-limiter.js";
+import type { RateBudget } from "./rate-budget.js";
 import type { ActionTip } from "./action-tips.js";
 import type { Catalog, CatalogAction, ActionRisk } from "./types.js";
 import { filterResponseData, projectResponseFields, countArrayItems, paginateResponseData, smartStringify, truncateString } from "./response-shaping.js";
@@ -18,12 +19,15 @@ export interface ToolDeps {
   getToken: () => string;
   /** Present only when the server was started with an accounts file (multi sub-account). */
   accounts?: AccountsRegistry;
-  rateLimiter: RateLimiter;
+  /** The retired Worker's flat limiter. The npm server uses rateBudget instead. */
+  rateLimiter?: RateLimiter;
+  /** GHL's documented limits per account (rate-budget.ts, W3). */
+  rateBudget?: RateBudget;
   actionTips: Record<string, ActionTip>;
 }
 
 export function registerTools(server: McpServer, deps: ToolDeps) {
-  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter, actionTips, accounts } = deps;
+  const { catalog, searchIndex, actionById, categorySummary, getToken, rateLimiter, rateBudget, actionTips, accounts } = deps;
 
   // Tool 1: List all categories
   server.registerTool(
@@ -616,7 +620,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       }
 
-      if (!rateLimiter.check()) {
+      if (!rateBudget && rateLimiter && !rateLimiter.check()) {
         const structuredContent = buildExecuteStructured({
           action: summarizeAction(action, risk),
           status: "rate_limited",
@@ -631,7 +635,9 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
       }
 
       try {
-        const result = await executeAction(action, params, apiToken, catalog.baseUrl);
+        const result = await executeAction(action, params, apiToken, catalog.baseUrl,
+          rateBudget ? { budget: rateBudget, key: selectedAccount?.id ?? "single" } : {});
+        const rateLimit = result.rateLimit;
 
         let data = result.data;
         let filter: { term: string; matched: number; total: number } | null = null;
@@ -657,6 +663,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
               ? { totalItems: countInfo.total, fieldsPerItem: countInfo.sampleKeys }
               : data;
             const structuredContent = buildExecuteStructured({
+              rateLimit,
               action: summarizeAction(action, risk),
               status: result.status,
               ok: result.status >= 200 && result.status < 300,
@@ -712,6 +719,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         }
 
         const structuredContent = buildExecuteStructured({
+              rateLimit,
           action: summarizeAction(action, risk),
           status: result.status,
           ok: result.status >= 200 && result.status < 300,
@@ -952,8 +960,11 @@ function buildExecuteStructured(input: {
   filter?: { term: string; matched: number; total: number } | null;
   pagination?: { offset: number; showing: number; total: number } | null;
   error?: string;
+  /** GHL's rate limits, only when they run low or GHL answered 429 (W3). */
+  rateLimit?: unknown;
 }) {
   return {
+    ...(input.rateLimit ? { rateLimit: input.rateLimit } : {}),
     action: input.action,
     status: input.status,
     ok: input.ok,
