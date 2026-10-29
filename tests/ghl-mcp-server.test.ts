@@ -1400,3 +1400,70 @@ test("twins (same method + path) gate identically", () => {
     .map((g) => g.map((a) => `${a.id}=${gated(a)}`).join(" / "));
   assert.deepEqual(split, [], `twins that disagree: ${split.join("; ")}`);
 });
+
+// ---- Conversation AI mode gate (W5a Task 8, 2026-10-30) ----------------------------------------
+// Proven live 2026-10-29 (knowledge/sniffs/convai-wave-2026-10-29/live-outbound-runtime-L5-L7.json,
+// steps 5-7): setting an agent's mode to auto-pilot ARMS its outbound triggers, and GHL then texts
+// contacts on CRM events with no workflow. The static rules rate these ids medium/ungated, so the
+// gate has to read the call's body. "suggestive" was never measured; unknown = armed.
+const CONVAI_AGENT_WRITES = [
+  "conversation-ai__update-agent",
+  "conversation-ai-v3__update-agent",
+  "conversation-ai__create-agent",
+  "conversation-ai-v3__create-agent",
+];
+const convaiAction = (id: string) => {
+  const a = SHIPPED.find((x) => x.id === id);
+  assert.ok(a, `${id} missing from the shipped catalogue`);
+  return a;
+};
+const convaiParams = (id: string, extra: Record<string, unknown>) =>
+  ({ ...(id.endsWith("update-agent") ? { agentId: "agent_1" } : {}), name: "Test agent", ...extra });
+
+type ExecResult = { structuredContent: { status: string; action: { risk: { requiresConfirmation: boolean; kinds: string[]; notes: string[] } } } };
+
+async function runConvai(id: string, extra: Record<string, unknown>) {
+  const tools = registerTestTools(SHIPPED.filter((a) => a.id === id));
+  const originalFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = (async () => {
+    called = true;
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+  try {
+    const result = (await tools.get("execute_action")!.handler({
+      action_id: id,
+      params: convaiParams(id, extra),
+      confirm: false,
+      result_offset: 0,
+    })) as ExecResult;
+    return { result, called };
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+for (const id of CONVAI_AGENT_WRITES) {
+  for (const mode of ["auto-pilot", "suggestive"]) {
+    test(`${id} with mode:"${mode}" requires confirmation and names the outbound consequence`, async () => {
+      const { result, called } = await runConvai(id, { mode });
+      assert.equal(called, false, "the call reached GHL without confirm=true");
+      assert.equal(result.structuredContent.status, "confirmation_required");
+      const risk = result.structuredContent.action.risk;
+      assert.equal(risk.requiresConfirmation, true);
+      assert.ok(risk.kinds.includes("external_send"));
+      assert.match(risk.notes.join(" "), /an agent with enabled outbound triggers will start texting contacts on CRM events/);
+    });
+  }
+
+  for (const [label, extra] of [["mode:\"off\"", { mode: "off" }], ["no mode", {}]] as const) {
+    test(`${id} with ${label} keeps its static classification`, async () => {
+      const { result, called } = await runConvai(id, extra);
+      const staticRisk = inferActionRisk(convaiAction(id), SHIPPED);
+      assert.equal(staticRisk.requiresConfirmation, false, "precondition: the static rule leaves this id ungated");
+      assert.equal(called, true, "an unarmed write should be sent without confirm");
+      assert.notEqual(result.structuredContent.status, "confirmation_required");
+      assert.deepEqual(result.structuredContent.action.risk, staticRisk);
+    });
+  }
+}
