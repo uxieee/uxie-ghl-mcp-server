@@ -228,8 +228,8 @@ genuinely want every schema.
 **One row per operation.** GHL publishes most endpoints twice — a v2 spec and a v3 twin at the
 same method and path — so an uncollapsed search spent half its results showing the same thing
 twice. Search returns one row and names the other id as `alsoAvailableAs`; either works. Do not
-assume a `-v3` **category** means the v3 header: some actions in `-v3` categories do not carry
-one (the server's instructions give the current count), so prefer the id search hands you.
+assume a `-v3` **category** means the v3 header: when a rebuild leaves some `-v3` actions without it,
+the server's instructions say how many, so prefer the id search hands you.
 
 ### Response shaping
 

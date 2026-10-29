@@ -149,3 +149,22 @@ test("a new op whose slug id is taken by a carried-over action gets the id data/
   assert.deepEqual(named.failures, []);
   assert.ok(get(named, "ad-manager__fb-upsert-ad-2021-07-28")); assert.ok(get(named, "ad-manager__fb-upsert-ad"));
 });
+
+test("a param alias survives a second rebuild (aliases carry over from the previous action)", () => {
+  const gen1 = world({ previous: [prev("contacts-v3__update-contact", "PUT", "/contacts/{id}"), prev("contacts__update-contact", "PUT", "/contacts/{contactId}"),
+    prev("ad-publishing-v3__fb-get-pages", "GET", "/ad-publishing/facebook/pages"), prev("brand-boards-v3__createBrandBoard", "POST", "/brand-boards")] });
+  const gen2 = world({ previous: gen1.catalog!.actions });
+  assert.deepEqual(get(gen2, "contacts-v3__update-contact").paramAliases, { id: "contactId" });
+});
+
+test("a query param GHL stopped documenting is kept, optional, noted, and reported", () => {
+  const previous = [prev("contacts-v3__update-contact", "PUT", "/contacts/{contactId}", { parameters: [
+      { name: "contactId", in: "path", required: true, description: "", type: "string" },
+      { name: "companyId", in: "query", required: true, description: "the company", type: "string" }] }),
+    prev("contacts__update-contact", "PUT", "/contacts/{contactId}"), prev("ad-publishing-v3__fb-get-pages", "GET", "/ad-publishing/facebook/pages"),
+    prev("brand-boards-v3__createBrandBoard", "POST", "/brand-boards")];
+  const r = world({ previous });
+  const p = get(r, "contacts-v3__update-contact").parameters.find((x) => x.name === "companyId")!;
+  assert.equal(p.in, "query"); assert.equal(p.required, false); assert.match(p.description, /no longer in GHL's docs/);
+  assert.deepEqual(r.report.droppedParams, [{ id: "contacts-v3__update-contact", params: ["companyId"] }]);
+});

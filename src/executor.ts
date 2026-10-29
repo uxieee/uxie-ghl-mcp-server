@@ -101,7 +101,10 @@ function retryDelay(response: Response, body: string, budget: RateBudget, key: s
   if (retryable === false) return null;
   const info = budget.info(key);
   if (info.dailyRemaining === 0) return null;
-  const gateway = [...response.headers.keys()].some((h) => h.toLowerCase().startsWith("x-ratelimit-"));
+  // X-RateLimit-* rides on EVERY response, so its presence proves nothing. Only a spent window (Remaining 0) is the
+  // gateway refusing before the call ran; a 429 with room left may come from the service after a write landed, so it is
+  // never resent unless GHL says retryable:true (W3 review, 2026-10-29).
+  const gateway = response.headers.get("x-ratelimit-remaining") === "0";
   const after = Number(response.headers.get("retry-after"));
   if (Number.isFinite(after) && after > 0 && (retryable === true || gateway)) return Math.min(after * 1000, 10_000);
   if (!gateway) return null;

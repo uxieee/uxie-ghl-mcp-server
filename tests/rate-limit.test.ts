@@ -86,3 +86,21 @@ test("the client-side ceiling holds a key to 100 calls per 10 s", async () => {
   await h.run();
   assert.equal(h.sleeps.length, 1); assert.ok(h.sleeps[0] <= 10000);
 });
+
+// ---- W3 final review fixes --------------------------------------------------------------------
+test("a 429 on a write while the window still has room is NOT retried (not a gateway throttle; the write may have landed)", async () => {
+  let t = 1_000_000; const sleeps: number[] = []; let calls = 0;
+  const budget = new RateBudget({ now: () => t });
+  const fetchImpl = (async () => { calls++; return new Response(JSON.stringify({ message: "busy" }), { status: 429, headers: rl(80) }); }) as typeof fetch;
+  const post: CatalogAction = { ...action, id: "conversations__send-a-new-message", method: "POST", path: "/conversations/messages", parameters: [] };
+  const r = await executeAction(post, { type: "SMS", message: "hi" }, "pit-x", undefined, { budget, key: "a", fetchImpl, sleep: async (ms) => { sleeps.push(ms); t += ms; } });
+  assert.equal(r.status, 429); assert.equal(calls, 1); assert.deepEqual(sleeps, []);
+});
+
+test("a spent daily quota with no reset header refuses for 5 minutes, then lets one call through to read fresh limits", () => {
+  let t = 1_000_000; const b = new RateBudget({ now: () => t });
+  b.observe("a", new Headers({ "X-RateLimit-Daily-Remaining": "0" }));
+  assert.equal(b.before("a").action, "refuse");
+  t += 4 * 60_000; assert.equal(b.before("a").action, "refuse");
+  t += 2 * 60_000; assert.equal(b.before("a").action, "go");
+});

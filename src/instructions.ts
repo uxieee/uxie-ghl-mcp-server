@@ -18,7 +18,7 @@ export function serverInstructions(catalog: Catalog): string {
     `GoHighLevel API MCP \u2014 ${ops} distinct operations, GHL API v2 + v3, built from GHL's live API docs.`,
     "Flow: search_actions (find it) -> describe_action (its schema) -> execute_action (call it).",
     "search_actions returns compact stubs. Call describe_action on the ONE id you chose; do not set compact=false, which inlines a full schema per hit.",
-    `GHL publishes most endpoints twice (a v2 spec and a v3 twin at the same method+path). Search returns one row per operation and names the other as alsoAvailableAs; either id works. A -v3 CATEGORY does not guarantee the v3 header \u2014 ${lacking} lack it \u2014 so prefer the id search gives you.`,
+    `GHL publishes most endpoints twice (a v2 spec and a v3 twin at the same method+path). Search returns one row per operation and names the other as alsoAvailableAs; either id works.${lacking ? ` A -v3 CATEGORY does not guarantee the v3 header \u2014 ${lacking} lack it \u2014 so prefer the id search gives you.` : ""}`,
     "describe_action shows GHL's own marks: deprecated (with the replacement GHL names) and notes such as private beta or undocumented since a date. Prefer an op that is not deprecated.",
     "execute_action extras are TOP-LEVEL, not inside params: result_filter, result_fields, result_offset, result_limit (0 = count only), dry_run, confirm, locationId.",
     "Sends, publishes, deletes, cancels, billing, payout, advertising and permission mutations, and calls that run or ship something live, need confirm=true after a dry_run preview.",

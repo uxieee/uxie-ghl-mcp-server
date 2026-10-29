@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-29T10:48:02.301Z",
+  "generatedAt": "2026-10-29T11:05:12.958Z",
   "source": {
     "site": "marketplace.gohighlevel.com/docs",
-    "fetchedAt": "2026-10-29T10:48:02.301Z",
+    "fetchedAt": "2026-10-29T11:05:12.958Z",
     "llms": {
       "v3": "8ee0fee2c4e8a1722b211e2b5456a6176e695122fe6cb2131f357243c0ecfdf9",
       "2021-07-28": "aef64b6894d6bbf25df3fe55e9bddb59d31fc175065518013668e9406a5ab8ee"
@@ -674,6 +674,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -888,6 +895,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1017,6 +1031,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1098,6 +1119,13 @@
           "required": false,
           "description": "Opaque cursor for the next batch, taken from the previous response paging.next",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1121,6 +1149,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1151,6 +1186,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1380,6 +1422,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -1468,6 +1517,13 @@
           "required": false,
           "description": "Opaque cursor for the next batch, taken from the previous response paging.next",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -2117,6 +2173,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": {
@@ -2781,6 +2844,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -2852,6 +2922,13 @@
           "required": true,
           "description": "Ad account identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -2986,6 +3063,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3023,6 +3107,13 @@
           "required": false,
           "description": "Opaque cursor for the next batch, taken from the previous response paging.next",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3053,6 +3144,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3127,6 +3225,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3164,6 +3269,13 @@
           "required": false,
           "description": "Opaque cursor for the next batch, taken from the previous response paging.next",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3294,6 +3406,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3405,6 +3524,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -3428,6 +3554,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": {
@@ -4581,6 +4714,13 @@
           "required": true,
           "description": "Account identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": {
@@ -4747,6 +4887,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -4853,6 +5000,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -4934,6 +5088,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -4957,6 +5118,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -5008,6 +5176,13 @@
           "required": false,
           "description": "Opaque cursor for the next batch, taken from the previous response paging.next",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": null,
@@ -5197,6 +5372,13 @@
           "required": true,
           "description": "Location identifier",
           "type": "string"
+        },
+        {
+          "name": "isDraft",
+          "in": "query",
+          "required": false,
+          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "boolean"
         }
       ],
       "requestBody": {
@@ -14381,6 +14563,23 @@
             "public-api",
             "snapshot"
           ]
+        },
+        {
+          "name": "allInOneChatTypes",
+          "in": "query",
+          "required": false,
+          "description": "All-in-one chat type to filter by. Only applies when chatType is \"allInOneChat\". Supports normal ChatType values plus the virtual umbrella \"webChat\" (maps to facebookChat/emailChat/instagramChat/waChat). (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "string",
+          "enum": [
+            "liveChat",
+            "waChat",
+            "emailChat",
+            "allInOneChat",
+            "voiceAiChat",
+            "facebookChat",
+            "instagramChat",
+            "webChat"
+          ]
         }
       ],
       "requestBody": null,
@@ -19317,6 +19516,20 @@
           "in": "query",
           "required": false,
           "description": "Maximum value for score",
+          "type": "number"
+        },
+        {
+          "name": "startDate",
+          "in": "query",
+          "required": false,
+          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "number"
+        },
+        {
+          "name": "endDate",
+          "in": "query",
+          "required": false,
+          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
           "type": "number"
         }
       ],
@@ -40613,6 +40826,13 @@
           "required": true,
           "description": "",
           "type": "string"
+        },
+        {
+          "name": "companyId",
+          "in": "query",
+          "required": false,
+          "description": "(no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "string"
         }
       ],
       "requestBody": null,
@@ -42312,6 +42532,13 @@
           "in": "query",
           "required": false,
           "description": "ID of the user performing the disconnect. Recorded for auditing only; omit it and the account is still deleted.",
+          "type": "string"
+        },
+        {
+          "name": "companyId",
+          "in": "query",
+          "required": false,
+          "description": "Company ID (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
           "type": "string"
         }
       ],
@@ -66058,6 +66285,20 @@
           "required": false,
           "description": "Maximum value for score",
           "type": "number"
+        },
+        {
+          "name": "startDate",
+          "in": "query",
+          "required": false,
+          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "number"
+        },
+        {
+          "name": "endDate",
+          "in": "query",
+          "required": false,
+          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "number"
         }
       ],
       "requestBody": null,
@@ -80172,6 +80413,20 @@
           "required": false,
           "description": "Include RCS Sender IDs",
           "type": "boolean"
+        },
+        {
+          "name": "pageSize",
+          "in": "query",
+          "required": false,
+          "description": "How many resources to return in each list page. The default is 50, and the maximum is 1000. (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "number"
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "description": "The page index for pagination. The default is 0. (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "type": "number"
         }
       ],
       "requestBody": null,
@@ -87471,6 +87726,13 @@
           "in": "query",
           "required": false,
           "description": "ID of the user performing the disconnect. Recorded for auditing only; omit it and the account is still deleted.",
+          "type": "string"
+        },
+        {
+          "name": "companyId",
+          "in": "query",
+          "required": false,
+          "description": "Company ID (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
           "type": "string"
         }
       ],

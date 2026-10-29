@@ -32,7 +32,9 @@ const PIPELINE_NOTE = "Proven live 2026-09-28: every stage needs `position` (els
 const slotKey = (method: string, path: string) => `${method} ${path.replace(/\{[^}]*\}/g, "{}")}`;
 function patchPipeline(action: CatalogAction, proven: CatalogAction): CatalogAction {
   const provenProps = (proven.requestBody?.schema?.properties ?? {}) as Record<string, unknown>;
-  const queryFromProven = proven.parameters.filter((p) => p.in === "query" && !action.parameters.some((q) => q.name === p.name));
+  // The proven query params REPLACE any same-named one (a rebuild may carry it over with a "no longer in GHL's docs"
+  // note), so the patched action is identical however many times the catalogue is rebuilt.
+  const queryFromProven = proven.parameters.filter((p) => p.in === "query");
   const movedToQuery = new Set(queryFromProven.map((p) => p.name));
   let requestBody = action.requestBody;
   if (requestBody) {
@@ -42,7 +44,7 @@ function patchPipeline(action: CatalogAction, proven: CatalogAction): CatalogAct
     requestBody = { ...requestBody, schema: { ...schema, type: "object", properties,
       ...(schema.required ? { required: schema.required.filter((k) => !movedToQuery.has(k)) } : {}) } };
   }
-  return { ...action, parameters: [...action.parameters, ...queryFromProven], requestBody,
+  return { ...action, parameters: [...action.parameters.filter((p) => !(p.in === "query" && movedToQuery.has(p.name))), ...queryFromProven], requestBody,
     notes: [...(action.notes ?? []).filter((n) => n !== PIPELINE_NOTE), PIPELINE_NOTE] };
 }
 

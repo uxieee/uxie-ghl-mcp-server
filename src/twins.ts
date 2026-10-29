@@ -3,7 +3,7 @@
  *
  * GHL publishes most endpoints twice — a legacy spec and a v3 twin at the same method and
  * path — so an uncollapsed search spends half its results showing the same operation twice.
- * And a -v3 CATEGORY does not guarantee the v3 header: many actions in v3 categories lack it (the count is in the instructions),
+ * And a -v3 CATEGORY has not always guaranteed the v3 header (the instructions give the current count, if any),
  * so the version has to be read off the action, never inferred from its category name.
  */
 import type { CatalogAction } from "./types.js";

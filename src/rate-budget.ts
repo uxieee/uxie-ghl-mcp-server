@@ -15,6 +15,7 @@ interface KeyState {
   dailyRemaining: number | null; dailyResetMs: number | null; dailyObservedAt: number;
 }
 
+const NO_RESET_HOLD_MS = 5 * 60_000;
 const num = (v: string | null) => (v == null || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
 
 export class RateBudget {
@@ -37,8 +38,10 @@ export class RateBudget {
   before(key: string): BudgetDecision {
     const s = this.state(key); const t = this.now();
     if (s.dailyRemaining === 0) {
-      const left = s.dailyResetMs == null ? null : s.dailyResetMs - (t - s.dailyObservedAt);
-      if (left == null || left > 0) return { action: "refuse", resetMs: left };
+      // GHL sends X-RateLimit-Daily-Reset only on some 429s. Without it, refuse for a bounded 5 minutes and then let one
+      // call through to read fresh headers — never lock the account until a restart (W3 review, 2026-10-29).
+      const left = (s.dailyResetMs ?? NO_RESET_HOLD_MS) - (t - s.dailyObservedAt);
+      if (left > 0) return { action: "refuse", resetMs: s.dailyResetMs == null ? null : left };
       s.dailyRemaining = null;
     }
     let wait = 0;
@@ -62,7 +65,8 @@ export class RateBudget {
     const dr = num(headers.get("x-ratelimit-daily-remaining"));
     if (dr != null) { s.dailyRemaining = dr; s.dailyObservedAt = t; }
     const reset = num(headers.get("x-ratelimit-daily-reset"));
-    if (reset != null) s.dailyResetMs = reset;
+    if (reset != null) { s.dailyResetMs = reset; s.dailyObservedAt = t; }
+    else if (dr != null) s.dailyResetMs = null;
   }
 
   /** The last-seen limits, for a result that runs low or hit a 429. */

@@ -39,6 +39,8 @@ export interface BuildReport {
   carried: { id: string; why: string }[];
   aliases: { id: string; aliases: Record<string, string> }[];
   headerChanges: { id: string; from: string | null; to: string | null }[];
+  /** Non-path params a kept action had that GHL's docs no longer list — carried over, optional, noted. */
+  droppedParams: { id: string; params: string[] }[];
 }
 
 const TREES: Tree[] = ["v3", "2021-07-28"];
@@ -48,7 +50,7 @@ const WORKFLOWS_NOTE = "private beta: GHL allow-lists locations; others get 403 
 
 export function buildFromLive(input: BuildInput): { catalog: Catalog | null; report: BuildReport; failures: string[]; undocumented: UndocumentedEntry[] } {
   const failures: string[] = [];
-  const report: BuildReport = { counts: {}, newIds: [], carried: [], aliases: [], headerChanges: [] };
+  const report: BuildReport = { counts: {}, newIds: [], carried: [], aliases: [], headerChanges: [], droppedParams: [] };
   const holds = input.headerHolds ?? [];
 
   // previous actions by (family, opKey) — several may share one (twin categories of one family); all keep their ids
@@ -103,9 +105,23 @@ export function buildFromLive(input: BuildInput): { catalog: Catalog | null; rep
           if (header !== p.versionHeader) report.headerChanges.push({ id: p.id, from: p.versionHeader, to: header });
           const oldNames = placeholders(p.path); const newNames = placeholders(fresh.path);
           const aliases: Record<string, string> = {};
+          // Carry earlier aliases forward (old → whatever the slot is called now), or the next rebuild forgets them.
+          for (const [from, to] of Object.entries(p.paramAliases ?? {})) {
+            const slot = oldNames.indexOf(to);
+            const now = slot >= 0 ? newNames[slot] : undefined;
+            if (now && now !== from) aliases[from] = now;
+          }
           oldNames.forEach((n, i) => { if (newNames[i] && newNames[i] !== n) aliases[n] = newNames[i]; });
           if (Object.keys(aliases).length) report.aliases.push({ id: p.id, aliases });
-          out.push(shape(p.id, p.category, header, aliases));
+          const action = shape(p.id, p.category, header, aliases);
+          // Params GHL stopped documenting are kept, optional, so a caller's filter is not silently dropped ("Nothing removed").
+          const dropped = p.parameters.filter((q) => q.in !== "path" && !action.parameters.some((x) => x.name === q.name && x.in === q.in));
+          if (dropped.length) {
+            action.parameters = [...action.parameters, ...dropped.map((q) => ({ ...q, required: false,
+              description: `${q.description ? `${q.description} ` : ""}(no longer in GHL's docs since ${input.today}; kept so existing calls still send it)`.replace(/\(no longer in GHL's docs since [^)]*\)\s*\(no longer/, "(no longer") }))];
+            report.droppedParams.push({ id: p.id, params: dropped.map((q) => q.name) });
+          }
+          out.push(action);
         }
       } else {
         const category = homeOf.get(`${t} ${o.service}`) ?? `${o.service}${t === "v3" ? "-v3" : ""}`;

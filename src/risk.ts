@@ -52,7 +52,7 @@ function baseRisk(action: CatalogAction): ActionRisk {
     notes.push("Can create externally visible communication or published content.");
   }
 
-  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas|payout|commission)\b/.test(text)) {
+  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas|payouts?|commissions?)\b/.test(text)) {
     kinds.add("billing");
     notes.push(
       method === "GET"
@@ -93,7 +93,7 @@ function baseRisk(action: CatalogAction): ActionRisk {
   let forced = false;
   if (method !== "GET") {
     const p = action.path.toLowerCase();
-    if (/\/(execute|apk-builds)$|\/changes\/apply$/.test(p)) { kinds.add("external_send"); notes.push("Runs or ships something live."); }
+    if (/\/(execute|apk-builds|publish)$|\/changes\/apply$|\/promote[^/]*$/.test(p)) { kinds.add("external_send"); notes.push("Runs, publishes or ships something live."); }
     if (/\/permissions$/.test(p)) { forced = true; notes.push("Changes who can do what in the account."); }
     if (/\/comments\/\{[^}]+\}\/\{[^}]+\}\/like$/.test(p)) { kinds.add("external_send"); notes.push("Acts in public on a connected social account."); }
   }

@@ -30,7 +30,8 @@ test("the instructions count operations and missing v3 headers from the catalogu
   const text = serverInstructions(c);
   assert.match(text, new RegExp(`\\b${ops} distinct operations\\b`));
   const lacking = c.actions.filter((a) => a.category.endsWith("-v3") && a.versionHeader !== "v3").length;
-  assert.match(text, new RegExp(`\\b${lacking} lack it\\b`));
+  if (lacking) assert.match(text, new RegExp(`\\b${lacking} lack it\\b`));
+  else assert.doesNotMatch(text, /lack it/, "no '0 lack it' claim (W3 review)");
   assert.match(text, /private beta/);
 });
 
@@ -65,4 +66,19 @@ test("gate-diff lists weakened matched ids and new ungated writes", () => {
     cat([act("x-v3__notify", "POST", "/x", "update a record"), act("x-v3__new", "PUT", "/y", "update a thing")]));
   assert.deepEqual(d.weakened.map((w) => w.id), ["x-v3__notify"]);
   assert.deepEqual(d.newWrites.map((w) => w.id), ["x-v3__new"]);
+});
+
+test("plural payouts/commissions and production promotion are gated on the shipped catalogue", () => {
+  const c = shipped();
+  for (const [m, p] of [["PUT", /\/suspension$/], ["POST", /\/agent\/versions\/\{[^}]+\}\/publish$/]] as const) {
+    const hits = c.actions.filter((a) => a.method === m && p.test(a.path));
+    assert.ok(hits.length, String(p));
+    for (const a of hits) assert.equal(inferActionRisk(a, c.actions).requiresConfirmation, true, a.id);
+  }
+});
+
+test("the instructions drop the missing-v3-header clause when nothing lacks it", () => {
+  const act = { id: "x-v3__a", category: "x-v3", method: "GET", path: "/a", summary: "", description: "", tags: [], scopes: [], parameters: [], requestBody: null, versionHeader: "v3" };
+  const text = serverInstructions({ generatedAt: "", baseUrl: "", totalActions: 1, categories: [], actions: [act] });
+  assert.doesNotMatch(text, /lack it/);
 });
