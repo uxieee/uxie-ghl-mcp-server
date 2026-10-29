@@ -135,6 +135,9 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           ? { required: action.requestBody.required, schema: action.requestBody.schema }
           : null,
         ...(tip?.note && { note: tip.note }),
+        // GHL's own marks (W3): DEPRECATED in its live docs, private beta, documented only under one tree, …
+        ...(action.deprecated && { deprecated: action.deprecated }),
+        ...(action.notes?.length && { notes: action.notes }),
         // Search collapses twins, but an agent can reach describe_action with either id
         // directly — it should learn the other exists here too, not only via search.
         ...(twinIdOf(action, catalog.actions) && {
@@ -327,6 +330,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
           // describe_action still returns the full risk object with its notes.
           kind: a.method === "GET" ? "read" : "write",
           ...(risk.requiresConfirmation && { requiresConfirmation: true }),
+          ...(a.deprecated && { deprecated: true }),
           ...(tip?.note && { note: tip.note }),
           ...(twinIdOf(a, catalog.actions) && { alsoAvailableAs: twinIdOf(a, catalog.actions) }),
           ...(compact ? {} : {

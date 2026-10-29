@@ -779,8 +779,9 @@ test("update-agent's sleep fields say they are conditional on sleepEnabled", () 
     assert.match(props[field].description, /422/, `${field} must warn that it is conditional`);
     assert.match(props[field].description, /sleepEnabled is true/);
   }
-  // the unconditional field is left alone
-  assert.equal(props.sleepEnabled.description, "Enable sleep.");
+  // the unconditional field gets no 422 warning — only GHL's own deprecation mark (live docs, 2026-10-29; W3)
+  assert.doesNotMatch(props.sleepEnabled.description, /422/);
+  assert.match(props.sleepEnabled.description, /^Enable sleep\. Marked deprecated in GHL's docs/);
 });
 
 test("the update-agent note warns off locationId, which the endpoint 422s in the body", () => {

@@ -58,7 +58,9 @@ export function collapseTwins(actions: CatalogAction[]): CatalogAction[] {
 }
 
 export function preferTwin(candidate: CatalogAction, incumbent: CatalogAction): boolean {
-  // 1. A real `Version: v3` header beats everything.
+  // 0. A twin GHL has not deprecated beats one it has (W3: deprecation differs by tree, e.g. POST /emails/builder).
+  if (Boolean(candidate.deprecated) !== Boolean(incumbent.deprecated)) return !candidate.deprecated;
+  // 1. A real `Version: v3` header beats everything else.
   const realV3 = (a: CatalogAction) => a.versionHeader === "v3";
   if (realV3(candidate) !== realV3(incumbent)) return realV3(candidate);
 

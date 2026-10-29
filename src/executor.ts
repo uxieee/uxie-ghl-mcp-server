@@ -125,6 +125,15 @@ function buildGhlRequest(
   warnings: string[];
   contentType: string | null;
 } {
+  // A path placeholder GHL renamed (W3): a caller may still use the old name; it goes where the new one goes, never into the body.
+  if (action.paramAliases) {
+    params = { ...params };
+    for (const [oldName, newName] of Object.entries(action.paramAliases)) {
+      if (params[oldName] !== undefined && params[newName] === undefined) params[newName] = params[oldName];
+      delete params[oldName];
+    }
+  }
+
   // Validate HTTP method (normalize case)
   const method = action.method.toUpperCase();
   if (!ALLOWED_METHODS.has(method)) {

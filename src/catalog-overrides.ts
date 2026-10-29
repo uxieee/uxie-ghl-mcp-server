@@ -25,7 +25,31 @@ function mergeRequestBodySchema(
   };
 }
 
+// Pipeline rules proven live (2026-07-31, 2026-09-28) that GHL's docs do not carry: its live spec lists stages as plain
+// strings and puts locationId in the update body. Applied ON TOP of whatever upstream says, keyed by method+path, so a
+// new source can never retire them (W3, 2026-10-29). The hand-authored actions below are the rules' single source.
+const PIPELINE_NOTE = "Proven live 2026-09-28: every stage needs `position` (else 422, nothing created), and give every stage a stageWinProbability (if one is missing GHL replaces them all with an even ramp).";
+const slotKey = (method: string, path: string) => `${method} ${path.replace(/\{[^}]*\}/g, "{}")}`;
+function patchPipeline(action: CatalogAction, proven: CatalogAction): CatalogAction {
+  const provenProps = (proven.requestBody?.schema?.properties ?? {}) as Record<string, unknown>;
+  const queryFromProven = proven.parameters.filter((p) => p.in === "query" && !action.parameters.some((q) => q.name === p.name));
+  const movedToQuery = new Set(queryFromProven.map((p) => p.name));
+  let requestBody = action.requestBody;
+  if (requestBody) {
+    const schema = requestBody.schema as { properties?: Record<string, unknown>; required?: string[] };
+    const properties = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([k]) => !movedToQuery.has(k)));
+    if (provenProps.stages) properties.stages = provenProps.stages;
+    requestBody = { ...requestBody, schema: { ...schema, type: "object", properties,
+      ...(schema.required ? { required: schema.required.filter((k) => !movedToQuery.has(k)) } : {}) } };
+  }
+  return { ...action, parameters: [...action.parameters, ...queryFromProven], requestBody,
+    notes: [...(action.notes ?? []).filter((n) => n !== PIPELINE_NOTE), PIPELINE_NOTE] };
+}
+
 function overrideAction(action: CatalogAction): CatalogAction {
+  const proven = HAND_AUTHORED_ACTIONS.find((h) => h.requestBody && slotKey(h.method, h.path) === slotKey(action.method, action.path));
+  if (proven && proven !== action) action = patchPipeline(action, proven);
+
   // The GHL changelog (2026-07-07) added cursor pagination to this endpoint,
   // but the published specs don't carry the params yet. Match by method+path so
   // both the v2 and v3 variants pick it up regardless of operationId.
@@ -66,6 +90,9 @@ function overrideAction(action: CatalogAction): CatalogAction {
       " Send this ONLY when sleepEnabled is true — the endpoint answers 422 if it is present while sleep is disabled (verified live 2026-07-31).";
     const props = (action.requestBody?.schema?.properties ?? {}) as Record<string, { description?: string }>;
     const patched: Record<string, unknown> = {};
+    // GHL's live docs (2026-10-29) mark sleepEnabled deprecated; say so where the agent reads the field.
+    const se = props.sleepEnabled;
+    if (se && !se.description?.includes("deprecated")) patched.sleepEnabled = { ...se, description: `${se.description ?? ""} Marked deprecated in GHL's docs (2026-10-29).`.trim() };
     for (const field of ["sleepTime", "sleepTimeUnit"]) {
       const existing = props[field];
       if (existing && !existing.description?.includes("422")) {
