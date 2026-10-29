@@ -121,6 +121,32 @@ function baseRisk(action: CatalogAction): ActionRisk {
   };
 }
 
+/**
+ * The risk of ONE call: the action's static risk, raised by what this call's params put on the wire.
+ *
+ * Conversation AI agent create/update (POST /conversation-ai/agents, PUT /conversation-ai/agents/{id}) is a plain
+ * medium write by its id and prose, but proven live 2026-10-29 (knowledge/sniffs/convai-wave-2026-10-29/
+ * live-outbound-runtime-L5-L7.json, steps 5-7): `mode: "auto-pilot"` ARMS the agent's outbound triggers, and GHL then
+ * texts contacts on CRM events with no workflow. Matched by method + path so every twin id is covered. Only an absent
+ * mode or the literal "off" leaves the static risk; "suggestive" was never measured, and unknown counts as armed.
+ * `params` is the flat execute_action object; `mode` is not a path or query param, so it is the body value as sent.
+ */
+export function inferCallRisk(action: CatalogAction, params: Record<string, unknown>, all: CatalogAction[] = []): ActionRisk {
+  const risk = inferActionRisk(action, all);
+  const method = action.method.toUpperCase();
+  const agentWrite = ["POST", "PUT", "PATCH"].includes(method) && /^\/conversation-ai\/agents(\/\{[^}/]+\})?\/?$/.test(action.path);
+  if (!agentWrite || params.mode === undefined || params.mode === "off") return risk;
+  return {
+    level: "high",
+    kinds: [...new Set<ActionRiskKind>([...risk.kinds, "external_send"])],
+    notes: [
+      ...risk.notes,
+      `mode "${String(params.mode)}" switches the agent on: an agent with enabled outbound triggers will start texting contacts on CRM events, with no workflow involved. Check its outbound triggers first; mode "off" or omitting mode does not need confirmation.`,
+    ],
+    requiresConfirmation: true,
+  };
+}
+
 export function requiresActionConfirmation(risk: ActionRisk): boolean {
   return risk.requiresConfirmation;
 }

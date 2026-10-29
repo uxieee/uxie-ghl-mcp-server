@@ -22,6 +22,7 @@ export function serverInstructions(catalog: Catalog): string {
     "describe_action shows GHL's own marks: deprecated (with the replacement GHL names) and notes such as private beta or undocumented since a date. Prefer an op that is not deprecated.",
     "execute_action extras are TOP-LEVEL, not inside params: result_filter, result_fields, result_offset, result_limit (0 = count only), dry_run, confirm, locationId.",
     "Sends, publishes, deletes, cancels, billing, payout, advertising and permission mutations, and calls that run or ship something live, need confirm=true after a dry_run preview.",
+    "Conversation AI agent create/update with mode other than \"off\" (auto-pilot or suggestive) also needs confirm=true: an agent with enabled outbound triggers will start texting contacts on CRM events, with no workflow.",
     "A spec-required field you omit returns a WARNING, not an error: GHL marks fields required that the API accepts without. The call is sent and GHL decides. Only a missing PATH param is fatal.",
     "Undocumented body keys pass through, so spec gaps do not block valid requests.",
     "Rate limits are GHL's: 100 requests per 10 seconds and 200,000 per day per sub-account. A rate-limited call waits once and retries once when GHL says it may; a spent daily quota is reported with its reset time.",

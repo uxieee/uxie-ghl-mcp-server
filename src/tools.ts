@@ -9,7 +9,7 @@ import type { ActionTip } from "./action-tips.js";
 import type { Catalog, CatalogAction, ActionRisk } from "./types.js";
 import { filterResponseData, projectResponseFields, countArrayItems, paginateResponseData, smartStringify, truncateString } from "./response-shaping.js";
 import { locationShapeOf, twinIdOf, categoryFamily, collapseTwins, preferTwin } from "./twins.js";
-import { inferActionRisk, requiresActionConfirmation } from "./risk.js";
+import { inferActionRisk, inferCallRisk, requiresActionConfirmation } from "./risk.js";
 
 export interface ToolDeps {
   catalog: Catalog;
@@ -567,7 +567,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         }
       }
 
-      const risk = inferActionRisk(action, catalog.actions);
+      const risk = inferCallRisk(action, params, catalog.actions);
       const requiresConfirmation = requiresActionConfirmation(risk);
       if (dry_run || (requiresConfirmation && !confirm)) {
         try {
