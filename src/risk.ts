@@ -8,7 +8,28 @@
  */
 import type { CatalogAction, ActionRisk, ActionRiskKind } from "./types.js";
 
-export function inferActionRisk(action: CatalogAction): ActionRisk {
+/**
+ * `all` is the catalogue the action came from. GHL publishes most endpoints twice (a v2 and a v3
+ * spec at the same method + path), and the two descriptions are worded differently, so the
+ * text-reading rules below gated one twin and not the other: purchase-phone-number ran ungated
+ * under its v2 id while its v3 twin asked first. With `all`, the STRICTER twin's gate wins.
+ */
+export function inferActionRisk(action: CatalogAction, all: CatalogAction[] = []): ActionRisk {
+  const own = baseRisk(action);
+  if (own.requiresConfirmation) return own;
+  const twin = all.find((a) => a.id !== action.id && a.method === action.method && a.path === action.path
+    && baseRisk(a).requiresConfirmation);
+  if (!twin) return own;
+  const strict = baseRisk(twin);
+  return {
+    level: "high",
+    kinds: [...new Set([...own.kinds, ...strict.kinds])],
+    notes: [...own.notes, ...strict.notes, `Same endpoint as ${twin.id}, which needs confirmation; the stricter gate applies.`],
+    requiresConfirmation: true,
+  };
+}
+
+function baseRisk(action: CatalogAction): ActionRisk {
   const method = action.method.toUpperCase();
   const text = `${action.id} ${action.summary} ${action.description}`.toLowerCase();
   const kinds = new Set<ActionRiskKind>();
@@ -44,13 +65,15 @@ export function inferActionRisk(action: CatalogAction): ActionRisk {
     notes.push("Can cancel, disable, disconnect, revoke, or otherwise interrupt an active setup.");
   }
 
+  // The v3 twins carry the `ad-publishing-v3` category, and agents see those first, so the test
+  // must name both families: matching `ad-manager` alone left 28 live-spend writes ungated (2026-10-29).
   // CONSEQUENCE, NOT KEYWORDS. The rules above read the description text, which misses
   // anything whose consequence is not spelled out in prose. Measured against the catalog,
   // 18 ad-manager mutations slipped through ungated — including fb-resume-campaign and
   // fb-upsert-campaign, which start and change LIVE ad spend — while blogs__create-blog-post
   // was gated because "post" appears in it. Advertising mutations are gated by what they
   // touch, regardless of how their summary is worded.
-  if (method !== "GET" && action.category.startsWith("ad-manager")) {
+  if (method !== "GET" && /^(ad-manager|ad-publishing)/.test(action.category)) {
     kinds.add("billing");
     notes.push(
       "Touches a live advertising account: campaigns, ad sets, ads, audiences, or pixels. Can start, change, or stop real ad spend."

@@ -105,7 +105,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         };
       }
 
-      const risk = inferActionRisk(action);
+      const risk = inferActionRisk(action, catalog.actions);
       const tip = actionTips[action.id];
       const structuredContent = {
         id: action.id,
@@ -313,7 +313,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         // an untipped -v3 twin exists. Since search now prefers the v3 twin, look the tip up
         // under BOTH ids or every hand-written correction would be silently discarded.
         const tip = actionTips[a.id] ?? actionTips[twinIdOf(a, catalog.actions)];
-        const risk = inferActionRisk(a);
+        const risk = inferActionRisk(a, catalog.actions);
         return {
           id: a.id,
           method: a.method,
@@ -559,7 +559,7 @@ export function registerTools(server: McpServer, deps: ToolDeps) {
         }
       }
 
-      const risk = inferActionRisk(action);
+      const risk = inferActionRisk(action, catalog.actions);
       const requiresConfirmation = requiresActionConfirmation(risk);
       if (dry_run || (requiresConfirmation && !confirm)) {
         try {

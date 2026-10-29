@@ -8,6 +8,8 @@ import { ACTION_TIPS } from "../src/action-tips.js";
 import { AccountsRegistry, probeLocation, validateAccountsFile } from "../src/accounts.js";
 import { assertCatalogCompleteness, extractActions } from "../scripts/build-catalog.js";
 import type { Catalog, CatalogAction } from "../src/types.js";
+import { inferActionRisk, requiresActionConfirmation } from "../src/risk.js";
+import { readFileSync as readCatalogFile } from "node:fs";
 
 interface RegisteredTool {
   meta: unknown;
@@ -1364,4 +1366,36 @@ test("the SHIPPED catalogue carries the current hand-authored pipeline schema, n
     const a = shipped.actions.find((x: any) => x.id === id);
     assert.deepEqual(a?.requestBody?.schema?.properties?.stages?.items?.required, ["name", "position"], `${id} in data/catalog.json`);
   }
+});
+
+
+// ---- Ad confirm gate (W0.2, 2026-10-29) --------------------------------------------------------
+// risk.ts gated `ad-manager*` only; agents see the v3 twins under `ad-publishing-v3`, so ~28 ad
+// writes ran ungated. These read the SHIPPED catalogue, overrides applied, not a fixture.
+function shippedActions(): CatalogAction[] {
+  const raw = JSON.parse(readCatalogFile(new URL("../data/catalog.json", import.meta.url), "utf8"));
+  const catalog: Catalog = Array.isArray(raw) ? createCatalog(raw) : raw;
+  return applyCatalogOverrides(catalog).actions;
+}
+const isAd = (a: CatalogAction) => /^(ad-manager|ad-publishing)/.test(a.category);
+const SHIPPED = shippedActions();
+const gated = (a: CatalogAction) => requiresActionConfirmation(inferActionRisk(a, SHIPPED));
+
+test("every non-GET ad action requires confirmation, under every id", () => {
+  const offenders = shippedActions().filter((a) => isAd(a) && a.method !== "GET" && !gated(a)).map((a) => a.id);
+  assert.deepEqual(offenders, [], `ungated ad writes: ${offenders.join(", ")}`);
+});
+
+test("ad GETs stay ungated", () => {
+  const offenders = shippedActions().filter((a) => isAd(a) && a.method === "GET" && gated(a)).map((a) => a.id);
+  assert.deepEqual(offenders, []);
+});
+
+test("twins (same method + path) gate identically", () => {
+  const all = shippedActions();
+  const byKey = new Map<string, CatalogAction[]>();
+  for (const a of all) byKey.set(`${a.method} ${a.path}`, [...(byKey.get(`${a.method} ${a.path}`) ?? []), a]);
+  const split = [...byKey.values()].filter((g) => g.length > 1 && new Set(g.map(gated)).size > 1)
+    .map((g) => g.map((a) => `${a.id}=${gated(a)}`).join(" / "));
+  assert.deepEqual(split, [], `twins that disagree: ${split.join("; ")}`);
 });
