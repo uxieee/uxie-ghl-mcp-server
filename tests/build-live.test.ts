@@ -24,7 +24,7 @@ const prev = (id: string, method: string, path: string, extra: Partial<CatalogAc
   requestBody: null, versionHeader: id.split("__")[0].endsWith("-v3") ? "2021-07-28" : "2021-04-15", ...extra,
 });
 
-function world(over: { v3?: [ListedOp, OpenAPIDoc][]; dated?: [ListedOp, OpenAPIDoc][]; previous?: CatalogAction[]; undocumented?: any[]; acceptUndocumented?: boolean; deprecated?: any } = {}) {
+function world(over: { v3?: [ListedOp, OpenAPIDoc][]; dated?: [ListedOp, OpenAPIDoc][]; previous?: CatalogAction[]; undocumented?: any[]; acceptUndocumented?: boolean; deprecated?: any; idOverrides?: Record<string, string> } = {}) {
   const v3 = over.v3 ?? [
     [op("v3", "contacts", "update-contact", "PUT", "/contacts/{contactId}"), doc("PUT", "/contacts/{contactId}", { params: [{ name: "contactId", in: "path", required: true, schema: { type: "string" } }] })],
     [op("v3", "ad-publishing", "fb-get-pages", "GET", "/ad-publishing/facebook/pages"), doc("GET", "/ad-publishing/facebook/pages")],
@@ -49,7 +49,7 @@ function world(over: { v3?: [ListedOp, OpenAPIDoc][]; dated?: [ListedOp, OpenAPI
     deprecated: over.deprecated ?? { v3: new Map(), "2021-07-28": new Map([["POST /emails/builder", null]]) },
     previous: { generatedAt: "", baseUrl: "https://services.leadconnectorhq.com", totalActions: previous.length, categories: [], actions: previous },
     undocumented: over.undocumented ?? [], acceptUndocumented: over.acceptUndocumented ?? false,
-    today: "2026-10-29", fetchedAt: "2026-10-29T00:00:00Z", floors: { v3: 1, "2021-07-28": 1 },
+    today: "2026-10-29", fetchedAt: "2026-10-29T00:00:00Z", floors: { v3: 1, "2021-07-28": 1 }, idOverrides: over.idOverrides,
   });
 }
 const get = (r: ReturnType<typeof world>, id: string) => r.catalog!.actions.find((a) => a.id === id)!;
@@ -133,4 +133,19 @@ test("a missing page or a count below the floor fails the build and returns no c
   assert.equal(r.catalog, null);
   assert.match(r.failures.join("\n"), /no spec for https:\/\/d\/docs\/ghl\/users\/x\.md/);
   assert.match(r.failures.join("\n"), /v3: 1 ops, floor 800/);
+});
+
+test("a new op whose slug id is taken by a carried-over action gets the id data/id-overrides.json names", () => {
+  // Real case (2026-10-29): ad-manager__fb-upsert-ad was PUT …/ads-v2 (now undocumented); the dated tree lists PUT …/ads as fb-upsert-ad.
+  const previous = [prev("ad-manager__fb-upsert-ad", "PUT", "/ad-publishing/facebook/ads-v2"), prev("ad-manager__fb-get-pages", "GET", "/ad-publishing/facebook/pages")];
+  const dated: [ListedOp, OpenAPIDoc][] = [
+    [op("2021-07-28", "ad-publishing", "fb-get-pages", "GET", "/ad-publishing/facebook/pages"), doc("GET", "/ad-publishing/facebook/pages", { version: "2021-07-28" })],
+    [op("2021-07-28", "ad-publishing", "fb-upsert-ad", "PUT", "/ad-publishing/facebook/ads"), doc("PUT", "/ad-publishing/facebook/ads", { version: "2021-07-28" })],
+  ];
+  const undocumented = [{ id: "ad-manager__fb-upsert-ad", opKey: "PUT /ad-publishing/facebook/ads-v2", since: "2026-10-29", note: "x" }];
+  const clash = world({ dated, previous, undocumented });
+  assert.match(clash.failures.join("\n"), /collision: ad-manager__fb-upsert-ad/);
+  const named = world({ dated, previous, undocumented, idOverrides: { "2021-07-28 PUT /ad-publishing/facebook/ads": "ad-manager__fb-upsert-ad-2021-07-28" } });
+  assert.deepEqual(named.failures, []);
+  assert.ok(get(named, "ad-manager__fb-upsert-ad-2021-07-28")); assert.ok(get(named, "ad-manager__fb-upsert-ad"));
 });

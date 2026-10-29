@@ -30,6 +30,8 @@ export interface BuildInput {
   floors: Record<Tree, number>;
   /** Path prefixes whose v3 ops keep their previous Version header (GHL refused the documented one live). */
   headerHolds?: string[];
+  /** "<tree> <opKey>" → id, for a NEW op whose slug id is already taken (data/id-overrides.json; a collision fails the build until named here). */
+  idOverrides?: Record<string, string>;
 }
 export interface BuildReport {
   counts: Record<string, number>;
@@ -107,7 +109,7 @@ export function buildFromLive(input: BuildInput): { catalog: Catalog | null; rep
         }
       } else {
         const category = homeOf.get(`${t} ${o.service}`) ?? `${o.service}${t === "v3" ? "-v3" : ""}`;
-        const id = `${category}__${o.slug}`;
+        const id = input.idOverrides?.[`${t} ${key}`] ?? `${category}__${o.slug}`;
         report.newIds.push(id);
         out.push(shape(id, category, fresh.versionHeader));
       }

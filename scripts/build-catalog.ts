@@ -202,6 +202,7 @@ async function main() {
     trees, deprecated, previous, fetchedAt, floors: FLOORS, today: fetchedAt.slice(0, 10), acceptUndocumented,
     undocumented: readJSON<UndocumentedEntry[]>("undocumented.json", []),
     headerHolds: readJSON<string[]>("header-holds.json", []),
+    idOverrides: readJSON<Record<string, string>>("id-overrides.json", {}),
   });
   const failures = [...fetchFailures, ...result.failures];
   const r = result.report;

@@ -1,0 +1,200 @@
+[
+  {
+    "id": "ad-manager__fb-upsert-ad",
+    "opKey": "PUT /ad-publishing/facebook/ads-v2",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__get-all-custom-subtypes",
+    "opKey": "GET /conversations/preferences/custom-subtypes",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__create-custom-subtype",
+    "opKey": "POST /conversations/preferences/custom-subtypes",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__update-custom-subtype",
+    "opKey": "PUT /conversations/preferences/custom-subtypes/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__get-contact-unsubscription-status",
+    "opKey": "GET /conversations/preferences/unsubscriptions/status",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__user-subscription-change",
+    "opKey": "POST /conversations/preferences/unsubscriptions/user-change",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__send-review-reply",
+    "opKey": "POST /conversations/messages/review-reply",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__initiate-file-upload",
+    "opKey": "POST /conversations/messages/upload/initiate",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations__complete-file-upload",
+    "opKey": "POST /conversations/messages/upload/complete",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-google-oauth",
+    "opKey": "GET /social-media-posting/oauth/google/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-google-locations",
+    "opKey": "GET /social-media-posting/oauth/{}/google/locations/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__set-google-locations",
+    "opKey": "POST /social-media-posting/oauth/{}/google/locations/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-facebook-oauth",
+    "opKey": "GET /social-media-posting/oauth/facebook/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-facebook-page-group",
+    "opKey": "GET /social-media-posting/oauth/{}/facebook/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__attach-facebook-page-group",
+    "opKey": "POST /social-media-posting/oauth/{}/facebook/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-instagram-oauth",
+    "opKey": "GET /social-media-posting/oauth/instagram/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-instagram-page-group",
+    "opKey": "GET /social-media-posting/oauth/{}/instagram/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__attach-instagram-page-group",
+    "opKey": "POST /social-media-posting/oauth/{}/instagram/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-linkedin-oauth",
+    "opKey": "GET /social-media-posting/oauth/linkedin/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-linkedin-page-profile",
+    "opKey": "GET /social-media-posting/oauth/{}/linkedin/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__attach-linkedin-page-profile",
+    "opKey": "POST /social-media-posting/oauth/{}/linkedin/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-twitter-oauth",
+    "opKey": "GET /social-media-posting/oauth/twitter/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-twitter-profile",
+    "opKey": "GET /social-media-posting/oauth/{}/twitter/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__attach-twitter-profile",
+    "opKey": "POST /social-media-posting/oauth/{}/twitter/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-tiktok-oauth",
+    "opKey": "GET /social-media-posting/oauth/tiktok/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-tiktok-profile",
+    "opKey": "GET /social-media-posting/oauth/{}/tiktok/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__attach-tiktok-profile",
+    "opKey": "POST /social-media-posting/oauth/{}/tiktok/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__start-tiktok-business-oauth",
+    "opKey": "GET /social-media-posting/oauth/tiktok-business/start",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "social-media-posting__get-tiktok-business-profile",
+    "opKey": "GET /social-media-posting/oauth/{}/tiktok-business/accounts/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "chat-widget-v3__getWidget",
+    "opKey": "GET /chat-widget/public/config/{}",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations-v3__send-review-reply",
+    "opKey": "POST /conversations/messages/review-reply",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations-v3__initiate-file-upload",
+    "opKey": "POST /conversations/messages/upload/initiate",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  },
+  {
+    "id": "conversations-v3__complete-file-upload",
+    "opKey": "POST /conversations/messages/upload/complete",
+    "since": "2026-10-29",
+    "note": "not in either live docs tree"
+  }
+]

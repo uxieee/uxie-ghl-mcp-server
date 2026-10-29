@@ -1,0 +1,1340 @@
+{
+  "counts": {
+    "v3 ops": 812,
+    "2021-07-28 ops": 740,
+    "actions": 1603,
+    "opKeys": 898,
+    "new": 396,
+    "carried": 51
+  },
+  "newIds": [
+    "ad-publishing-v3__google-get-publishing-progress",
+    "affiliate-manager-v3__create-affiliate",
+    "affiliate-manager-v3__create-commission",
+    "affiliate-manager-v3__create-customer-lead",
+    "affiliate-manager-v3__create-payout-method",
+    "affiliate-manager-v3__delete-affiliate-media",
+    "affiliate-manager-v3__delete-commission",
+    "affiliate-manager-v3__delete-customer",
+    "affiliate-manager-v3__delete-payout-method",
+    "affiliate-manager-v3__deny-commission",
+    "affiliate-manager-v3__get-campaign",
+    "affiliate-manager-v3__list-affiliate-media",
+    "affiliate-manager-v3__list-campaigns",
+    "affiliate-manager-v3__list-country-bank-mappings",
+    "affiliate-manager-v3__list-customers",
+    "affiliate-manager-v3__list-payout-methods",
+    "affiliate-manager-v3__mark-payout-method-primary",
+    "affiliate-manager-v3__move-affiliate-campaign",
+    "affiliate-manager-v3__update-affiliate",
+    "affiliate-manager-v3__update-affiliate-media",
+    "affiliate-manager-v3__update-affiliate-referral-id",
+    "affiliate-manager-v3__update-affiliate-status",
+    "affiliate-manager-v3__update-affiliate-suspension",
+    "affiliate-manager-v3__update-commission-status",
+    "affiliate-manager-v3__update-customer-state",
+    "affiliate-manager-v3__update-payout-method",
+    "affiliate-manager-v3__upload-affiliate-tax-form",
+    "affiliate-manager-v3__validate-customer-lead",
+    "affiliate-manager-v3__validate-referral-id",
+    "agent-studio-v3__execute-managed-agent",
+    "agent-studio-v3__get-managed-agent",
+    "agent-studio-v3__list-managed-agents",
+    "blogs-v3__get-blog-post-by-id",
+    "brand-boards-v3__create-design-kit",
+    "brand-boards-v3__delete-design-kit",
+    "brand-boards-v3__get-design-kit",
+    "brand-boards-v3__list-design-kits",
+    "brand-boards-v3__set-default-design-kit",
+    "brand-boards-v3__update-design-kit",
+    "clientportal-ai-v3__answer-agent-run-questions-batch",
+    "clientportal-ai-v3__apply-project-change",
+    "clientportal-ai-v3__cli-get-project-context",
+    "clientportal-ai-v3__cli-sandbox-checkpoint",
+    "clientportal-ai-v3__cli-sandbox-edit",
+    "clientportal-ai-v3__cli-sandbox-register-extension-route",
+    "clientportal-ai-v3__cli-sandbox-search",
+    "clientportal-ai-v3__cli-sandbox-view",
+    "clientportal-ai-v3__create-mobile-experience-preview-token",
+    "clientportal-ai-v3__create-project",
+    "clientportal-ai-v3__get-agent-run",
+    "clientportal-ai-v3__get-app-customization",
+    "clientportal-ai-v3__get-mobile-apk-build",
+    "clientportal-ai-v3__get-project",
+    "clientportal-ai-v3__get-project-change-schema",
+    "clientportal-ai-v3__get-project-publish-job",
+    "clientportal-ai-v3__get-project-publishability",
+    "clientportal-ai-v3__list-agent-runs-for-project",
+    "clientportal-ai-v3__list-mobile-customization-revisions",
+    "clientportal-ai-v3__list-project-custom-domains",
+    "clientportal-ai-v3__list-projects",
+    "clientportal-ai-v3__list-templates",
+    "clientportal-ai-v3__plan-project-change",
+    "clientportal-ai-v3__promote-project-to-production",
+    "clientportal-ai-v3__publish-app-customization",
+    "clientportal-ai-v3__request-mobile-apk-build",
+    "clientportal-ai-v3__restore-mobile-customization-revision",
+    "clientportal-ai-v3__submit-agent-run",
+    "clientportal-ai-v3__update-project",
+    "contacts-v3__lookup-contact",
+    "conversation-ai-v3__create-agent-working-hours",
+    "conversation-ai-v3__delete-agent-working-hours",
+    "conversation-ai-v3__get-agent-actions",
+    "conversation-ai-v3__get-agent-working-hours",
+    "conversation-ai-v3__update-agent-working-hours",
+    "countdown-timer-v3__create-countdown-timer",
+    "countdown-timer-v3__delete-countdown-timer",
+    "countdown-timer-v3__get-countdown-timer",
+    "countdown-timer-v3__list-countdown-timer-templates",
+    "countdown-timer-v3__list-countdown-timers",
+    "countdown-timer-v3__update-countdown-timer",
+    "courses-v3__create-category",
+    "courses-v3__create-course",
+    "courses-v3__create-enrollment",
+    "courses-v3__create-lesson",
+    "courses-v3__create-lesson-assignment",
+    "courses-v3__create-lesson-quiz",
+    "courses-v3__create-offer",
+    "courses-v3__delete-assignment",
+    "courses-v3__delete-category",
+    "courses-v3__delete-course",
+    "courses-v3__delete-enrollment",
+    "courses-v3__delete-lesson",
+    "courses-v3__delete-offer",
+    "courses-v3__delete-quiz",
+    "courses-v3__get-assessment",
+    "courses-v3__get-category",
+    "courses-v3__get-course",
+    "courses-v3__get-lesson",
+    "courses-v3__get-lesson-assignment",
+    "courses-v3__get-lesson-quiz",
+    "courses-v3__get-offer",
+    "courses-v3__get-quiz-questions",
+    "courses-v3__list-assessments",
+    "courses-v3__list-bulk-progress",
+    "courses-v3__list-categories",
+    "courses-v3__list-category-progress",
+    "courses-v3__list-completions",
+    "courses-v3__list-courses",
+    "courses-v3__list-enrollments",
+    "courses-v3__list-lessons",
+    "courses-v3__list-offers",
+    "courses-v3__review-assessment",
+    "courses-v3__sequence-categories",
+    "courses-v3__sequence-lessons",
+    "courses-v3__update-assignment",
+    "courses-v3__update-category",
+    "courses-v3__update-course",
+    "courses-v3__update-lesson",
+    "courses-v3__update-offer",
+    "courses-v3__update-quiz",
+    "courses-v3__upsert-quiz-questions",
+    "files-v3__get-file-by-slug",
+    "knowledge-base-v3__delete-file",
+    "knowledge-base-v3__get-file-by-id",
+    "knowledge-base-v3__get-files-by-knowledge-base-public",
+    "knowledge-base-v3__get-sitemap-preview",
+    "knowledge-base-v3__upload-file",
+    "objects-v3__create-note",
+    "objects-v3__delete-note",
+    "objects-v3__get-note",
+    "objects-v3__restore-note",
+    "objects-v3__search-notes",
+    "objects-v3__update-note",
+    "objects-v3__update-note-attachments",
+    "objects-v3__update-note-relations",
+    "projects-v3__add-projects-list-task",
+    "projects-v3__batch-projects-tasks",
+    "projects-v3__create-projects-folder-list",
+    "projects-v3__create-projects-list-task",
+    "projects-v3__create-projects-recurring-task",
+    "projects-v3__create-projects-space",
+    "projects-v3__create-projects-space-folder",
+    "projects-v3__create-projects-space-list",
+    "projects-v3__create-projects-task-comment",
+    "projects-v3__delete-projects-folder",
+    "projects-v3__delete-projects-folder-user",
+    "projects-v3__delete-projects-list",
+    "projects-v3__delete-projects-list-user",
+    "projects-v3__delete-projects-recurring-task",
+    "projects-v3__delete-projects-space",
+    "projects-v3__delete-projects-space-user",
+    "projects-v3__delete-projects-task",
+    "projects-v3__delete-projects-task-comment",
+    "projects-v3__get-projects-folder",
+    "projects-v3__get-projects-folder-lists",
+    "projects-v3__get-projects-folder-users",
+    "projects-v3__get-projects-list",
+    "projects-v3__get-projects-list-statuses",
+    "projects-v3__get-projects-list-users",
+    "projects-v3__get-projects-recurring-task",
+    "projects-v3__get-projects-space",
+    "projects-v3__get-projects-space-folders",
+    "projects-v3__get-projects-space-lists",
+    "projects-v3__get-projects-space-statuses",
+    "projects-v3__get-projects-space-users",
+    "projects-v3__get-projects-spaces",
+    "projects-v3__get-projects-task",
+    "projects-v3__get-projects-task-lists",
+    "projects-v3__list-projects-list-tasks",
+    "projects-v3__list-projects-task-comments",
+    "projects-v3__remove-projects-list-task",
+    "projects-v3__search-projects-tasks",
+    "projects-v3__set-projects-task-home-list",
+    "projects-v3__update-projects-folder",
+    "projects-v3__update-projects-list",
+    "projects-v3__update-projects-recurring-task",
+    "projects-v3__update-projects-space",
+    "projects-v3__update-projects-task",
+    "projects-v3__update-projects-task-comment",
+    "projects-v3__upsert-projects-space-statuses",
+    "saas-v3__get-location-wallet-balance",
+    "saas-v3__list-agency-wallet-transactions",
+    "saas-v3__list-location-wallet-transactions",
+    "saas-v3__remove-attached-config",
+    "saas-v3__update-location-wallet-balance",
+    "social-planner-v3__add-watermark-on-image",
+    "social-planner-v3__create-watermark",
+    "social-planner-v3__delete-watermark",
+    "social-planner-v3__get-all-watermarks",
+    "social-planner-v3__get-community-users",
+    "social-planner-v3__get-watermark",
+    "social-planner-v3__update-watermark",
+    "social-planner-v3__validate-community-user-membership",
+    "workflows-v3__create-workflow",
+    "workflows-v3__delete-workflow",
+    "workflows-v3__get-workflow-definition",
+    "workflows-v3__get-workflow-log-statistics",
+    "workflows-v3__get-workflow-logs",
+    "workflows-v3__get-workflow-step-types",
+    "workflows-v3__search-workflows",
+    "workflows-v3__update-workflow-definition",
+    "workflows-v3__update-workflow-status",
+    "workflows-v3__validate-workflow-definition",
+    "ad-manager__fb-get-campaign-publishing-progress",
+    "ad-manager__fb-upsert-ad-2021-07-28",
+    "ad-manager__google-get-publishing-progress",
+    "affiliate-manager__create-affiliate",
+    "affiliate-manager__create-commission",
+    "affiliate-manager__create-customer-lead",
+    "affiliate-manager__create-payout-method",
+    "affiliate-manager__delete-affiliate-media",
+    "affiliate-manager__delete-commission",
+    "affiliate-manager__delete-customer",
+    "affiliate-manager__delete-payout-method",
+    "affiliate-manager__deny-commission",
+    "affiliate-manager__get-campaign",
+    "affiliate-manager__list-affiliate-media",
+    "affiliate-manager__list-campaigns",
+    "affiliate-manager__list-country-bank-mappings",
+    "affiliate-manager__list-customers",
+    "affiliate-manager__list-payout-methods",
+    "affiliate-manager__mark-payout-method-primary",
+    "affiliate-manager__move-affiliate-campaign",
+    "affiliate-manager__update-affiliate",
+    "affiliate-manager__update-affiliate-media",
+    "affiliate-manager__update-affiliate-referral-id",
+    "affiliate-manager__update-affiliate-status",
+    "affiliate-manager__update-affiliate-suspension",
+    "affiliate-manager__update-commission-status",
+    "affiliate-manager__update-customer-state",
+    "affiliate-manager__update-payout-method",
+    "affiliate-manager__upload-affiliate-tax-form",
+    "affiliate-manager__validate-customer-lead",
+    "affiliate-manager__validate-referral-id",
+    "blogs__get-blog-post-by-id",
+    "brand-boards__create-brand-voice-v-1",
+    "brand-boards__delete-brand-voice-v-1",
+    "brand-boards__get-brand-voice-v-1",
+    "brand-boards__list-brand-voices-v-1",
+    "brand-boards__set-default-brand-voice-v-1",
+    "brand-boards__update-brand-voice-v-1",
+    "calendars__create-calendar-schedule",
+    "calendars__create-service-booking",
+    "calendars__create-service-catalog",
+    "calendars__create-service-location",
+    "calendars__delete-service-booking",
+    "calendars__delete-service-catalog",
+    "calendars__delete-service-location",
+    "calendars__get-calendar-schedule",
+    "calendars__get-service-booking-by-id",
+    "calendars__get-service-bookings",
+    "calendars__get-service-catalog-by-id",
+    "calendars__get-service-location-by-id",
+    "calendars__get-service-locations",
+    "calendars__get-services-catalog",
+    "calendars__update-calendar-schedule",
+    "calendars__update-service-booking",
+    "calendars__update-service-catalog",
+    "calendars__update-service-location",
+    "chat-widget__clone-chat-widget",
+    "chat-widget__create-chat-widget",
+    "chat-widget__delete-chat-widget",
+    "chat-widget__get-chat-widget-by-id",
+    "chat-widget__list-chat-widgets",
+    "chat-widget__patch-chat-widget",
+    "chat-widget__update-chat-widget",
+    "conversation-ai__create-agent-working-hours",
+    "conversation-ai__delete-agent-working-hours",
+    "conversation-ai__get-agent-actions",
+    "conversation-ai__get-agent-working-hours",
+    "conversation-ai__update-agent-working-hours",
+    "conversations__update-email-message-status",
+    "emails__create-email-campaign-v-2",
+    "emails__create-email-template-v-2",
+    "emails__create-template-folder-v-2",
+    "emails__delete-campaign-v-2",
+    "emails__delete-email-template-v-2",
+    "emails__fetch-bulk-action-campaigns",
+    "emails__fetch-workflow-campaigns",
+    "emails__get-bulk-action-campaign-v-2",
+    "emails__get-campaign-stats",
+    "emails__get-campaign-stats-under-campaigns-v-2",
+    "emails__get-email-campaign-v-2",
+    "emails__get-email-template-v-2",
+    "emails__get-workflow-campaign-v-2",
+    "emails__import-email-template-v-2",
+    "emails__list-bulk-action-campaigns-v-2",
+    "emails__list-email-campaigns-v-2",
+    "emails__list-email-templates-v-2",
+    "emails__list-workflow-campaigns-v-2",
+    "emails__patch-template",
+    "emails__schedule-campaign-v-2",
+    "emails__update-email-campaign-v-2",
+    "emails__update-email-template-v-2",
+    "files__get-file-by-slug",
+    "knowledge-base__delete-file",
+    "knowledge-base__get-file-by-id",
+    "knowledge-base__get-files-by-knowledge-base-public",
+    "knowledge-base__get-sitemap-preview",
+    "knowledge-base__upload-file",
+    "locations__get-conversation-channel",
+    "locations__get-location-permissions",
+    "locations__update-location-permissions",
+    "objects__create-note",
+    "objects__delete-note",
+    "objects__get-note",
+    "objects__restore-note",
+    "objects__search-notes",
+    "objects__update-note",
+    "objects__update-note-attachments",
+    "objects__update-note-relations",
+    "opportunities__create-pipeline",
+    "opportunities__delete-pipeline",
+    "opportunities__get-pipeline",
+    "opportunities__update-pipeline",
+    "projects__add-projects-list-task",
+    "projects__batch-projects-tasks",
+    "projects__create-projects-folder-list",
+    "projects__create-projects-list-task",
+    "projects__create-projects-recurring-task",
+    "projects__create-projects-space",
+    "projects__create-projects-space-folder",
+    "projects__create-projects-space-list",
+    "projects__create-projects-task-comment",
+    "projects__delete-projects-folder",
+    "projects__delete-projects-folder-user",
+    "projects__delete-projects-list",
+    "projects__delete-projects-list-user",
+    "projects__delete-projects-recurring-task",
+    "projects__delete-projects-space",
+    "projects__delete-projects-space-user",
+    "projects__delete-projects-task",
+    "projects__delete-projects-task-comment",
+    "projects__get-projects-folder",
+    "projects__get-projects-folder-lists",
+    "projects__get-projects-folder-users",
+    "projects__get-projects-list",
+    "projects__get-projects-list-statuses",
+    "projects__get-projects-list-users",
+    "projects__get-projects-recurring-task",
+    "projects__get-projects-space",
+    "projects__get-projects-space-folders",
+    "projects__get-projects-space-lists",
+    "projects__get-projects-space-statuses",
+    "projects__get-projects-space-users",
+    "projects__get-projects-spaces",
+    "projects__get-projects-task",
+    "projects__get-projects-task-lists",
+    "projects__list-projects-list-tasks",
+    "projects__list-projects-task-comments",
+    "projects__remove-projects-list-task",
+    "projects__search-projects-tasks",
+    "projects__set-projects-task-home-list",
+    "projects__update-projects-folder",
+    "projects__update-projects-list",
+    "projects__update-projects-recurring-task",
+    "projects__update-projects-space",
+    "projects__update-projects-task",
+    "projects__update-projects-task-comment",
+    "projects__upsert-projects-space-statuses",
+    "saas-api__allow-attach-rebilling",
+    "saas-api__get-location-wallet-balance",
+    "saas-api__update-location-wallet-balance",
+    "social-media-posting__add-watermark-on-image",
+    "social-media-posting__attach-oauth-accounts",
+    "social-media-posting__clone-queue-item",
+    "social-media-posting__create-comment",
+    "social-media-posting__create-like",
+    "social-media-posting__create-queue",
+    "social-media-posting__create-queue-item",
+    "social-media-posting__create-watermark",
+    "social-media-posting__delete-current-active-post-and-schedule-next",
+    "social-media-posting__delete-like",
+    "social-media-posting__delete-queue-item",
+    "social-media-posting__delete-watermark",
+    "social-media-posting__discard-edit-session",
+    "social-media-posting__fetch-available-categories",
+    "social-media-posting__fetch-calendar-list",
+    "social-media-posting__fetch-edit-session-calendar",
+    "social-media-posting__fetch-queue-by-id",
+    "social-media-posting__fetch-queue-items",
+    "social-media-posting__fetch-queues",
+    "social-media-posting__fetch-slots",
+    "social-media-posting__get-all-watermarks",
+    "social-media-posting__get-comment-list",
+    "social-media-posting__get-community-users",
+    "social-media-posting__get-oauth-accounts",
+    "social-media-posting__get-watermark",
+    "social-media-posting__reset-queue-item",
+    "social-media-posting__save-edit-session",
+    "social-media-posting__start-edit-session",
+    "social-media-posting__start-oauth",
+    "social-media-posting__update-queue",
+    "social-media-posting__update-queue-item",
+    "social-media-posting__update-watermark",
+    "social-media-posting__validate-community-user-membership"
+  ],
+  "carried": [
+    {
+      "id": "ad-manager__fb-upsert-ad",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__get-all-custom-subtypes",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__create-custom-subtype",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__update-custom-subtype",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__get-contact-unsubscription-status",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__user-subscription-change",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__send-review-reply",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__initiate-file-upload",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations__complete-file-upload",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-google-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-google-locations",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__set-google-locations",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-facebook-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-facebook-page-group",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__attach-facebook-page-group",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-instagram-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-instagram-page-group",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__attach-instagram-page-group",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-linkedin-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-linkedin-page-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__attach-linkedin-page-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-twitter-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-twitter-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__attach-twitter-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-tiktok-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-tiktok-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__attach-tiktok-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__start-tiktok-business-oauth",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "social-media-posting__get-tiktok-business-profile",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "brand-boards-v3__getBrandBoardsByLocation",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "brand-boards-v3__getBrandBoardById",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "brand-boards-v3__updateBrandBoard",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "brand-boards-v3__deleteBrandBoard",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "brand-boards-v3__createBrandBoard",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "chat-widget-v3__getWidget",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations-v3__send-review-reply",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations-v3__initiate-file-upload",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "conversations-v3__complete-file-upload",
+      "why": "undocumented since 2026-10-29"
+    },
+    {
+      "id": "saas-v3__locations-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__generate-payment-link-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__bulk-disable-saas-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__enable-saas-location-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__pause-location-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__update-rebilling-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__get-agency-plans-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__get-location-subscription-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__bulk-enable-saas-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__get-saas-locations-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__get-saas-plan-deprecated",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__getLocationWalletBalance",
+      "why": "documented only under 2021-07-28"
+    },
+    {
+      "id": "saas-v3__updateLocationWalletBalance",
+      "why": "documented only under 2021-07-28"
+    }
+  ],
+  "aliases": [
+    {
+      "id": "ad-publishing-v3__fb-add-custom-audience-member",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-publishing-v3__fb-batch-update-audience-members",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-custom-audience",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-custom-audience-by-id",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-publishing-v3__fb-remove-custom-audience-member",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-publishing-v3__fb-update-custom-audience",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "conversations-v3__update-email-message-status",
+      "aliases": {
+        "id": "emailMessageId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-add-custom-audience-member",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-batch-update-audience-members",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-delete-adset",
+      "aliases": {
+        "adsetId": "adSetId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-delete-custom-audience",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-duplicate-adset",
+      "aliases": {
+        "adsetId": "adSetId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-get-custom-audience-by-id",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-pause-adset",
+      "aliases": {
+        "adsetId": "adSetId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-remove-custom-audience-member",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-resume-adset",
+      "aliases": {
+        "adsetId": "adSetId"
+      }
+    },
+    {
+      "id": "ad-manager__fb-update-custom-audience",
+      "aliases": {
+        "audienceId": "customAudienceId"
+      }
+    }
+  ],
+  "headerChanges": [
+    {
+      "id": "ad-publishing-v3__fb-add-custom-audience-member",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-batch-update-audience-members",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-create-conversation-form",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-create-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-create-page-lead-form",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-ad-account",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-adset",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-custom-audience",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-delete-page",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-duplicate-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-duplicate-adset",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-duplicate-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-ad-account",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-ad-accounts",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-campaign-reporting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-conversation-forms",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-current-user",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-custom-audience-by-id",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-custom-audiences",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-entity",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-instagram-accounts",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-lead-form",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-page-lead-forms",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-pages",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-pixels",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-reporting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-get-reporting-list",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-pause-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-pause-adset",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-pause-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-publish-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-remove-custom-audience-member",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-resume-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-resume-adset",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-resume-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-search-targeting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-set-default-page",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-update-custom-audience",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-upsert-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-upsert-adset",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-upsert-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__fb-upsert-pixel",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-create-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-create-offline-user-list-job",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-delete-ad-account",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-delete-conversion",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-delete-segment",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-ad-account-details",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-ad-accounts",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-assets",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-audience-by-id",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-audiences",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-campaign-by-id",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-campaign-reporting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-conversion-by-id",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-conversion-goals",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-conversions",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-current-user",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-entity",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-keyword-ideas",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-reporting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-reporting-list",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-segment-by-id",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-segments",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-get-target-interests",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-publish-ad",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-search-targeting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-upsert-assets",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-upsert-audience",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-upsert-campaign",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-upsert-conversion",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__google-upsert-segment",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-create-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-create-lead-form",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-delete-ad-account",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-ad-account-details",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-ad-accounts",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-ad-analytics",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-campaign-group",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-campaign-group-reporting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-current-user",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-integration",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-lead-forms",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-get-reporting-list",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-publish-campaign-group",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-search-targeting",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-update-ad-status",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "ad-publishing-v3__li-upsert-campaign-group",
+      "from": "2021-07-28",
+      "to": "v3"
+    },
+    {
+      "id": "conversations-v3__cancel-scheduled-email-message",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "conversations-v3__get-email-by-id",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "funnels-v3__getFunnels",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "funnels-v3__getPagesByFunnelId",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "funnels-v3__getPagesCountByFunnelId",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "marketplace-v3__charge",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "marketplace-v3__deleteCharge",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "marketplace-v3__getCharges",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "marketplace-v3__getSpecificCharge",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "marketplace-v3__hasFunds",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "phone-system-v3__getNumberPoolList",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "phone-system-v3__listAvailableNumbersForACountry",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__create-shipping-carrier",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__create-shipping-rate",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__create-shipping-zone",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__create-store-setting",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__delete-shipping-carrier",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__delete-shipping-rate",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__delete-shipping-zone",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__get-available-shipping-zones",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__get-shipping-carriers",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__get-shipping-rates",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__get-shipping-zones",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__get-store-settings",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__list-shipping-carriers",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__list-shipping-rates",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__list-shipping-zones",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__update-shipping-carrier",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__update-shipping-rate",
+      "from": null,
+      "to": "v3"
+    },
+    {
+      "id": "store-v3__update-shipping-zone",
+      "from": null,
+      "to": "v3"
+    }
+  ]
+}
