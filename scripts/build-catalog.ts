@@ -1,40 +1,27 @@
 /**
- * Downloads all GHL OpenAPI specs from GitHub and compiles them into
- * a compact action catalog for the search+execute MCP pattern.
+ * Builds data/catalog.json from GHL's LIVE API docs (W3, 2026-10-29) — the v3 tree and the dated (2021-07-28) tree, as
+ * twins. The rules live in scripts/build-live.ts; this file fetches, converts each op page's embedded OpenAPI doc with
+ * extractActions, and writes the catalogue only when the build passes.
  *
- * Usage: npx tsx scripts/build-catalog.ts
+ *   npm run build-catalog                         fetch fresh (about 1,600 pages, 1–2 minutes)
+ *   npm run build-catalog -- --offline            rebuild from .cache/live-docs/ only
+ *   npm run build-catalog -- --accept-undocumented  add newly undocumented previous ops to data/undocumented.json
+ *
+ * Until 2026-10-29 the source was GitHub's GoHighLevel/highlevel-api-docs, which stopped moving in June while the live
+ * docs gained the Workflows and Courses APIs (203 operations behind).
  */
 
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { applyCatalogOverrides } from "../src/catalog-overrides.js";
+import { TREES, cachedFetch, listOps, fetchOpSpec, deprecatedOps, llmsFullUrl, type Tree, type OpenAPIDoc } from "./live-docs.js";
+import { buildFromLive, type UndocumentedEntry } from "./build-live.js";
 
-// Repo + ref are configurable so the catalog can be rebuilt from a fork or from
-// a preview branch (e.g. to adopt API v3 specs before they merge to main).
-const REPO = process.env.GHL_DOCS_REPO || "GoHighLevel/highlevel-api-docs";
-const BRANCH = process.env.GHL_DOCS_REF || "main";
-// The build is pinned to ONE commit of the docs repo, resolved once at the start: every spec file is
-// read at that commit, and the catalogue records it as `source`. That makes "is our catalogue current?"
-// one comparison (our source.sha vs the branch head) instead of a full rebuild, and stops a build that
-// straddles a docs push from mixing two versions of the specs. If the commit cannot be resolved the
-// build still runs against the branch and records sha: null.
-let REF = BRANCH;
-let SOURCE: { repo: string; ref: string; sha: string | null; committedAt: string | null } = { repo: REPO, ref: BRANCH, sha: null, committedAt: null };
-async function resolveSource(): Promise<void> {
-  try {
-    const c = await fetchJSON(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`);
-    if (typeof c?.sha === "string") {
-      SOURCE = { repo: REPO, ref: BRANCH, sha: c.sha, committedAt: c.commit?.committer?.date ?? null };
-      REF = c.sha;
-    }
-  } catch (e) {
-    console.warn(`could not resolve ${REPO}@${BRANCH} to a commit (${(e as Error).message}); building against the branch, source.sha = null`);
-  }
-}
-// GHL published API v3 as a parallel spec set (apps/v3/*-v3.json) on 2026-06-19,
-// keeping the v2 specs in apps/*.json. Both surfaces are live on the same host,
-// selected per-request via the Version header, so the catalog carries both.
-const APPS_DIRS = ["apps", "apps/v3"];
 const MIN_ACTIONS = 1100;
 const MIN_CATEGORIES = 75;
+const FLOORS: Record<Tree, number> = { v3: 800, "2021-07-28": 700 };
+const data = (f: string) => fileURLToPath(new URL(`../data/${f}`, import.meta.url));
+const readJSON = <T>(f: string, fallback: T): T => (existsSync(data(f)) ? JSON.parse(readFileSync(data(f), "utf8")) : fallback);
 
 interface CatalogAction {
   id: string;
@@ -65,28 +52,6 @@ interface RequestBodyInfo {
   schema: Record<string, unknown>;
 }
 
-async function fetchJSON(url: string): Promise<any> {
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/vnd.github.v3+json",
-      "User-Agent": "ghl-mcp-catalog-builder",
-    },
-  });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`);
-  return res.json();
-}
-
-async function fetchFileContent(path: string): Promise<any> {
-  // Fetch via the raw CDN, which has no API rate limit. The GitHub contents API
-  // is capped at 60 requests/hour unauthenticated, and a full build pulls 40+
-  // specs — enough to risk a mid-build rate-limit failure.
-  const url = `https://raw.githubusercontent.com/${REPO}/${REF}/${path}`;
-  const res = await fetch(url, {
-    headers: { "User-Agent": "ghl-mcp-catalog-builder" },
-  });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}: ${url}`);
-  return res.json();
-}
 
 function resolveRef(spec: any, ref: string): any {
   if (!ref.startsWith("#/")) return {};
@@ -212,84 +177,47 @@ export function extractActions(spec: any, category: string): CatalogAction[] {
   return actions;
 }
 
-async function listSpecFiles(): Promise<string[]> {
-  const paths: string[] = [];
-  for (const dir of APPS_DIRS) {
-    const url = `https://api.github.com/repos/${REPO}/contents/${dir}?ref=${REF}`;
-    const entries = await fetchJSON(url);
-    paths.push(
-      ...entries
-        .filter((e: any) => e.type === "file" && e.name.endsWith(".json"))
-        .map((e: any) => e.path)
-    );
-  }
-  return paths;
-}
-
 async function main() {
-  await resolveSource();
-  console.log(`docs source: ${SOURCE.repo}@${SOURCE.ref} = ${SOURCE.sha ?? "(unresolved)"} (${SOURCE.committedAt ?? "?"})`);
-  const allowPartial = process.argv.includes("--allow-partial");
-  console.log("Fetching spec file list...");
-  const specFiles = await listSpecFiles();
-  console.log(`Found ${specFiles.length} OpenAPI specs\n`);
-
-  const allActions: CatalogAction[] = [];
-  const failedSpecs: Array<{ path: string; error: string }> = [];
-
-  for (const specPath of specFiles) {
-    // Category = spec basename: apps/opportunities.json -> "opportunities",
-    // apps/v3/opportunities-v3.json -> "opportunities-v3".
-    const category = specPath.split("/").pop()!.replace(".json", "");
-    process.stdout.write(`  ${category}... `);
-
-    try {
-      const spec = await fetchFileContent(specPath);
-      const actions = extractActions(spec, category);
-      allActions.push(...actions);
-      console.log(`${actions.length} actions`);
-    } catch (err: any) {
-      const message = err instanceof Error ? err.message : String(err);
-      failedSpecs.push({ path: specPath, error: message });
-      console.log(`FAILED: ${message}`);
-    }
-
-    // Rate limit courtesy
-    await new Promise((r) => setTimeout(r, 100));
+  const offline = process.argv.includes("--offline");
+  const acceptUndocumented = process.argv.includes("--accept-undocumented");
+  const get = cachedFetch({ dir: fileURLToPath(new URL("../.cache/live-docs/", import.meta.url)), offline });
+  const fetchedAt = new Date().toISOString();
+  const trees = {} as Record<Tree, { ops: Awaited<ReturnType<typeof listOps>>["ops"]; specs: Map<string, OpenAPIDoc>; sha256: string }>;
+  const deprecated = {} as Record<Tree, Map<string, string | null>>;
+  const fetchFailures: string[] = [];
+  for (const t of TREES) {
+    const { ops, sha256 } = await listOps(t, get);
+    console.log(`${t}: ${ops.length} operations listed; fetching their pages${offline ? " from the cache" : ""}…`);
+    const specs = new Map<string, OpenAPIDoc>();
+    await Promise.all(ops.map(async (o) => {
+      try { specs.set(o.url, await fetchOpSpec(o, get)); } catch (e) { fetchFailures.push(`${o.url}: ${(e as Error).message}`); }
+    }));
+    trees[t] = { ops, specs, sha256 };
+    deprecated[t] = deprecatedOps(await get(llmsFullUrl(t)));
+    console.log(`${t}: ${specs.size} pages read, ${deprecated[t].size} marked DEPRECATED`);
   }
-
-  if (failedSpecs.length > 0 && !allowPartial) {
-    console.error("\nCatalog build failed. Refusing to write a partial catalog.");
-    for (const failure of failedSpecs) {
-      console.error(`- ${failure.path}: ${failure.error}`);
-    }
-    console.error("\nPass --allow-partial only when you intentionally want to write a partial catalog.");
+  const previous = readJSON("catalog.json", null as any);
+  if (!previous) throw new Error("data/catalog.json is missing: the build needs the previous catalogue to keep every id");
+  const result = buildFromLive({
+    trees, deprecated, previous, fetchedAt, floors: FLOORS, today: fetchedAt.slice(0, 10), acceptUndocumented,
+    undocumented: readJSON<UndocumentedEntry[]>("undocumented.json", []),
+    headerHolds: readJSON<string[]>("header-holds.json", []),
+  });
+  const failures = [...fetchFailures, ...result.failures];
+  const r = result.report;
+  console.log(`\nreport: ${JSON.stringify(r.counts)}`);
+  console.log(`  new ids: ${r.newIds.length}, carried over: ${r.carried.length}, param aliases: ${r.aliases.length}, header changes: ${r.headerChanges.length}`);
+  if (failures.length || !result.catalog) {
+    console.error(`\nCatalog build FAILED — nothing written (${failures.length} problem(s)):`);
+    for (const f of failures.slice(0, 50)) console.error(`- ${f}`);
     process.exit(1);
   }
-
-  // Build the catalog
-  const rawCatalog = {
-    generatedAt: new Date().toISOString(),
-    source: SOURCE,
-    baseUrl: process.env.GHL_BASE_URL || "https://services.leadconnectorhq.com",
-    totalActions: allActions.length,
-    categories: [...new Set(allActions.map((a) => a.category))].sort(),
-    actions: allActions,
-  };
-  const catalog = applyCatalogOverrides(rawCatalog);
-
+  const catalog = applyCatalogOverrides(result.catalog);
   assertCatalogCompleteness(catalog.totalActions, catalog.categories.length);
-
-  const outPath = new URL("../data/catalog.json", import.meta.url);
-  const { writeFileSync } = await import("fs");
-  const { fileURLToPath } = await import("url");
-  writeFileSync(fileURLToPath(outPath), JSON.stringify(catalog, null, 2));
-
-  console.log(`\nCatalog written: ${catalog.totalActions} actions across ${catalog.categories.length} categories`);
-  if (failedSpecs.length > 0) {
-    console.log(`WARNING: wrote a partial catalog with ${failedSpecs.length} failed spec file(s) because --allow-partial was set.`);
-  }
-  console.log(`Categories: ${catalog.categories.join(", ")}`);
+  writeFileSync(data("catalog.json"), JSON.stringify(catalog, null, 2));
+  writeFileSync(data("undocumented.json"), `${JSON.stringify(result.undocumented, null, 2)}\n`);
+  writeFileSync(data("build-report.json"), `${JSON.stringify(r, null, 2)}\n`);
+  console.log(`\nCatalog written: ${catalog.totalActions} actions across ${catalog.categories.length} categories (data/build-report.json has the details)`);
 }
 
 export function assertCatalogCompleteness(totalActions: number, totalCategories: number) {

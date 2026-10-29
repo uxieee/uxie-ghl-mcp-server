@@ -10,6 +10,12 @@ export interface CatalogAction {
   parameters: ParameterInfo[];
   requestBody: RequestBodyInfo | null;
   versionHeader: string | null;
+  /** GHL marks the op DEPRECATED in its live docs (llms-full.txt); `replacement` is the op its prose names, if any. A field, never description text: risk.ts gates on description words. */
+  deprecated?: { replacement: string | null };
+  /** Facts an agent should see with the op: private beta, documented only under one tree, undocumented since … */
+  notes?: string[];
+  /** Old path-placeholder name → the name GHL's live docs use now; the executor accepts either. */
+  paramAliases?: Record<string, string>;
 }
 
 export interface ParameterInfo {
@@ -29,8 +35,11 @@ export interface RequestBodyInfo {
 
 export interface Catalog {
   generatedAt: string;
-  /** Which commit of GHL's docs repo the catalogue was built from (build-catalog.ts). Absent before 2026-09-24. */
-  source?: { repo: string; ref: string; sha: string | null; committedAt: string | null };
+  /**
+   * Where the catalogue was built from. Since W3 (2026-10-29): GHL's live docs, with the sha256 of each tree's llms.txt.
+   * 2026-09-24 → 2026-10-29: a commit of GitHub's highlevel-api-docs (repo/ref/sha/committedAt).
+   */
+  source?: { site: string; fetchedAt: string; llms: Record<string, string> } | { repo: string; ref: string; sha: string | null; committedAt: string | null };
   baseUrl: string;
   totalActions: number;
   categories: string[];
