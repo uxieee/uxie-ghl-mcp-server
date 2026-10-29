@@ -3,7 +3,7 @@
  *
  * GHL publishes most endpoints twice — a legacy spec and a v3 twin at the same method and
  * path — so an uncollapsed search spends half its results showing the same operation twice.
- * And a -v3 CATEGORY does not guarantee the v3 header: 124 actions in v3 categories lack it,
+ * And a -v3 CATEGORY does not guarantee the v3 header: many actions in v3 categories lack it (the count is in the instructions),
  * so the version has to be read off the action, never inferred from its category name.
  */
 import type { CatalogAction } from "./types.js";
@@ -65,7 +65,7 @@ export function preferTwin(candidate: CatalogAction, incumbent: CatalogAction): 
   if (realV3(candidate) !== realV3(incumbent)) return realV3(candidate);
 
   // 2. Otherwise prefer the twin that declares ANY version over one declaring none. When a
-  //    -v3 twin carries no header at all (124 actions do this), the v2 spec with an explicit
+  //    -v3 twin carries no header at all (many do), the v2 spec with an explicit
   //    date version is the better-specified of the two, whatever the category is called.
   const hasVersion = (a: CatalogAction) => Boolean(a.versionHeader);
   if (hasVersion(candidate) !== hasVersion(incumbent)) return hasVersion(candidate);

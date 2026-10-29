@@ -1,7 +1,8 @@
 # @uxieee/ghl-mcp
 
-GoHighLevel's public API as an MCP server. **671 distinct operations** across 45 categories,
-covering GHL API v2 and the v3 surface.
+GoHighLevel's public API as an MCP server: **every operation in GHL's live API docs** (the v3 tree
+and the dated 2021-07-28 tree, as twins), rebuilt from the docs with `npm run build-catalog`. The
+server states the current count in its instructions.
 
 Built for agents: ranked search over the whole API, a describe step so schemas cost you nothing
 until you want one, confirmation gates on anything that spends money or sends a message, and
@@ -227,8 +228,8 @@ genuinely want every schema.
 **One row per operation.** GHL publishes most endpoints twice — a v2 spec and a v3 twin at the
 same method and path — so an uncollapsed search spent half its results showing the same thing
 twice. Search returns one row and names the other id as `alsoAvailableAs`; either works. Do not
-assume a `-v3` **category** means the v3 header: 124 actions in `-v3` categories do not carry
-one, so prefer the id search hands you.
+assume a `-v3` **category** means the v3 header: some actions in `-v3` categories do not carry
+one (the server's instructions give the current count), so prefer the id search hands you.
 
 ### Response shaping
 
@@ -268,10 +269,12 @@ Top-level arguments on `execute_action`, **not** inside `params`:
 Limitations of GHL's public API, not of this server. Search results say so explicitly, so an
 agent stops instead of hunting for endpoints that do not exist.
 
-- **Workflow internals** — `workflows__get-workflow` is a minimal read-only list. Triggers,
-  steps, conditions and AI-agent usage are UI-only.
-- **SMS template creation** — UI-only; `/locations/{locationId}/templates` supports list and
-  delete. Email templates *can* be created (`emails-v3__create-email-template`).
+- **Workflows** — GHL's public Workflows API (`workflows-v3__*`: definition, publish, search,
+  logs) is in private beta: GHL allow-lists locations and answers 403 elsewhere. Without it,
+  only the workflow list (`workflows__get-workflow`) is public.
+- **SMS template creation** — no public endpoint; `/locations/{locationId}/templates` supports
+  list and delete. Email templates *can* be created (`emails-v3__create-email-template`; GHL marks
+  the older `emails__create-template` builder deprecated).
 - **Custom-field folders** — the container must be made in the UI. Once it exists, fields move
   into it with `parentId`.
 - **Sub-account security settings** — sender domains, A2P registration and webhook signing keys

@@ -1,4 +1,4 @@
-import { SERVER_INSTRUCTIONS, WORKER_DEPRECATION_NOTICE } from "./instructions.js";
+import { serverInstructions, WORKER_DEPRECATION_NOTICE } from "./instructions.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpHandler } from "agents/mcp";
 import { buildSearchIndex } from "./search.js";
@@ -59,7 +59,7 @@ function buildServer(apiToken: string): McpServer {
     { name: "ghl-mcp-server", version: "0.1.0" },
     { instructions: `${WORKER_DEPRECATION_NOTICE}
 
-${SERVER_INSTRUCTIONS}` }
+${serverInstructions(typedCatalog)}` }
   );
 
   registerTools(server, {

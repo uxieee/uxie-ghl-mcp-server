@@ -18,7 +18,7 @@
  *       "environment": { "GHL_API_TOKEN": "pit-xxx" } } } }
  */
 
-import { SERVER_INSTRUCTIONS } from "./instructions.js";
+import { serverInstructions } from "./instructions.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { readFileSync } from "fs";
@@ -86,7 +86,7 @@ const rateLimiter = new RateLimiter(60_000, 60);
 const server = new McpServer(
   { name: "ghl-mcp-server", version: "0.1.0" },
   {
-    instructions: SERVER_INSTRUCTIONS,
+    instructions: serverInstructions(typedCatalog),
   }
 );
 

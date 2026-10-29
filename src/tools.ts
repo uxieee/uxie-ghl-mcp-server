@@ -832,7 +832,7 @@ function buildIntentGuidance(
     normalized.includes("conversation agents");
   if (mentionsConversationAi) {
     pushNote(
-      "Conversation AI bot configuration is not exposed in the public GHL API. Prompts, settings, transfer rules, and bot lists still have to be inspected in the GHL UI. The voice-ai endpoints are a different product surface."
+      "Conversation AI agents, their actions, follow-ups, working hours and settings are in the public API (conversation-ai-v3__*). The newer features (outbound agents, campaigns, rich replies, multi-LLM, MCP servers) are configured through GHL's internal builder, not the public API. The voice-ai endpoints are a different product surface."
     );
   }
 
@@ -841,7 +841,7 @@ function buildIntentGuidance(
     /(step|steps|trigger|triggers|condition|conditions|detail|details|ai agent|ai agents)/.test(normalized);
   if (asksForWorkflowInternals || category === "workflows") {
     pushNote(
-      "The public GHL API only exposes a minimal workflow list via workflows__get-workflow. Workflow triggers, steps, conditions, and AI-agent usage details are UI-only today."
+      "GHL's public Workflows API (workflows-v3__*: get and update the definition, publish, search, logs) is in private beta: GHL allow-lists locations and answers 403 WORKFLOW_API_NOT_ENABLED_FOR_LOCATION elsewhere. On other locations only the workflow list (workflows__get-workflow) is public."
     );
   }
 
@@ -872,7 +872,7 @@ function buildIntentGuidance(
     (normalized.includes("sms") || normalized.includes("email"))
   ) {
     pushNote(
-      "Email templates CAN be created via the API: emails-v3__create-email-template / emails-v3__import-email-template (or the older emails__create-template builder endpoint). Only SMS template creation is still UI-only — /locations/{locationId}/templates supports list and delete only."
+      "Email templates CAN be created via the API: emails-v3__create-email-template / emails-v3__import-email-template (GHL marks the older emails__create-template builder endpoint deprecated). SMS template creation has no public endpoint — /locations/{locationId}/templates supports list and delete only."
     );
   }
 
@@ -925,7 +925,7 @@ function buildIntentGuidance(
  * One row per (method, path). GHL publishes most operations twice — a v2 spec in `apps/`
  * and a v3 twin in `apps/v3/` — which the catalog faithfully carries as two actions.
  *
- * Preference order is deliberately NOT "category ends in -v3": 124 actions sitting in -v3
+ * Preference order is deliberately NOT "category ends in -v3": many actions sitting in -v3
  * categories do not actually carry a `Version: v3` header (94 of them in ad-publishing-v3),
  * so trusting the category name would tell agents to prefer a twin that is not v3 at all.
  * The real header wins first.

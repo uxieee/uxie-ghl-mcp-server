@@ -52,7 +52,7 @@ function baseRisk(action: CatalogAction): ActionRisk {
     notes.push("Can create externally visible communication or published content.");
   }
 
-  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas)\b/.test(text)) {
+  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas|payout|commission)\b/.test(text)) {
     kinds.add("billing");
     notes.push(
       method === "GET"
@@ -87,8 +87,20 @@ function baseRisk(action: CatalogAction): ActionRisk {
     notes.push("Makes something live or resumes a paused system.");
   }
 
+  // Calls the live-docs rebuild added (W3, 2026-10-29) whose consequence is in the PATH, not the prose: running a
+  // managed agent, applying changes to or building a client-portal app, rewriting a location's permissions, and acting
+  // in public on a social platform. gate-diff listed them as new ungated writes.
+  let forced = false;
+  if (method !== "GET") {
+    const p = action.path.toLowerCase();
+    if (/\/(execute|apk-builds)$|\/changes\/apply$/.test(p)) { kinds.add("external_send"); notes.push("Runs or ships something live."); }
+    if (/\/permissions$/.test(p)) { forced = true; notes.push("Changes who can do what in the account."); }
+    if (/\/comments\/\{[^}]+\}\/\{[^}]+\}\/like$/.test(p)) { kinds.add("external_send"); notes.push("Acts in public on a connected social account."); }
+  }
+
   const requiresConfirmation =
     method !== "GET" && (
+      forced ||
       kinds.has("delete") ||
       kinds.has("external_send") ||
       kinds.has("billing") ||

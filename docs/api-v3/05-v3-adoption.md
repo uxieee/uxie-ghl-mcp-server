@@ -25,7 +25,7 @@ The GHL changelog keeps running ahead of the published specs. Two additions are 
 | `DELETE /opportunities/pipelines/{pipelineId}` (removes ALL opportunities in the pipeline) | 2026-06-26 | `opportunities-v3__delete-pipeline` |
 | `after`/`limit` params on `GET /ad-publishing/facebook/pages` | 2026-07-07 | param override on both v2 + v3 variants |
 
-Pipeline writes were previously a documented "public-API gap" — those stale notes in `tools.ts`, `action-tips.ts`, `index.ts`, and `stdio.ts` were updated in the same pass. Workflow builder internals remain UI-only.
+Pipeline writes were previously a documented "public-API gap" — those stale notes in `tools.ts`, `action-tips.ts`, `index.ts`, and `stdio.ts` were updated in the same pass. Since 2026-10-19 GHL documents a public Workflows API, in private beta (allow-listed locations only); see the W3 rebuild (2026-10-29).
 
 ## v2-only endpoints (still needed, hence the dual catalog)
 

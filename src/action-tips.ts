@@ -120,8 +120,7 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
   "workflows__get-workflow": {
     note: [
       "Read-only workflow list.",
-      "The GHL public API does not expose workflow triggers, steps, conditions, or AI-agent usage details.",
-      "Workflow builder configuration is still UI-only.",
+      "GHL's public Workflows API (workflows-v3__*: definition, publish, search, logs) is in private beta: GHL allow-lists locations, others get 403.",
     ].join(" "),
     searchBoost: [
       "list workflows",
@@ -200,11 +199,11 @@ export const ACTION_TIPS: Record<string, ActionTip> = {
   "locations__GET-all-or-email-sms-templates": {
     note: [
       "This endpoint lists email/SMS templates and can only list or delete them.",
-      "SMS template creation remains UI-only, but email templates can be created via emails-v3__create-email-template, emails-v3__import-email-template, or the older emails__create-template builder endpoint.",
+      "SMS template creation has no public endpoint; email templates are created with emails-v3__create-email-template or emails-v3__import-email-template (GHL marks the older emails__create-template builder endpoint deprecated).",
     ].join(" "),
   },
   "emails-v3__create-email-template": {
-    note: "Creates an email template in a sub-account (API v3). Supersedes the older emails__create-template builder endpoint; use emails-v3__import-email-template to bring in existing HTML.",
+    note: "Creates an email template in a sub-account (API v3). Use this, not emails__create-template: GHL marks that builder endpoint deprecated. Use emails-v3__import-email-template to bring in existing HTML.",
     searchBoost: [
       "create email template",
       "new email template",
