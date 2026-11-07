@@ -1,13 +1,25 @@
 {
   "counts": {
-    "v3 ops": 812,
-    "2021-07-28 ops": 740,
-    "actions": 1603,
-    "opKeys": 898,
-    "new": 0,
+    "v3 ops": 822,
+    "2021-07-28 ops": 741,
+    "actions": 1614,
+    "opKeys": 908,
+    "new": 11,
     "carried": 51
   },
-  "newIds": [],
+  "newIds": [
+    "contacts-v3__count-contacts",
+    "wallet-v3__add-complimentary-credits",
+    "wallet-v3__get-billing-summary",
+    "wallet-v3__get-company-usage-summary",
+    "wallet-v3__get-top-usage-products",
+    "wallet-v3__get-usage-records",
+    "wallet-v3__get-wallet-balance",
+    "wallet-v3__get-wallet-transaction",
+    "wallet-v3__list-company-location-usage-records",
+    "wallet-v3__list-wallet-transactions",
+    "contacts__count-contacts"
+  ],
   "carried": [
     {
       "id": "ad-manager__fb-upsert-ad",

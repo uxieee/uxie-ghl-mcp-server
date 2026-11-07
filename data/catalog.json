@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-10-29T11:05:12.958Z",
+  "generatedAt": "2026-11-06T16:44:26.049Z",
   "source": {
     "site": "marketplace.gohighlevel.com/docs",
-    "fetchedAt": "2026-10-29T11:05:12.958Z",
+    "fetchedAt": "2026-11-06T16:44:26.049Z",
     "llms": {
-      "v3": "8ee0fee2c4e8a1722b211e2b5456a6176e695122fe6cb2131f357243c0ecfdf9",
-      "2021-07-28": "aef64b6894d6bbf25df3fe55e9bddb59d31fc175065518013668e9406a5ab8ee"
+      "v3": "93f1f7da2ae833a8659f6df75d2f5e38c1497fcbd307e5dfc53a286a65e28abf",
+      "2021-07-28": "6f3b35883e91cc6bc7b4fa621984538a726bde8e7bce96eb12df190f6553dae2"
     }
   },
   "baseUrl": "https://services.leadconnectorhq.com",
-  "totalActions": 1603,
+  "totalActions": 1614,
   "categories": [
     "ad-manager",
     "ad-publishing-v3",
@@ -99,6 +99,7 @@
     "users-v3",
     "voice-ai",
     "voice-ai-v3",
+    "wallet-v3",
     "workflows",
     "workflows-v3"
   ],
@@ -679,7 +680,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -900,7 +901,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1036,7 +1037,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1124,7 +1125,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1154,7 +1155,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1191,7 +1192,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1427,7 +1428,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -1522,7 +1523,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -2178,7 +2179,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -2849,7 +2850,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -2927,7 +2928,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3068,7 +3069,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3112,7 +3113,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3149,7 +3150,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3230,7 +3231,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3274,7 +3275,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3411,7 +3412,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3529,7 +3530,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -3559,7 +3560,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -4719,7 +4720,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -4892,7 +4893,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -5005,7 +5006,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -5093,7 +5094,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -5123,7 +5124,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -5181,7 +5182,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -5377,7 +5378,7 @@
           "name": "isDraft",
           "in": "query",
           "required": false,
-          "description": "Is draft (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Is draft (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "boolean"
         }
       ],
@@ -6398,7 +6399,7 @@
           "in": "query",
           "required": false,
           "description": "Filter affiliates by active status",
-          "type": "string"
+          "type": "boolean"
         },
         {
           "name": "campaignId",
@@ -6711,14 +6712,14 @@
           "name": "skip",
           "in": "query",
           "required": false,
-          "description": "",
+          "description": "Number of payout methods to skip",
           "type": "number"
         },
         {
           "name": "limit",
           "in": "query",
           "required": false,
-          "description": "",
+          "description": "Maximum number of payout methods to return",
           "type": "number"
         }
       ],
@@ -6754,8 +6755,17 @@
             "pending",
             "approved",
             "paid",
-            "denied"
+            "denied",
+            "canceled",
+            "payment_failed"
           ]
+        },
+        {
+          "name": "inFlight",
+          "in": "query",
+          "required": false,
+          "description": "Filter by whether a payment gateway is still working on the payout. true drives the Processing tab; false excludes in-flight rows from Approved and Paid. Omit for the previous behaviour of no filter.",
+          "type": "boolean"
         },
         {
           "name": "query",
@@ -7297,8 +7307,7 @@
                 "pending",
                 "approved",
                 "paid",
-                "denied",
-                "canceled"
+                "denied"
               ],
               "example": "pending"
             }
@@ -14568,7 +14577,7 @@
           "name": "allInOneChatTypes",
           "in": "query",
           "required": false,
-          "description": "All-in-one chat type to filter by. Only applies when chatType is \"allInOneChat\". Supports normal ChatType values plus the virtual umbrella \"webChat\" (maps to facebookChat/emailChat/instagramChat/waChat). (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "All-in-one chat type to filter by. Only applies when chatType is \"allInOneChat\". Supports normal ChatType values plus the virtual umbrella \"webChat\" (maps to facebookChat/emailChat/instagramChat/waChat). (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "string",
           "enum": [
             "liveChat",
@@ -14893,8 +14902,8 @@
       "category": "clientportal-ai-v3",
       "method": "POST",
       "path": "/ai-builder-api/cli/projects/{projectId}/sandbox/edit",
-      "summary": "Write or delete one file in the app's sandbox.",
-      "description": "Writes or deletes one file in the app's sandbox. After a set of edits, save them with `POST .../sandbox/checkpoint`, then start a run with `externalAgent: true` to check, build and deploy them. A React Native app (`react_native_app_kernel_v1`) writes only under `apps/mobile/app-extensions/` and `apps/mobile/application-assets/`; its `routes.ts` is generated, so register its screens with `POST .../sandbox/extension-routes` instead of writing that file.",
+      "summary": "Write, patch or delete one file in the app's sandbox.",
+      "description": "Writes, patches or deletes one file in the app's sandbox. A small change to a text file is a `patch`: exact replacements, without resending the file. After a set of edits, save them with `POST .../sandbox/checkpoint`, then start a run with `externalAgent: true` to check, build and deploy them. A React Native app (`react_native_app_kernel_v1`) writes only under `apps/mobile/app-extensions/` and `apps/mobile/application-assets/`; its `routes.ts` is generated, so register its screens with `POST .../sandbox/extension-routes` instead of writing that file.",
       "tags": [],
       "scopes": [
         "clientportal-ai.write"
@@ -14921,16 +14930,17 @@
             },
             "action": {
               "type": "string",
-              "description": "`update` writes `content` (the default); `delete` removes the file.",
+              "description": "`update` writes `content` (the default); `delete` removes the file; `patch` applies `edits` to a text file that exists, so a small change does not resend the file.",
               "enum": [
                 "update",
-                "delete"
+                "delete",
+                "patch"
               ],
               "example": "update"
             },
             "content": {
               "type": "string",
-              "description": "The file's full new content, encoded as `encoding` says.",
+              "description": "The file's full new content, encoded as `encoding` says. Not sent with `patch`.",
               "example": "<template><h1>Welcome</h1></template>\n"
             },
             "encoding": {
@@ -14941,6 +14951,16 @@
                 "base64"
               ],
               "example": "utf-8"
+            },
+            "edits": {
+              "type": "array",
+              "description": "`patch` only: replacements applied in order, each to the text the one before it produced. Each `oldText` must occur exactly once in the file, or nothing is written (`422 patch_text_not_found` / `patch_text_ambiguous`): include enough surrounding text to make it unique.",
+              "example": [
+                {
+                  "oldText": "<h1>Welcome</h1>",
+                  "newText": "<h1>Welcome back</h1>"
+                }
+              ]
             }
           },
           "required": [
@@ -15536,7 +15556,7 @@
           "name": "status",
           "in": "query",
           "required": false,
-          "description": "Exact project-status filter. When omitted, all statuses except\n`deleted` are returned. Results remain scoped by `view` and the\nauthenticated caller's location.\n",
+          "description": "Lifecycle filter: `draft`, `archived` or `deleted`. When omitted,\nevery project except deleted ones is returned. Results remain scoped\nby `view` and the authenticated caller's location.\n",
           "type": "string",
           "enum": [
             "draft",
@@ -15827,7 +15847,7 @@
       "method": "POST",
       "path": "/ai-builder-api/projects/{projectId}/runs",
       "summary": "Submit a prompt; the agent runs in the background.",
-      "description": "Returns `runId` immediately. A sub-account token builds with its own agent: it writes the code\nwith `POST .../sandbox/edit` (and registers a React Native app's screens with\n`POST .../sandbox/extension-routes`), saves the files with `POST .../sandbox/checkpoint`, then\nstarts the run with `externalAgent: true`, which checks, builds and deploys them. Poll\n`GET .../runs/{runId}`: problems a passing build still has are in `checkProblems`.\n\nThe builder's own agent executes asynchronously:\nattempt workspace restore from project's prior run → materialise\nscaffold (only if no prior workspace) → loop tool calls → preflight\n`pnpm build` → flush workspace to GCS → deploy via Cloud Build →\nmanaged runtime revision replace → mark `ready` with a preview URL.\n\nPer-project runtime services receive a stable public app hostname so the\niframe URL works without platform-session auth.\n\n**Idempotency**: callers SHOULD send an `Idempotency-Key` header on\nevery retry. The server stores `(locationId, projectId, key)` →\n`runId` for 24 h. Same key + same body → the original `runId` is\nreplayed. Same key + different body → `409 idempotency_conflict`.\nModeled after standard idempotent POST contracts; safe for browser\nretries, network blips, and double-click submits.\n\n**Attachment scope**: when `attachmentIds` are present, each id is\nverified against the caller's tenant + project. Cross-project or\ncross-tenant reuse is rejected with `403 attachment_not_owned`.\n",
+      "description": "Returns `runId` at once; the run goes on in the background. An agent outside the builder (an\nMCP client) writes the app's code first: `POST .../sandbox/edit` for each file (and, for a\nReact Native app, `POST .../sandbox/extension-routes` for its screens), then\n`POST .../sandbox/checkpoint` to save them, then this call with `externalAgent: true`, which\nchecks, builds and deploys the preview. Without `externalAgent`, the builder's own agent\nwrites the code from `prompt`.\n\nPoll `GET .../runs/{runId}` until `status` is `ready` or `failed`. A first build may stop at\n`needs_input` with `pendingQuestions`: answer them with `POST .../runs/{runId}/answers/batch`.\nProblems a passing build still has are in `checkProblems`.\n\n**Idempotency**: send an `Idempotency-Key` header on every retry. The same key and body\nreplays the original `runId` for 24 hours; the same key with a different body answers\n`409 idempotency_conflict`.\n",
       "tags": [],
       "scopes": [
         "clientportal-ai.write"
@@ -15882,7 +15902,7 @@
             },
             "customCode": {
               "type": "boolean",
-              "description": "ClientPortal-only per-run switch. When false or omitted, the agent\ncan inspect the project and apply SDUI configuration, but source-code,\nshell, dependency, and build tools are unavailable. When true, the\nexisting full custom-code tool surface is enabled. This choice does\nnot change sandbox provisioning or preview lifecycle behavior.\n",
+              "description": "For the builder's own agent on a ClientPortal app: `true` lets it change the app's code, `false` limits it to the app's settings. Not used with `externalAgent`.",
               "example": false
             },
             "clientPortalSurface": {
@@ -15899,6 +15919,10 @@
               "description": "An agent outside the builder (an MCP client) writes this run's code in\nthe project's sandbox. The run skips the builder's agent: a first build\nasks the builder's intake questions (answered through the answers\nAPI), then every run checks, delivers, registers the sandbox with\nClientPortal, and seals a publishable release.\n",
               "example": true
             },
+            "summary": {
+              "type": "object",
+              "description": "With `externalAgent` only: what the agent changed, in the words its creator would use. The builder's chat shows it as the run's summary, beside the files the agent changed in the sandbox. Without it, the chat lists those files."
+            },
             "mobilePipeline": {
               "type": "string",
               "description": "Deprecated compatibility field for older mobile clients. New mobile\nruns use the standard builder flow with the React Native app kernel.\n",
@@ -15909,7 +15933,7 @@
             },
             "mobilePipelineSpeed": {
               "type": "string",
-              "description": "Deprecated compatibility field. Accepted for older mobile clients but\nno longer selects a distinct generation pipeline; production mobile\ncodegen uses the single-loop Mastra path.\n",
+              "description": "Deprecated: accepted from older mobile clients and ignored.",
               "enum": [
                 "fast",
                 "slow"
@@ -15918,17 +15942,17 @@
             },
             "modelId": {
               "type": "string",
-              "description": "Model id from `GET /api/v1/catalog/models`. When provided, this\nsingle model is used for every phase of the agent (classify,\nplan, code). When omitted, the platform routes to its per-phase\ndefaults (Haiku → Sonnet → Opus).\n",
+              "description": "The model the builder's own agent uses for every step of this run; omitted, the platform picks one per step. Not used with `externalAgent`.",
               "example": "claude-sonnet-4-5"
             },
             "agentId": {
               "type": "string",
-              "description": "Optional id of a user-defined agent profile created via\n`POST /api/v1/agents`. The profile's `systemInstructions` and\n`skills` are appended to the platform's catalog for this run,\nand its `defaultModelId` is honoured when `modelId` is not set.\n",
+              "description": "An agent profile the creator set up in the builder, for the builder's own agent. Not used with `externalAgent`.",
               "example": "agt_4c2d1e"
             },
             "mode": {
               "type": "string",
-              "description": "Run mode. The composer's 3-way segmented control surfaces:\n\n  - `auto` (default) — agent honours the classifier's\n    `recommended_mode` and decides whether to plan, ask, or\n    build straight through.\n  - `plan`           — agent always proposes a plan first via\n    `propose_plan` and pauses for approval. The plan is\n    surfaced as a `plan_approval_request` narrator event;\n    the user POSTs an approve/refine/reject verdict to\n    `/agent-runs/{runId}/plan-approval`.\n  - `build`          — agent skips planning and goes straight\n    to file_editor (only `ask_user` when the classifier\n    flags a high-cost architectural unknown).\n  - `plan_first`     — back-compat alias for `plan`. v1\n    callers still emit it; the runtime treats it as `plan`.\n",
+              "description": "How the builder's own agent works: `auto` (it decides), `plan` (it proposes a plan and waits for the creator's approval in the builder) or `build` (straight to code); `plan_first` is `plan`. Not used with `externalAgent`.",
               "enum": [
                 "auto",
                 "plan",
@@ -15939,7 +15963,7 @@
             },
             "attachmentIds": {
               "type": "array",
-              "description": "Optional ids of attachments previously created via\n`POST /api/v1/projects/{projectId}/attachments/upload-url`.\nSurfaced to the agent as user-provided context so generated\ncode can reference uploaded files (logos, PDFs, brand assets).\n",
+              "description": "Files the creator uploaded in the builder, given to the builder's own agent as context. Not used with `externalAgent`.",
               "example": [
                 "att_1a2b3c"
               ]
@@ -16060,11 +16084,10 @@
         }
       ],
       "requestBody": {
-        "required": true,
+        "required": false,
         "contentType": "application/json",
         "schema": {
-          "type": "object",
-          "properties": {}
+          "type": "string"
         }
       },
       "versionHeader": "v3"
@@ -16162,7 +16185,9 @@
       "summary": "Add/Remove Contacts From Business",
       "description": "Add/Remove Contacts From Business . Passing a `null` businessId will remove the businessId from the contacts",
       "tags": [],
-      "scopes": [],
+      "scopes": [
+        "contacts.write"
+      ],
       "parameters": [],
       "requestBody": {
         "required": true,
@@ -16241,6 +16266,68 @@
       "versionHeader": "v3"
     },
     {
+      "id": "contacts-v3__count-contacts",
+      "category": "contacts-v3",
+      "method": "POST",
+      "path": "/contacts/search/count",
+      "summary": "Count Contacts",
+      "description": "Count the contacts that match a search, without returning them. Takes the same `query` and `filters` as [Search Contacts](/docs/ghl/contacts/search-contacts-advanced). Large counts can take up to 35 seconds. If the count does not finish in time, the response is `{ \"count\": null }`; retry the request.",
+      "tags": [],
+      "scopes": [
+        "contacts.readonly"
+      ],
+      "parameters": [],
+      "requestBody": {
+        "required": true,
+        "contentType": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Location Id",
+              "example": "ve9EPM428h8vShlRW1KT"
+            },
+            "query": {
+              "type": "string",
+              "description": "Free-text search, the same as `query` on [Search Contacts](/docs/ghl/contacts/search-contacts-advanced)",
+              "example": "john"
+            },
+            "filters": {
+              "type": "array",
+              "description": "Filters, or groups of filters, the same as `filters` on [Search Contacts](/docs/ghl/contacts/search-contacts-advanced). Top-level items are combined with AND.",
+              "example": [
+                {
+                  "field": "tags",
+                  "operator": "eq",
+                  "value": "vip"
+                },
+                {
+                  "group": "OR",
+                  "filters": [
+                    {
+                      "field": "type",
+                      "operator": "eq",
+                      "value": "lead"
+                    },
+                    {
+                      "field": "type",
+                      "operator": "eq",
+                      "value": "customer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "locationId"
+          ]
+        }
+      },
+      "versionHeader": "v3"
+    },
+    {
       "id": "contacts-v3__create-association",
       "category": "contacts-v3",
       "method": "POST",
@@ -16248,14 +16335,20 @@
       "summary": "Update Contacts Tags",
       "description": "Allows you to update tags to multiple contacts at once, you can add or remove tags from the contacts",
       "tags": [],
-      "scopes": [],
+      "scopes": [
+        "contacts.write"
+      ],
       "parameters": [
         {
           "name": "type",
           "in": "path",
           "required": true,
+          "description": "Whether the given tags are added to or removed from the contacts. Must be either 'add' or 'remove'",
           "type": "string",
-          "description": "path parameter (undeclared in GHL docs)"
+          "enum": [
+            "add",
+            "remove"
+          ]
         }
       ],
       "requestBody": {
@@ -16290,7 +16383,7 @@
             "removeAllTags": {
               "type": "boolean",
               "description": "Option to implement remove all tags. if true, all tags will be removed from the contacts. Can only be used with remove type.",
-              "example": "false"
+              "example": false
             }
           },
           "required": [
@@ -16425,7 +16518,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -16443,25 +16536,6 @@
               "type": "string",
               "description": "User's Id",
               "example": "y0BeYjuRIlDwsDcOHOJo"
-            },
-            "additionalEmails": {
-              "type": "array",
-              "description": "Add additional email addresses to a contact.\n\n> ⚠️ **Important:** When sending `additionalEmails`, you must also include the contact’s current primary `email` in the same request.<br>If you send `additionalEmails` without `email`, the contact’s existing primary email may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>email</code> represents the contact’s <strong>primary email address</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalEmails</code> represents secondary email addresses for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>email</code> together with <code>additionalEmails</code> when updating email addresses.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional email addresses</strong> can be provided.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"email\": \"john@example.com\",\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nSending only `additionalEmails` may cause the existing primary email to be lost.\n\nIf email uniqueness is enabled for the location, every email address in the request—primary and additional—must be unique across contacts. If any email already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "email": "rosan@deos.com"
-                }
-              ]
-            },
-            "additionalPhones": {
-              "type": "array",
-              "description": "Add additional phone numbers to a contact.\n\n> ⚠️ **Important:** When sending `additionalPhones`, you must also include the contact’s current primary `phone` in the same request.<br>If you send `additionalPhones` without `phone`, the contact’s existing primary phone may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>phone</code> represents the contact’s <strong>primary phone number</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalPhones</code> represents secondary phone numbers for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>phone</code> together with <code>additionalPhones</code> when updating phone numbers.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional phone numbers</strong> can be provided.</li>\n<li style=\"list-style: disc\"><code>phoneLabel</code> is optional. Allowed values: <code>Home</code>, <code>Work</code>, <code>Mobile</code>, or <code>Landline</code>. A label can belong to only one phone number on the contact, including the primary. If a label is repeated, it is kept on the first phone number and removed from the others.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"phone\": \"+14155550100\",\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nSending only `additionalPhones` may cause the existing primary phone number to be lost.\n\nIf phone uniqueness is enabled for the location, every phone number in the request—primary and additional—must be unique across contacts. If any phone number already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "phone": "+18832327657",
-                  "phoneLabel": "Mobile"
-                }
-              ]
             },
             "dndSettings": {
               "type": "string",
@@ -16874,7 +16948,7 @@
           "in": "query",
           "required": false,
           "description": "Cursor for pagination (comma-separated name,id pair)",
-          "type": "array"
+          "type": "string"
         }
       ],
       "requestBody": null,
@@ -17182,7 +17256,86 @@
         "contentType": "application/json",
         "schema": {
           "type": "object",
-          "properties": {}
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Location Id to search in. **Required.**",
+              "example": "5DP41231LkQsiKESj6rh"
+            },
+            "pageLimit": {
+              "type": "number",
+              "description": "Number of contacts per page. **Required.** Maximum 500.",
+              "example": 20
+            },
+            "page": {
+              "type": "number",
+              "description": "Page number for standard pagination, starting at 1.\n- Standard pagination returns up to **10,000** records in total, at most 500 per request: `page × pageLimit` must not exceed 10,000. For example, `page: 20` with `pageLimit: 500` returns the last set.\n- To go past 10,000 records, use `searchAfter`.\n- ⚠️ **Do not send** `page` together with `searchAfter`.",
+              "example": 1
+            },
+            "searchAfter": {
+              "type": "array",
+              "description": "Cursor for the next page (cursor-based pagination).\n- Pass the `searchAfter` array of the last contact in the previous response, unchanged. Values can be numbers or strings.\n- **Required** to read past **10,000** results.\n- **Do not send** `page` with it.",
+              "example": []
+            },
+            "query": {
+              "type": "string",
+              "description": "Text to search for. It is matched against the contact fields marked searchable in the location's Custom Fields Settings. Maximum 75 characters.",
+              "example": "tom"
+            },
+            "filters": {
+              "type": "array",
+              "description": "Filters, or groups of filters, to narrow the results. Each filter has three parts:\n1. **Field**: the contact attribute the filter applies to, e.g. `firstNameLowerCase`.\n2. **Operator**: the comparison to run on the field, e.g. `eq` or `contains`.\n3. **Value**: the value the field is compared with; a string, number or other type that fits the field.\n\n- Each item is either a **filter** (`field`, `operator`, `value`) or a **group** (`group`: `AND` / `OR`, with nested `filters`).\n- ⚠️ By default every filter in the `filters` array is combined with **AND**.\n- Results can take a few seconds to reflect recent changes.\n\nExample: first name contains `john` and an email is set, and the city is New York or the state is California\n\n```json\n[\n  {\n    \"group\": \"AND\",\n    \"filters\": [\n      {\n        \"field\": \"firstNameLowerCase\",\n        \"operator\": \"contains\",\n        \"value\": \"john\"\n      },\n      {\n        \"field\": \"email\",\n        \"operator\": \"exists\"\n      }\n    ]\n  },\n  {\n    \"group\": \"OR\",\n    \"filters\": [\n      {\n        \"field\": \"city\",\n        \"operator\": \"eq\",\n        \"value\": \"New York\"\n      },\n      {\n        \"field\": \"state\",\n        \"operator\": \"eq\",\n        \"value\": \"California\"\n      }\n    ]\n  }\n]\n```\n\n**Contacts changed since a time** (incremental sync): filter `dateUpdated` with `range` and `gte` set to the time of your last sync, sort by `dateUpdated` `asc`, and page with `searchAfter`. Start each sync a little before the previous one ended, so changes still being indexed are not missed. Deleted contacts are not returned.",
+              "example": [
+                {
+                  "field": "dnd",
+                  "operator": "eq",
+                  "value": true
+                },
+                {
+                  "field": "dateUpdated",
+                  "operator": "range",
+                  "value": {
+                    "gte": "2026-11-01T00:00:00Z"
+                  }
+                },
+                {
+                  "group": "OR",
+                  "filters": [
+                    {
+                      "field": "firstNameLowerCase",
+                      "operator": "eq",
+                      "value": "alex"
+                    },
+                    {
+                      "field": "lastNameLowerCase",
+                      "operator": "eq",
+                      "value": "peter"
+                    }
+                  ]
+                }
+              ]
+            },
+            "sort": {
+              "type": "array",
+              "description": "Sort order, applied in the order given. Contacts that tie are ordered by id, so `searchAfter` paging is stable.",
+              "example": [
+                {
+                  "field": "firstNameLowerCase",
+                  "direction": "desc"
+                }
+              ]
+            },
+            "assignedTo": {
+              "type": "string",
+              "description": "Only contacts assigned to this user. The same as a `filters` item on `assignedTo` with operator `eq`.",
+              "example": "182goXVW3lIExEQPOnd3"
+            },
+            "fastPagination": {
+              "type": "boolean",
+              "description": "Faster pagination for large result sets: the matching contacts are not counted, so the response carries `hasMore` instead of `total`.\n- `hasMore`: `true` when another page exists, `false` on the last page.\n- `total` is **not returned**. For the exact count, send the same filters without `fastPagination`; `pageLimit: 0` returns only `total`.\n- With `page`, the last page inside the **10,000**-result window returns `hasMore: false` even when more contacts match. Use `searchAfter` to page past it.\n\nResponse without `fastPagination` (default)\n\n```json\n{\n  \"contacts\": [\n    {\n      \"id\": \"102goXVW3lIExEQPOnd3\",\n      \"searchAfter\": [\n        1730700000000,\n        \"102goXVW3lIExEQPOnd3\"\n      ]\n    }\n  ],\n  \"total\": 1245\n}\n```\n\nResponse with `fastPagination: true`\n\n```json\n{\n  \"contacts\": [\n    {\n      \"id\": \"102goXVW3lIExEQPOnd3\",\n      \"searchAfter\": [\n        1730700000000,\n        \"102goXVW3lIExEQPOnd3\"\n      ]\n    }\n  ],\n  \"hasMore\": true\n}\n```",
+              "example": false
+            }
+          }
         }
       },
       "versionHeader": "v3"
@@ -17193,7 +17346,7 @@
       "method": "PUT",
       "path": "/contacts/{contactId}",
       "summary": "Update Contact",
-      "description": "Update a contact using contactId\n\n> ⚠️ **When updating additional emails/phones, always include the current primary `email`/`phone` in the same request. Otherwise, the existing primary value may be lost.**",
+      "description": "Update a contact using contactId",
       "tags": [],
       "scopes": [
         "contacts.write"
@@ -17308,7 +17461,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -17321,25 +17474,6 @@
               "type": "string",
               "description": "User's Id",
               "example": "y0BeYjuRIlDwsDcOHOJo"
-            },
-            "additionalEmails": {
-              "type": "array",
-              "description": "Add additional email addresses to a contact.\n\n> ⚠️ **Important:** When sending `additionalEmails`, you must also include the contact’s current primary `email` in the same request.<br>If you send `additionalEmails` without `email`, the contact’s existing primary email may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>email</code> represents the contact’s <strong>primary email address</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalEmails</code> represents secondary email addresses for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>email</code> together with <code>additionalEmails</code> when updating email addresses.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional email addresses</strong> can be provided.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"email\": \"john@example.com\",\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nSending only `additionalEmails` may cause the existing primary email to be lost.\n\nIf email uniqueness is enabled for the location, every email address in the request—primary and additional—must be unique across contacts. If any email already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "email": "rosan@deos.com"
-                }
-              ]
-            },
-            "additionalPhones": {
-              "type": "array",
-              "description": "Add additional phone numbers to a contact.\n\n> ⚠️ **Important:** When sending `additionalPhones`, you must also include the contact’s current primary `phone` in the same request.<br>If you send `additionalPhones` without `phone`, the contact’s existing primary phone may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>phone</code> represents the contact’s <strong>primary phone number</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalPhones</code> represents secondary phone numbers for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>phone</code> together with <code>additionalPhones</code> when updating phone numbers.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional phone numbers</strong> can be provided.</li>\n<li style=\"list-style: disc\"><code>phoneLabel</code> is optional. Allowed values: <code>Home</code>, <code>Work</code>, <code>Mobile</code>, or <code>Landline</code>. A label can belong to only one phone number on the contact, including the primary. If a label is repeated, it is kept on the first phone number and removed from the others.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"phone\": \"+14155550100\",\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nSending only `additionalPhones` may cause the existing primary phone number to be lost.\n\nIf phone uniqueness is enabled for the location, every phone number in the request—primary and additional—must be unique across contacts. If any phone number already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "phone": "+18832327657",
-                  "phoneLabel": "Mobile"
-                }
-              ]
             },
             "dndSettings": {
               "type": "string",
@@ -17654,7 +17788,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -19522,14 +19656,14 @@
           "name": "startDate",
           "in": "query",
           "required": false,
-          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         },
         {
           "name": "endDate",
           "in": "query",
           "required": false,
-          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         }
       ],
@@ -40595,7 +40729,7 @@
       "method": "GET",
       "path": "/saas/companies/{companyId}/locations/{locationId}/wallet-balance",
       "summary": "Get Location Wallet Balance",
-      "description": "Fetch the wallet balance for a specific location. Returns a resource object with balance details.",
+      "description": "Fetch the wallet balance for a specific location. Returns a resource object with balance details. **Deprecated:** this operation has moved to the Wallet API (`GET /wallet/balance?locationId={locationId}` with an Agency token, or `GET /wallet/balance` with a Sub-Account token) and will be removed from the SaaS API in the next version. Response shapes are unchanged, but no tenant id appears in the path: the agency comes from the token and the sub-account moves to a query parameter. Use the `wallet.readonly` scope.",
       "tags": [],
       "scopes": [
         "saas/company.read"
@@ -40617,7 +40751,10 @@
         }
       ],
       "requestBody": null,
-      "versionHeader": "v3"
+      "versionHeader": "v3",
+      "deprecated": {
+        "replacement": null
+      }
     },
     {
       "id": "saas-v3__get-saas-locations",
@@ -40685,7 +40822,7 @@
       "method": "POST",
       "path": "/saas/companies/{companyId}/wallet-transactions",
       "summary": "List agency wallet transactions",
-      "description": "Fetch paginated wallet transactions for an agency (company). Supports skip/limit pagination, date-range and charge-type filters, timezone normalization, and additional non-indexed filters in the request body.",
+      "description": "Fetch paginated wallet transactions for an agency (company). Supports skip/limit pagination, date-range and charge-type filters, timezone normalization, and additional non-indexed filters in the request body. **Deprecated:** this operation has moved to the Wallet API (`POST /wallet/transactions`) and will be removed from the SaaS API in the next version. Request and response shapes are unchanged, but `companyId` is no longer part of the URL -- the agency is resolved from the access token. Use an Agency access token carrying the `wallet.readonly` scope.",
       "tags": [],
       "scopes": [
         "saas/company.read"
@@ -40738,7 +40875,10 @@
           }
         }
       },
-      "versionHeader": "v3"
+      "versionHeader": "v3",
+      "deprecated": {
+        "replacement": null
+      }
     },
     {
       "id": "saas-v3__list-location-wallet-transactions",
@@ -40746,7 +40886,7 @@
       "method": "POST",
       "path": "/saas/locations/{locationId}/wallet-transactions",
       "summary": "List location wallet transactions",
-      "description": "Fetch paginated wallet transactions for a sub-account (location). Supports skip/limit pagination, date-range and charge-type filters, timezone normalization, and additional non-indexed filters in the request body.",
+      "description": "Fetch paginated wallet transactions for a sub-account (location). Supports skip/limit pagination, date-range and charge-type filters, timezone normalization, and additional non-indexed filters in the request body. **Deprecated:** this operation has moved to the Wallet API (`POST /wallet/transactions`) and will be removed from the SaaS API in the next version. Request and response shapes are unchanged, but the `locationId` is no longer part of the URL -- the sub-account is resolved from the access token. Use the `wallet.readonly` scope.",
       "tags": [],
       "scopes": [
         "saas/location.read"
@@ -40799,7 +40939,10 @@
           }
         }
       },
-      "versionHeader": "v3"
+      "versionHeader": "v3",
+      "deprecated": {
+        "replacement": null
+      }
     },
     {
       "id": "saas-v3__locations",
@@ -40831,7 +40974,7 @@
           "name": "companyId",
           "in": "query",
           "required": false,
-          "description": "(no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "(no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "string"
         }
       ],
@@ -40928,7 +41071,7 @@
       "method": "POST",
       "path": "/saas/companies/{companyId}/locations/{locationId}/wallet-balance/complimentary-credits",
       "summary": "Update Location Wallet Balance",
-      "description": "Update the wallet balance or complimentary credit settings for a specific location. Supports partial updates via updateMask field (AIP-134 compliant).",
+      "description": "Update the wallet balance or complimentary credit settings for a specific location. Supports partial updates via updateMask field (AIP-134 compliant). **Deprecated:** this operation has moved to the Wallet API (`POST /wallet/balance/complimentary-credits`) and will be removed from the SaaS API in the next version. Request and response shapes are unchanged except that `companyId` is resolved from the access token and `locationId` moves into the request body. Use an Agency access token carrying the `wallet.write` scope.",
       "tags": [],
       "scopes": [
         "saas/company.write"
@@ -40963,7 +41106,10 @@
           }
         }
       },
-      "versionHeader": "v3"
+      "versionHeader": "v3",
+      "deprecated": {
+        "replacement": null
+      }
     },
     {
       "id": "saas-v3__update-rebilling",
@@ -42082,7 +42228,7 @@
           "properties": {
             "accountIds": {
               "type": "array",
-              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 10).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
+              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 20).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
               "example": [
                 "aF3KhyL8JIuBwzK3m7Ly_iVrVJ2uoXNF0wzcBzgl5_12554616564525983496"
               ]
@@ -42538,7 +42684,7 @@
           "name": "companyId",
           "in": "query",
           "required": false,
-          "description": "Company ID (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Company ID (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "string"
         }
       ],
@@ -42875,7 +43021,7 @@
           "properties": {
             "accountIds": {
               "type": "array",
-              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 10).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
+              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 20).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
               "example": [
                 "aF3KhyL8JIuBwzK3m7Ly_iVrVJ2uoXNF0wzcBzgl5_12554616564525983496"
               ]
@@ -44467,6 +44613,24 @@
           "in": "query",
           "required": false,
           "description": "Reconnect",
+          "type": "string"
+        },
+        {
+          "name": "loginType",
+          "in": "query",
+          "required": false,
+          "description": "**Instagram only.** Selects which Instagram connection flow to run. Ignored by every other platform.\n- `instagram` — Direct Instagram Login: the user signs in with their Instagram credentials on instagram.com and no Facebook Page is required.\n- `facebook` — Instagram via Facebook: the user signs in with Facebook and the Instagram account must be linked to a Page they manage.\n\nOmitted defaults to the Facebook flow, so `loginType=instagram` must be sent explicitly to offer Direct Instagram Login.",
+          "type": "string",
+          "enum": [
+            "facebook",
+            "instagram"
+          ]
+        },
+        {
+          "name": "returnUrl",
+          "in": "query",
+          "required": false,
+          "description": "App URL to redirect back to after OAuth finishes, for the same-tab (mobile) flow. When present and the host is trusted for the location, the finish page 302-redirects here with platform/accountId/error query params instead of using the popup postMessage handshake.",
           "type": "string"
         }
       ],
@@ -47596,6 +47760,317 @@
             "name",
             "actionParameters"
           ]
+        }
+      },
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__add-complimentary-credits",
+      "category": "wallet-v3",
+      "method": "POST",
+      "path": "/wallet/balance/complimentary-credits",
+      "summary": "Add complimentary credits to a sub-account wallet",
+      "description": "Adds complimentary credits to one of the agency's sub-account wallets and returns the resulting balance. The agency is resolved from the access token; the sub-account is named by the required locationId field. The amount is added to the existing complimentary credit balance. Requires an Idempotency-Key header: the same key replays the original response instead of granting the credits a second time, so a timed-out request is safe to retry.",
+      "tags": [],
+      "scopes": [
+        "wallet.write"
+      ],
+      "parameters": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "description": "Unique key identifying this grant, for example a UUID. Reusing a key returns the original response without crediting the wallet again. Keys are remembered for 24 hours and are scoped to the sub-account.",
+          "type": "string"
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "contentType": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Sub-account whose wallet is credited. Required: credits are granted by an agency to one of its sub-accounts.",
+              "example": "AUKAtFVo0lWezBsBQ3FE"
+            },
+            "complimentaryCreditsAmount": {
+              "type": "number",
+              "description": "Credits to add to the sub-account wallet. Added to the existing complimentary credit balance rather than replacing it, so two calls with 100 leave the wallet 200 higher. Must be greater than zero -- this route only grants credits, it cannot take them away.",
+              "example": 100
+            }
+          },
+          "required": [
+            "locationId",
+            "complimentaryCreditsAmount"
+          ]
+        }
+      },
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-billing-summary",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/billing-summary",
+      "summary": "Get billing summary",
+      "description": "Fetch billing summary cards for the sub-account resolved from the access token: current spend, the previous period, and the change between them.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly"
+      ],
+      "parameters": [
+        {
+          "name": "month",
+          "in": "query",
+          "required": false,
+          "description": "Month to report on, as YYYY-MM. Defaults to the last six months when omitted.",
+          "type": "string"
+        }
+      ],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-company-usage-summary",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/usage-summary",
+      "summary": "Get company usage summary",
+      "description": "Fetch aggregated usage for the agency resolved from the access token, including per-product totals. Defaults to the last six months, or a single month when month is supplied.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly"
+      ],
+      "parameters": [
+        {
+          "name": "month",
+          "in": "query",
+          "required": false,
+          "description": "Month to report on, as YYYY-MM. Defaults to the last six months when omitted.",
+          "type": "string"
+        }
+      ],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-top-usage-products",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/usage-records/top-products",
+      "summary": "Get top usage products",
+      "description": "Fetch the products accounting for the most spend for the sub-account resolved from the access token.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly"
+      ],
+      "parameters": [],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-usage-records",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/usage-records",
+      "summary": "Get usage records",
+      "description": "Fetch monthly usage totals for the sub-account resolved from the access token, across the reported window.\n\nScope follows the access token: an Agency token reads the agency, a Sub-Account token reads its own sub-account. No tenant id appears in the URL.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly",
+        "wallet.readonly"
+      ],
+      "parameters": [],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-wallet-balance",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/balance",
+      "summary": "Get wallet balance",
+      "description": "Fetch the current wallet balance and complimentary credits for the sub-account resolved from the access token.\n\nAn Agency token reads the agency wallet, or a named sub-account via `locationId`. A Sub-Account token always reads its own wallet. Complimentary credits apply to sub-account wallets only and are omitted for an agency read.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly",
+        "wallet.readonly"
+      ],
+      "parameters": [
+        {
+          "name": "locationId",
+          "in": "query",
+          "required": false,
+          "description": "Narrows an Agency token to one of its sub-accounts. Omit it and an Agency token reads the agency wallet. A Sub-Account token may only name its own sub-account: a different one is refused with 403, not ignored.",
+          "type": "string"
+        }
+      ],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__get-wallet-transaction",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/transactions/{transactionId}",
+      "summary": "Get wallet transaction",
+      "description": "Fetch a single wallet transaction for the sub-account resolved from the access token, including its charge-type specific breakdown. The required settlementTime is taken from the matching record in the transaction list response.\n\nScope follows the access token: an Agency token reads the agency, or one of its own sub-accounts via `locationId`. A Sub-Account token reads its own sub-account and is refused if it names a different one. No tenant id appears in the URL.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly",
+        "wallet.readonly"
+      ],
+      "parameters": [
+        {
+          "name": "transactionId",
+          "in": "path",
+          "required": true,
+          "description": "ID of the transaction to fetch",
+          "type": "string"
+        },
+        {
+          "name": "settlementTime",
+          "in": "query",
+          "required": true,
+          "description": "Settlement time of the transaction, as returned by the wallet transaction list endpoint. Accepts an ISO 8601 timestamp or epoch milliseconds.",
+          "type": "string"
+        },
+        {
+          "name": "timezone",
+          "in": "query",
+          "required": false,
+          "description": "IANA timezone used to normalize timestamps in the response",
+          "type": "string"
+        },
+        {
+          "name": "locationId",
+          "in": "query",
+          "required": false,
+          "description": "Narrows an Agency token to one of its own sub-accounts. Omit it and an Agency token reads the agency. A Sub-Account token may only name its own sub-account: a different one is refused with 403, not ignored.",
+          "type": "string"
+        }
+      ],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__list-company-location-usage-records",
+      "category": "wallet-v3",
+      "method": "GET",
+      "path": "/wallet/usage-records/by-location",
+      "summary": "List usage records per sub-account",
+      "description": "Fetch per-sub-account usage rows for the agency resolved from the access token. Supports skip/limit pagination, a name search, and sorting by total or by a specific month.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly"
+      ],
+      "parameters": [
+        {
+          "name": "skip",
+          "in": "query",
+          "required": false,
+          "description": "Number of sub-accounts to skip for pagination. Defaults to 0.",
+          "type": "number"
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "description": "Maximum number of sub-accounts to return. Capped at 100 per request.",
+          "type": "number"
+        },
+        {
+          "name": "query",
+          "in": "query",
+          "required": false,
+          "description": "Free-text search across sub-account names.",
+          "type": "string"
+        },
+        {
+          "name": "sortBy",
+          "in": "query",
+          "required": false,
+          "description": "Field to sort by: `total`, or a specific month as YYYY-MM. Allowlisted -- an arbitrary value is rejected rather than passed to the query.",
+          "type": "string"
+        },
+        {
+          "name": "sortOrder",
+          "in": "query",
+          "required": false,
+          "description": "Sort direction.",
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      ],
+      "requestBody": null,
+      "versionHeader": "v3"
+    },
+    {
+      "id": "wallet-v3__list-wallet-transactions",
+      "category": "wallet-v3",
+      "method": "POST",
+      "path": "/wallet/transactions",
+      "summary": "List wallet transactions",
+      "description": "Fetch paginated wallet transactions for the sub-account resolved from the access token. Supports skip/limit pagination, date-range and charge-type filters, and timezone normalization.\n\nScope follows the access token: an Agency token reads the agency, a Sub-Account token reads its own sub-account. No tenant id appears in the URL.",
+      "tags": [],
+      "scopes": [
+        "wallet.readonly",
+        "wallet.readonly"
+      ],
+      "parameters": [],
+      "requestBody": {
+        "required": true,
+        "contentType": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Narrows an Agency token to one of its own sub-accounts; omit it and an Agency token reads the whole agency. A Sub-Account token may only name its own sub-account: a different one is refused with 403, not ignored.",
+              "example": "AUKAtFVo0lWezBsBQ3FE"
+            },
+            "skip": {
+              "type": "number",
+              "description": "Number of records to skip for pagination. Defaults to 0.",
+              "example": 0
+            },
+            "limit": {
+              "type": "number",
+              "description": "Maximum number of records to return. Capped at 1000 per request.",
+              "example": 100
+            },
+            "filters": {
+              "type": "string",
+              "description": "Transaction filters",
+              "example": {
+                "transactionType": "DEBIT",
+                "chargeType": "Email",
+                "settlementTime": {
+                  "from": "2024-03-01T00:00:00.000Z",
+                  "to": "2024-03-31T23:59:59.999Z"
+                }
+              }
+            },
+            "timezone": {
+              "type": "string",
+              "description": "IANA timezone used to normalize timestamps in the response",
+              "example": "America/New_York"
+            },
+            "additionalFilter": {
+              "type": "object",
+              "description": "Additional non-indexed filters applied after the primary query",
+              "example": {
+                "chargeDoc": {
+                  "messageType": "Email"
+                }
+              }
+            }
+          }
         }
       },
       "versionHeader": "v3"
@@ -54626,7 +55101,7 @@
           "in": "query",
           "required": false,
           "description": "Filter affiliates by active status",
-          "type": "string"
+          "type": "boolean"
         },
         {
           "name": "campaignId",
@@ -54939,14 +55414,14 @@
           "name": "skip",
           "in": "query",
           "required": false,
-          "description": "",
+          "description": "Number of payout methods to skip",
           "type": "number"
         },
         {
           "name": "limit",
           "in": "query",
           "required": false,
-          "description": "",
+          "description": "Maximum number of payout methods to return",
           "type": "number"
         }
       ],
@@ -54982,8 +55457,17 @@
             "pending",
             "approved",
             "paid",
-            "denied"
+            "denied",
+            "canceled",
+            "payment_failed"
           ]
+        },
+        {
+          "name": "inFlight",
+          "in": "query",
+          "required": false,
+          "description": "Filter by whether a payment gateway is still working on the payout. true drives the Processing tab; false excludes in-flight rows from Approved and Paid. Omit for the previous behaviour of no filter.",
+          "type": "boolean"
         },
         {
           "name": "query",
@@ -55525,8 +56009,7 @@
                 "pending",
                 "approved",
                 "paid",
-                "denied",
-                "canceled"
+                "denied"
               ],
               "example": "pending"
             }
@@ -62822,11 +63305,10 @@
         }
       ],
       "requestBody": {
-        "required": true,
+        "required": false,
         "contentType": "application/json",
         "schema": {
-          "type": "object",
-          "properties": {}
+          "type": "string"
         }
       },
       "versionHeader": "2021-07-28"
@@ -62924,7 +63406,9 @@
       "summary": "Add/Remove Contacts From Business",
       "description": "Add/Remove Contacts From Business . Passing a `null` businessId will remove the businessId from the contacts",
       "tags": [],
-      "scopes": [],
+      "scopes": [
+        "contacts.write"
+      ],
       "parameters": [],
       "requestBody": {
         "required": true,
@@ -63003,6 +63487,68 @@
       "versionHeader": "2021-07-28"
     },
     {
+      "id": "contacts__count-contacts",
+      "category": "contacts",
+      "method": "POST",
+      "path": "/contacts/search/count",
+      "summary": "Count Contacts",
+      "description": "Count the contacts that match a search, without returning them. Takes the same `query` and `filters` as [Search Contacts](/docs/ghl/contacts/search-contacts-advanced). Large counts can take up to 35 seconds. If the count does not finish in time, the response is `{ \"count\": null }`; retry the request.",
+      "tags": [],
+      "scopes": [
+        "contacts.readonly"
+      ],
+      "parameters": [],
+      "requestBody": {
+        "required": true,
+        "contentType": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Location Id",
+              "example": "ve9EPM428h8vShlRW1KT"
+            },
+            "query": {
+              "type": "string",
+              "description": "Free-text search, the same as `query` on [Search Contacts](/docs/ghl/contacts/search-contacts-advanced)",
+              "example": "john"
+            },
+            "filters": {
+              "type": "array",
+              "description": "Filters, or groups of filters, the same as `filters` on [Search Contacts](/docs/ghl/contacts/search-contacts-advanced). Top-level items are combined with AND.",
+              "example": [
+                {
+                  "field": "tags",
+                  "operator": "eq",
+                  "value": "vip"
+                },
+                {
+                  "group": "OR",
+                  "filters": [
+                    {
+                      "field": "type",
+                      "operator": "eq",
+                      "value": "lead"
+                    },
+                    {
+                      "field": "type",
+                      "operator": "eq",
+                      "value": "customer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "locationId"
+          ]
+        }
+      },
+      "versionHeader": "2021-07-28"
+    },
+    {
       "id": "contacts__create-association",
       "category": "contacts",
       "method": "POST",
@@ -63010,14 +63556,20 @@
       "summary": "Update Contacts Tags",
       "description": "Allows you to update tags to multiple contacts at once, you can add or remove tags from the contacts",
       "tags": [],
-      "scopes": [],
+      "scopes": [
+        "contacts.write"
+      ],
       "parameters": [
         {
           "name": "type",
           "in": "path",
           "required": true,
+          "description": "Whether the given tags are added to or removed from the contacts. Must be either 'add' or 'remove'",
           "type": "string",
-          "description": "path parameter (undeclared in GHL docs)"
+          "enum": [
+            "add",
+            "remove"
+          ]
         }
       ],
       "requestBody": {
@@ -63052,7 +63604,7 @@
             "removeAllTags": {
               "type": "boolean",
               "description": "Option to implement remove all tags. if true, all tags will be removed from the contacts. Can only be used with remove type.",
-              "example": "false"
+              "example": false
             }
           },
           "required": [
@@ -63200,7 +63752,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -63218,25 +63770,6 @@
               "type": "string",
               "description": "User's Id",
               "example": "y0BeYjuRIlDwsDcOHOJo"
-            },
-            "additionalEmails": {
-              "type": "array",
-              "description": "Add additional email addresses to a contact.\n\n> ⚠️ **Important:** When sending `additionalEmails`, you must also include the contact’s current primary `email` in the same request.<br>If you send `additionalEmails` without `email`, the contact’s existing primary email may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>email</code> represents the contact’s <strong>primary email address</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalEmails</code> represents secondary email addresses for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>email</code> together with <code>additionalEmails</code> when updating email addresses.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional email addresses</strong> can be provided.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"email\": \"john@example.com\",\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nSending only `additionalEmails` may cause the existing primary email to be lost.\n\nIf email uniqueness is enabled for the location, every email address in the request—primary and additional—must be unique across contacts. If any email already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "email": "rosan@deos.com"
-                }
-              ]
-            },
-            "additionalPhones": {
-              "type": "array",
-              "description": "Add additional phone numbers to a contact.\n\n> ⚠️ **Important:** When sending `additionalPhones`, you must also include the contact’s current primary `phone` in the same request.<br>If you send `additionalPhones` without `phone`, the contact’s existing primary phone may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>phone</code> represents the contact’s <strong>primary phone number</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalPhones</code> represents secondary phone numbers for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>phone</code> together with <code>additionalPhones</code> when updating phone numbers.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional phone numbers</strong> can be provided.</li>\n<li style=\"list-style: disc\"><code>phoneLabel</code> is optional. Allowed values: <code>Home</code>, <code>Work</code>, <code>Mobile</code>, or <code>Landline</code>. A label can belong to only one phone number on the contact, including the primary. If a label is repeated, it is kept on the first phone number and removed from the others.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"phone\": \"+14155550100\",\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nSending only `additionalPhones` may cause the existing primary phone number to be lost.\n\nIf phone uniqueness is enabled for the location, every phone number in the request—primary and additional—must be unique across contacts. If any phone number already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "phone": "+18832327657",
-                  "phoneLabel": "Mobile"
-                }
-              ]
             }
           },
           "required": [
@@ -63690,7 +64223,7 @@
           "in": "query",
           "required": false,
           "description": "Cursor for pagination (comma-separated name,id pair)",
-          "type": "array"
+          "type": "string"
         }
       ],
       "requestBody": null,
@@ -63950,7 +64483,86 @@
         "contentType": "application/json",
         "schema": {
           "type": "object",
-          "properties": {}
+          "properties": {
+            "locationId": {
+              "type": "string",
+              "description": "Location Id to search in. **Required.**",
+              "example": "5DP41231LkQsiKESj6rh"
+            },
+            "pageLimit": {
+              "type": "number",
+              "description": "Number of contacts per page. **Required.** Maximum 500.",
+              "example": 20
+            },
+            "page": {
+              "type": "number",
+              "description": "Page number for standard pagination, starting at 1.\n- Standard pagination returns up to **10,000** records in total, at most 500 per request: `page × pageLimit` must not exceed 10,000. For example, `page: 20` with `pageLimit: 500` returns the last set.\n- To go past 10,000 records, use `searchAfter`.\n- ⚠️ **Do not send** `page` together with `searchAfter`.",
+              "example": 1
+            },
+            "searchAfter": {
+              "type": "array",
+              "description": "Cursor for the next page (cursor-based pagination).\n- Pass the `searchAfter` array of the last contact in the previous response, unchanged. Values can be numbers or strings.\n- **Required** to read past **10,000** results.\n- **Do not send** `page` with it.",
+              "example": []
+            },
+            "query": {
+              "type": "string",
+              "description": "Text to search for. It is matched against the contact fields marked searchable in the location's Custom Fields Settings. Maximum 75 characters.",
+              "example": "tom"
+            },
+            "filters": {
+              "type": "array",
+              "description": "Filters, or groups of filters, to narrow the results. Each filter has three parts:\n1. **Field**: the contact attribute the filter applies to, e.g. `firstNameLowerCase`.\n2. **Operator**: the comparison to run on the field, e.g. `eq` or `contains`.\n3. **Value**: the value the field is compared with; a string, number or other type that fits the field.\n\n- Each item is either a **filter** (`field`, `operator`, `value`) or a **group** (`group`: `AND` / `OR`, with nested `filters`).\n- ⚠️ By default every filter in the `filters` array is combined with **AND**.\n- Results can take a few seconds to reflect recent changes.\n\nExample: first name contains `john` and an email is set, and the city is New York or the state is California\n\n```json\n[\n  {\n    \"group\": \"AND\",\n    \"filters\": [\n      {\n        \"field\": \"firstNameLowerCase\",\n        \"operator\": \"contains\",\n        \"value\": \"john\"\n      },\n      {\n        \"field\": \"email\",\n        \"operator\": \"exists\"\n      }\n    ]\n  },\n  {\n    \"group\": \"OR\",\n    \"filters\": [\n      {\n        \"field\": \"city\",\n        \"operator\": \"eq\",\n        \"value\": \"New York\"\n      },\n      {\n        \"field\": \"state\",\n        \"operator\": \"eq\",\n        \"value\": \"California\"\n      }\n    ]\n  }\n]\n```\n\n**Contacts changed since a time** (incremental sync): filter `dateUpdated` with `range` and `gte` set to the time of your last sync, sort by `dateUpdated` `asc`, and page with `searchAfter`. Start each sync a little before the previous one ended, so changes still being indexed are not missed. Deleted contacts are not returned.",
+              "example": [
+                {
+                  "field": "dnd",
+                  "operator": "eq",
+                  "value": true
+                },
+                {
+                  "field": "dateUpdated",
+                  "operator": "range",
+                  "value": {
+                    "gte": "2026-11-01T00:00:00Z"
+                  }
+                },
+                {
+                  "group": "OR",
+                  "filters": [
+                    {
+                      "field": "firstNameLowerCase",
+                      "operator": "eq",
+                      "value": "alex"
+                    },
+                    {
+                      "field": "lastNameLowerCase",
+                      "operator": "eq",
+                      "value": "peter"
+                    }
+                  ]
+                }
+              ]
+            },
+            "sort": {
+              "type": "array",
+              "description": "Sort order, applied in the order given. Contacts that tie are ordered by id, so `searchAfter` paging is stable.",
+              "example": [
+                {
+                  "field": "firstNameLowerCase",
+                  "direction": "desc"
+                }
+              ]
+            },
+            "assignedTo": {
+              "type": "string",
+              "description": "Only contacts assigned to this user. The same as a `filters` item on `assignedTo` with operator `eq`.",
+              "example": "182goXVW3lIExEQPOnd3"
+            },
+            "fastPagination": {
+              "type": "boolean",
+              "description": "Faster pagination for large result sets: the matching contacts are not counted, so the response carries `hasMore` instead of `total`.\n- `hasMore`: `true` when another page exists, `false` on the last page.\n- `total` is **not returned**. For the exact count, send the same filters without `fastPagination`; `pageLimit: 0` returns only `total`.\n- With `page`, the last page inside the **10,000**-result window returns `hasMore: false` even when more contacts match. Use `searchAfter` to page past it.\n\nResponse without `fastPagination` (default)\n\n```json\n{\n  \"contacts\": [\n    {\n      \"id\": \"102goXVW3lIExEQPOnd3\",\n      \"searchAfter\": [\n        1730700000000,\n        \"102goXVW3lIExEQPOnd3\"\n      ]\n    }\n  ],\n  \"total\": 1245\n}\n```\n\nResponse with `fastPagination: true`\n\n```json\n{\n  \"contacts\": [\n    {\n      \"id\": \"102goXVW3lIExEQPOnd3\",\n      \"searchAfter\": [\n        1730700000000,\n        \"102goXVW3lIExEQPOnd3\"\n      ]\n    }\n  ],\n  \"hasMore\": true\n}\n```",
+              "example": false
+            }
+          }
         }
       },
       "versionHeader": "2021-07-28"
@@ -63961,7 +64573,7 @@
       "method": "PUT",
       "path": "/contacts/{contactId}",
       "summary": "Update Contact",
-      "description": "Update a contact using contactId\n\n> ⚠️ **When updating additional emails/phones, always include the current primary `email`/`phone` in the same request. Otherwise, the existing primary value may be lost.**",
+      "description": "Update a contact using contactId",
       "tags": [],
       "scopes": [
         "contacts.write"
@@ -64089,7 +64701,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -64102,25 +64714,6 @@
               "type": "string",
               "description": "User's Id",
               "example": "y0BeYjuRIlDwsDcOHOJo"
-            },
-            "additionalEmails": {
-              "type": "array",
-              "description": "Add additional email addresses to a contact.\n\n> ⚠️ **Important:** When sending `additionalEmails`, you must also include the contact’s current primary `email` in the same request.<br>If you send `additionalEmails` without `email`, the contact’s existing primary email may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>email</code> represents the contact’s <strong>primary email address</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalEmails</code> represents secondary email addresses for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>email</code> together with <code>additionalEmails</code> when updating email addresses.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional email addresses</strong> can be provided.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"email\": \"john@example.com\",\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalEmails\": [\n    {\n      \"email\": \"john.work@example.com\"\n    }\n  ]\n}\n```\n\nSending only `additionalEmails` may cause the existing primary email to be lost.\n\nIf email uniqueness is enabled for the location, every email address in the request—primary and additional—must be unique across contacts. If any email already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "email": "rosan@deos.com"
-                }
-              ]
-            },
-            "additionalPhones": {
-              "type": "array",
-              "description": "Add additional phone numbers to a contact.\n\n> ⚠️ **Important:** When sending `additionalPhones`, you must also include the contact’s current primary `phone` in the same request.<br>If you send `additionalPhones` without `phone`, the contact’s existing primary phone may be cleared or replaced.\n\n<ul style=\"list-style: disc; padding-left: 1.5rem\">\n<li style=\"list-style: disc\"><code>phone</code> represents the contact’s <strong>primary phone number</strong>.</li>\n<li style=\"list-style: disc\"><code>additionalPhones</code> represents secondary phone numbers for the same contact.</li>\n<li style=\"list-style: disc\">Always send the primary <code>phone</code> together with <code>additionalPhones</code> when updating phone numbers.</li>\n<li style=\"list-style: disc\">A maximum of <strong>10 additional phone numbers</strong> can be provided.</li>\n<li style=\"list-style: disc\"><code>phoneLabel</code> is optional. Allowed values: <code>Home</code>, <code>Work</code>, <code>Mobile</code>, or <code>Landline</code>. A label can belong to only one phone number on the contact, including the primary. If a label is repeated, it is kept on the first phone number and removed from the others.</li>\n</ul>\n\nExample\n\n```json\n{\n  \"phone\": \"+14155550100\",\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nAvoid\n\n```json\n{\n  \"additionalPhones\": [\n    {\n      \"phone\": \"+14155550101\",\n      \"phoneLabel\": \"Work\"\n    }\n  ]\n}\n```\n\nSending only `additionalPhones` may cause the existing primary phone number to be lost.\n\nIf phone uniqueness is enabled for the location, every phone number in the request—primary and additional—must be unique across contacts. If any phone number already belongs to another contact, the request fails with **400 Bad Request** and no changes are saved.",
-              "example": [
-                {
-                  "phone": "+18832327657",
-                  "phoneLabel": "Mobile"
-                }
-              ]
             }
           }
         }
@@ -64435,7 +65028,7 @@
               "example": "public api"
             },
             "dateOfBirth": {
-              "type": "object",
+              "type": "string",
               "description": "The birth date of the contact. Supported formats: YYYY/MM/DD, MM/DD/YYYY, YYYY-MM-DD, MM-DD-YYYY, YYYY.MM.DD, MM.DD.YYYY, YYYY_MM_DD, MM_DD_YYYY",
               "example": "1990-09-25"
             },
@@ -66290,14 +66883,14 @@
           "name": "startDate",
           "in": "query",
           "required": false,
-          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Start date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         },
         {
           "name": "endDate",
           "in": "query",
           "required": false,
-          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "End date filter for dateAdded field (Unix timestamp in milliseconds) (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         }
       ],
@@ -80418,14 +81011,14 @@
           "name": "pageSize",
           "in": "query",
           "required": false,
-          "description": "How many resources to return in each list page. The default is 50, and the maximum is 1000. (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "How many resources to return in each list page. The default is 50, and the maximum is 1000. (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         },
         {
           "name": "page",
           "in": "query",
           "required": false,
-          "description": "The page index for pagination. The default is 0. (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "The page index for pagination. The default is 0. (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "number"
         }
       ],
@@ -87276,7 +87869,7 @@
           "properties": {
             "accountIds": {
               "type": "array",
-              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 10).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
+              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 20).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
               "example": [
                 "aF3KhyL8JIuBwzK3m7Ly_iVrVJ2uoXNF0wzcBzgl5_12554616564525983496"
               ]
@@ -87732,7 +88325,7 @@
           "name": "companyId",
           "in": "query",
           "required": false,
-          "description": "Company ID (no longer in GHL's docs since 2026-10-29; kept so existing calls still send it)",
+          "description": "Company ID (no longer in GHL's docs since 2026-11-06; kept so existing calls still send it)",
           "type": "string"
         }
       ],
@@ -88069,7 +88662,7 @@
           "properties": {
             "accountIds": {
               "type": "array",
-              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 10).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
+              "description": "Account IDs for the post. Each account ID identifies a connected social media account.\n\n**Get IDs from:** [Get Accounts API](/social-media-posting/oauth/{locationId}/accounts) — use the `id` field from each account.\n\n**One request = one post, shared across every account in this list.**\n- All accounts share the same `summary` and the same `media` array.\n- `summary` is trimmed to the **strictest** character limit among the selected platforms. Adding a Bluesky account (300 chars) therefore trims the caption to 300 for Facebook, Instagram and LinkedIn in that same request.\n- `media` is capped to each platform's own maximum at publish time (e.g. Bluesky publishes the first 4 items, Instagram the first 20).\n- **To keep full-length, platform-specific captions, send one request per platform** - one post per platform, each with only that platform's account IDs.\n\n**Validations:**\n- Required for non-draft posts\n- Must be a non-empty array\n- All account IDs must be valid connected accounts for the location",
               "example": [
                 "aF3KhyL8JIuBwzK3m7Ly_iVrVJ2uoXNF0wzcBzgl5_12554616564525983496"
               ]
@@ -89661,6 +90254,24 @@
           "in": "query",
           "required": false,
           "description": "Reconnect",
+          "type": "string"
+        },
+        {
+          "name": "loginType",
+          "in": "query",
+          "required": false,
+          "description": "**Instagram only.** Selects which Instagram connection flow to run. Ignored by every other platform.\n- `instagram` — Direct Instagram Login: the user signs in with their Instagram credentials on instagram.com and no Facebook Page is required.\n- `facebook` — Instagram via Facebook: the user signs in with Facebook and the Instagram account must be linked to a Page they manage.\n\nOmitted defaults to the Facebook flow, so `loginType=instagram` must be sent explicitly to offer Direct Instagram Login.",
+          "type": "string",
+          "enum": [
+            "facebook",
+            "instagram"
+          ]
+        },
+        {
+          "name": "returnUrl",
+          "in": "query",
+          "required": false,
+          "description": "App URL to redirect back to after OAuth finishes, for the same-tab (mobile) flow. When present and the host is trusted for the location, the finish page 302-redirects here with platform/accountId/error query params instead of using the popup postMessage handshake.",
           "type": "string"
         }
       ],

@@ -4,6 +4,22 @@
 
 **The catalogue is built from GHL's live API docs**, not the GitHub docs repo, which stopped moving in June.
 
+- **Rebuild 2026-11-06 (delta on the 2026-10-29 build; no version bump, nothing published).** 1,614 actions (was 1,603).
+  - **Added, 11:** Wallet v3 (9: balance, transactions, billing and usage summaries, usage records, complimentary
+    credits) and Count Contacts in both trees (`contacts-v3__count-contacts`, `contacts__count-contacts`).
+  - **Deprecated by GHL, 4:** the Saas v3 wallet operations that get or update a location's wallet balance and
+    list location or agency wallet transactions. `describe_action` shows GHL's replacement note.
+  - **Scope added, 4:** the create-association and add-remove-contact-from-business operations (both trees) now list
+    `contacts.write`.
+  - **Text and metadata updated, 70:** GHL changed descriptions, summaries, parameter or request-body metadata on
+    these operations. No operation was removed.
+  - **Checked, not in the catalogue: `companyName` on `PUT /contacts/{contactId}`.** The 2026-11-03 GHL changelog calls
+    it a new request property. The live spec does not: `companyName` appears once, in the 200 response
+    (`UpdateContactsSuccessfulResponseDtoV3`, `contact`), and the PUT request body has no such field. The catalogue
+    stores request bodies, parameters and scopes only, so no entry changes. The `POST /contacts/search` response media
+    type addition is response-side for the same reason. The build's cached copy matches the live page, so the source
+    does not lag. Whether the catalogue should model response fields is open (bl-781).
+
 - **Coverage.** Every operation in the live v3 docs (812) and the dated 2021-07-28 tree (740), as twins: 1,603 actions,
   396 new. New coverage includes Courses, Projects, Client Portal AI, Affiliates, Workflows, countdown timers,
   brand-board design kits, Conversation AI working hours and managed agents. Every previous action id still works.
