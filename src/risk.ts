@@ -52,7 +52,7 @@ function baseRisk(action: CatalogAction): ActionRisk {
     notes.push("Can create externally visible communication or published content.");
   }
 
-  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas|payouts?|commissions?)\b/.test(text)) {
+  if (/\b(payment|payments|invoice|billing|subscription|coupon|order|charge|refund|saas|payouts?|commissions?|wallet|credits?)\b/.test(text)) {
     kinds.add("billing");
     notes.push(
       method === "GET"
@@ -78,6 +78,20 @@ function baseRisk(action: CatalogAction): ActionRisk {
     notes.push(
       "Touches a live advertising account: campaigns, ad sets, ads, audiences, or pixels. Can start, change, or stop real ad spend."
     );
+  }
+
+  // The wallet families move money or credits, and the prose does not always say so: a
+  // complimentary-credit grant is `add-complimentary-credits` with a description that names no
+  // billing word, so it landed as a plain write (2026-11-08, the post-push review). Matched by
+  // category and path, as the ad-manager rule above is, so every non-GET wallet operation is gated
+  // whatever its wording. Reads sent as POST (the transaction lists) are gated too, on purpose:
+  // the rule is the consequence family, and an exception needs its own reviewed ruling.
+  const walletFamily = /^wallet/.test(action.category)
+    || (/^saas/.test(action.category) && /wallet/i.test(action.path))
+    || /\/wallet\//.test(action.path);
+  if (method !== "GET" && walletFamily) {
+    kinds.add("billing");
+    notes.push("Touches a wallet balance or credits: a grant or change is real money or real credit in a sub-account.");
   }
 
   // Same reasoning for anything that puts something live or takes it down, where the verb
